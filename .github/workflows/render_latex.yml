@@ -10,11 +10,11 @@ jobs:
       - name: Compile LaTeX document
         uses: xu-cheng/latex-action@v3
         with:
-          working-directory: ./research_proposal
+          working_directory: ./research_proposal
           root_file: main.tex
       - name: Upload PDF file
         uses: actions/upload-artifact@v3
         with:
-          working-directory: ./research_proposal
+          working_directory: ./research_proposal
           name: PDF
           path: main.pdf
