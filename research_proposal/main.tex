@@ -1,0 +1,299 @@
+\documentclass{article}
+
+\usepackage{arxiv}
+
+\usepackage{lipsum}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{stmaryrd}
+\usepackage{algorithmic,algorithm}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usepackage{comment}
+
+
+\newcommand{\cX}{\mathcal{X}}
+\newcommand{\cL}{\mathcal{L}}
+\newcommand{\cY}{\mathcal{Y}}
+
+\newcommand{\bX}{\mathbf{X}}
+\newcommand{\bY}{\mathbf{Y}}
+
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+
+\title{The First Line of my Research Proposal Title\\is Followed by the Optional Second Line of the\\Research Proposal Title}
+
+
+\author{
+ First name, Last name (replace this row with your name) \\
+ ID: (put here your Student id)\\
+ Artificial Intelligence and Data Engineering Lab\\
+Eindhoven University of Technology\\
+  \texttt{youremailaddress@student.tue.nl} \\
+}
+
+\begin{document}
+\maketitle
+%%------------------------------------------------------------------------------
+\begin{abstract}
+Provide an informative summary of your proposal (topic, approach and potential importance of the results) in no more than three hundred words. 
+%
+Make sure to provide an informative and relevant abstract, as this is often the first part of your proposal that reviewers will read. The abstract should clearly describe what you are going to investigate, why you are going to investigate this subject and which results you expect to find. 
+%
+The abstract should have no more than 300 words and should contain a single paragraph.
+%
+This proposal should be self-contained and has a limit of pages per section. \textbf{Title page, Abstract, Sections 1 and 2 have a combined limit of 8 pages. Section 3 has a limit of 8 pages. Section 4 has a limit of 2 pages. References and Appendices are unlimited.} You should not change the overall format considerably. Please do not change the margins nor introduce considerable LaTeX code that try to compress the content. You may use the appendices for any further information that you want to provide. While there is no page limit in the appendix, reviewers are not obliged to read all your appendix content.
+
+\noindent\textbf{Wordcount: 190} 
+\end{abstract}
+
+%%------------------------------------------------------------------------------
+\section{Overall aim and goals}
+\label{sec:goals}
+%%------------------------------------------------------------------------------
+\subsection{Motivation and Challenges}
+
+This section provides a motivation for the project, which may come from a business case, a scientific interest from the research community, or any other motivation. It is useful to explain the problem here and contextualise it, explain the (scientific) relevance and challenges, as well as the originality and innovative character. In some cases, it might be preferable to reorder the subsections within the same Section~\ref{sec:goals}. This is a valid change to the template.
+
+%%------------------------------------------------------------------------------
+\subsection{Broad Literature Analysis}\label{sec:broadliterature}
+
+This part presents some background for the project, including a broad literature analysis that puts the proposal in context. It describes previous work in general terms, but typically does not go deep into the technical details, which are instead later presented in the Background (Section~\ref{sec:background}). This can include, for instance, a complete literature analysis and description of the approaches that could be compared, such as baselines and competitors, to the research proposed here. These citations in the end of this sentence make no sense with the rest of the text here but are given as example of how to cite other papers~\citep{al2019predicting,alotaibi2020applications}.
+
+This is an example of an equation:
+\begin{eqnarray}
+    \label{eq:example}
+    \cX + \cY & \leq & \left[ \cL \cdot (\bX \times \bY) \right]\\
+    a + b & = & c + d \nonumber
+\end{eqnarray}
+\noindent
+and it is possible to make a comment about Expression~\eqref{eq:example} in the text. Typically equations are seldom present in a broad literature analysis and often appear in a more in-depth background section. Yet, there are exceptions to this rule, in particular when those technical details are needed to build the case for the proposal and to describe the formulation of the problem and objectives clearly.
+
+%%------------------------------------------------------------------------------
+\subsection{Formulation of the problem and objectives}
+
+Include a description of the overall aim and key objectives. Explain your research questions as well as possible. Identify potential general tasks that will need to be tackled in order to complete the project successfully.
+
+As a general rule-of-thumb, a potential evaluator would be asked to summarise the strong and weak points of the proposal as a whole. They will consider the strengths and weaknesses in such a way that they are comprehensible and substantiated for a broader scientific group. They will assess the quality, innovative character and academic impact of the proposal, including the challenging content, originality of the topic, scientific elements, potential to make an important contribution, effectiveness of proposed methodology, importance of the proposed research topic, etc.
+
+%% THESE CITATION (nocite) ARE USED ONLY TO ILLUSTRATE THE REFERENCES. YOU SHOULD USE \cite (OR THE APPROPRIATE DERIVATION SUCH AS \citep \citet etc) WITHIN YOUR TEXT AS NEEDED
+\nocite{arias2016scalable}
+\nocite{batal2013efficient}
+\nocite{bi2013inferring}
+\nocite{bielza2011multi}
+
+\begin{figure}[!h]
+\begin{center}
+
+\begin{tikzpicture}[align = center, node distance=30mm, thick, main/.style = {draw, circle}] 
+\node[main, fill=green] (x1) {$X_1$}; 
+\node[main, fill=green] (x2) [right of=x1] {$X_2$}; 
+\node[main, fill=green] (x3) [right of=x2] {$X_3$}; 
+\node[main, fill=green] (x4) [right of=x3] {$X_4$}; 
+\node[main, fill=green] (x5) [right of=x4] {$X_5$}; 
+\node[main, fill=cyan] (y1) [above right of=x1] {$\bar{Y}_1$}; 
+\node[main, fill=cyan] (y2) [above right of=x2] {$\bar{Y}_2$}; 
+\node[main, fill=cyan] (y3) [above right of=x3] {$\bar{Y}_3$}; 
+\node[main, fill=cyan] (y4) [above right of=x4] {$\bar{Y}_4$}; 
+\draw[draw=black,->] (y1) -- (x1); 
+\draw[draw=black,->] (y2) -- (x2); 
+\draw[draw=black,->] (y2) -- (x3); 
+\draw[draw=black,->] (y3) -- (x4); 
+\draw[draw=black,->] (y4) -- (x4);
+\draw[draw=black,->] (y4) -- (x5); 
+\draw[draw=black,->] (x2) -- (x1);
+\draw[draw=black,->] (x2) -- (x3);
+\draw[draw=black,->] (x4) -- (x3);
+\draw[draw=black,->] (x5) -- (x4);
+\draw [draw=black,-latex] (x5) to [bend left=20] (x3);
+\draw[draw=cyan,->] (y1) -- (y2); 
+\draw[draw=cyan,->] (y3) -- (y4); 
+\end{tikzpicture} 
+
+\caption{Just an example of graph using tikz, by V.L.Nguyen.}
+\label{fig:examplegraph}
+\end{center}
+\end{figure}
+
+
+%%------------------------------------------------------------------------------
+\section{Research approach}
+\label{sec:approach}
+%%------------------------------------------------------------------------------
+\subsection{Overall methodology and decomposition}
+
+This subsection should explain the methodology that will be used during the project. You do not need to enter into details of the methods, tools, techniques (this will appear in the next subsection) but to explain the high-level methodology, including potentially how you will break the problem into smaller parts in order to attack it properly.
+
+%%------------------------------------------------------------------------------
+\subsection{Methods and techniques}
+
+This subsection is devoted to explaining the methods and techniques that are central to the development of the proposed research. The amount of detail will depend on the requirements, but in general this is provided in a general level as the goal is not to give a detailed view of methods and techniques but enough information to support the ideas and feasibility line of research and how the challenges will be tackled. You must measure yourself how much information is required to convey that message. There is an opportunity later to be more focused and detailed in the section about the background material (Section~\ref{sec:background}).
+
+%%------------------------------------------------------------------------------
+\subsection{Research plan and timeline}
+This section should include a clear workplan and timeline for the work. It is often useful to break the research into work packages and describe them precisely and concisely. Use this part to describe a practical timetable over the master project period. You may or not include the preparation phase (and its itemized details) in this plan, depending on your agreements with your MSc supervisor. Include a clear work plan (in narrative form), explaining what will be done in each phase/step of the project. You may want to present milestones and deliverables that you expect to produce and when they will be ready. Use a table or Gantt chart to convey your message about the timeline. An example is given in Table~\ref{tab1}. Note that Table~\ref{tab1} is not a template table but simply an example -- feel free to present this information in a different type of table or chart. Moreover, the amount of details given in Table~\ref{tab1} is barely enough to explain the timeline of the project, so it is important that you make it as detailed as possible.
+
+\begin{table}[htp]
+\caption{In this table you could show what you will do in each of the part of the project. Note that this table is not a template, just an example! Do alter the table, its shape, content, etc, as you think is best for your research proposal.}\label{tab1}
+\begin{center}
+\begin{tabular}{c|l|l|l}
+Week & Description & Expected Result & Deliverable\\
+\hline
+1--2 & Stuff & results & draft ideas\\
+3--4 & Stuff & results & preliminary code\\
+5--8 & Stuff & results & more code\\
+9--10 & Definitely stuff & results & lots of graphs\\
+11--14 & More stuff & results & lots of analyses\\
+15--19 & Almost there & Some results & nothing\\
+20 & Defence & Great results &thesis\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+%%------------------------------------------------------------------------------
+\subsection{Identified risks and their mitigation}
+
+Every project has some risky parts which may require attention and mitigation procedures. This subsection can be used to explain your plan to mitigate potential pitfalls. It can explain potential alternative routes, and/or to describe why some parts do need attention or not in that respect.
+
+%%------------------------------------------------------------------------------
+\subsection{Knowledge utilisation/ valorisation / expected contributions and impact}
+
+This section regards knowledge transfer to others and purposeful interaction with knowledge users, like industry, society and public organisations. You may however indicate that knowledge utilisation cannot be expected given the nature of the research project. In that case, we ask you to assess the argumentation of not foreseeing any knowledge utilisation. Knowledge utilisation consists of two elements: 
+
+\begin{enumerate}
+\item Potential: contribution to your and other academic areas, society and/or organisations that might benefit from the results. 
+
+\item Implementation: how outcomes of the project benefit potential knowledge users; if and how potential users will be involved; (concrete) outcomes for society, science and/or industry.
+\end{enumerate}
+
+
+%%------------------------------------------------------------------------------
+\section{Evidence that your research can succeed}\label{sec:evidence}
+
+This section has little weight in the grades for those who are only taking the seminar without the preparation phase, since at this stage of the project there might be situations were evidence is not available yet. Yet, the existence of any type of evidence will certainly make a stronger case for your proposal. For students who are also doing a preparation phase, Section~\ref{sec:evidence} is of central importance. It is here that one shows the details about the study that is performed during the preparation phase and the achieved outcomes. It is expected that the outcomes obtained here can be later transferred in a way or another to the final report (assuming that the preparation phase is approved and the study continues until defence and graduation).
+
+\subsection{Background and In-depth Literature Analysis}\label{sec:background}
+
+This subsection contains details about previous work, methods, ideas, that are useful for the understanding and development of this proposed research. The idea of this section is to go as deep as needed to support the study that was performed during the initial phase of the graduation project. While the literature analysis of Section~\ref{sec:broadliterature} has the goal of supporting the motivation, problem formulation and description of the methodology, this section aims at deepening the understanding of the current existing ideas, their functioning and relation to the project. Research is inherently incremental, as we build on the results of the past. This section shall provide all the necessary information about the foundations for the project, as well as to setup baselines for comparisons (when appropriate).
+
+\subsection{Preliminary studies and analyses}
+
+This subsection can be used to show any designs, developments, outcomes and tangible results that you may have obtained in the initial part of the MSc project, and/or any other type of evidence to suggest that your research can succeed during the continuation.
+
+In Figure~\ref{fig:2}, we show that our results are promising, even though they have no relation to the rest of the text here and are presented only as an example of a figure. You should use any type of visual aide available to support your studies and analyses.
+
+\begin{figure}[htp]
+\centering
+ \begin{tabular}{r}
+\includegraphics[height=1.9in]{100.pdf}
+\includegraphics[height=1.9in]{200.pdf}
+\end{tabular}
+\caption{Synthetic dataset D1. \textbf{Just an example of figures.}}
+\label{fig:2}
+\end{figure}
+
+
+%%------------------------------------------------------------------------------
+\section{Other Information}
+\label{sec:other}
+%%------------------------------------------------------------------------------
+\subsection{Data management}
+Responsible data management is part of good research. To promote effective and efficient data management, data sharing and data reuse, we expect researchers to carefully manage data. Research data are the evidence that underpin the answer to research questions, and can be used to validate findings. Data can be quantitative information or qualitative statements collected by researchers in the course of their work by experimentation, observation, modelling, interview or other methods, or information derived from existing evidence. 
+
+We understand software as included in the definition of research data. Algorithms, scripts and code developed by researchers in the course of their work may be necessary to access and interpret data. In such cases, the data management plan will be expected to address how information about such items will be made available.
+
+Research results should be stored in such a way that they can be retrieved and reproduced and/or reused in the long term, also by researchers in disciplines and organisations other than those in which the research took place. The operating principle is that all stored data are, in principle, freely accessible and that access is only limited if needed for reasons such as privacy, public security, ethical restrictions, property rights and commercial interests. Any tools or software (algorithms, scripts and code developed by researchers in the course of their work) necessary to access and interpret data should be made available alongside the data.
+
+\begin{enumerate}
+\item Will this project involve re-using existing research data?
+\begin{itemize}
+\item Yes: Are there any constraints on its re-use?
+\item No: Have you considered re-using existing data but discarded the possibility? Why?
+\end{itemize}
+
+\item Will data be collected or generated that are suitable for reuse? 
+\begin{itemize}
+\item Yes: Please answer question 3.
+\item No: Please explain why the research will not result in reusable data or in data that cannot be stored or data that for other reasons are not relevant for reuse. 
+\end{itemize}
+ 
+\item After the project has been completed, how will the data be stored for the long-term and made available for the use by third parties? Are there possible restrictions to data sharing or embargo reasons? Please state these here.
+\end{enumerate}
+
+%%------------------------------------------------------------------------------
+\subsection{Motivation for choice of research group / supervisor / company}
+
+This subsection can be used to explain why you have chosen this project with respect to supervisor, group and company. It is used to explain your view on the alignment of topic and the project team. 
+
+Note that the importance of each section and subsection and their respective content and size may vary from proposal to proposal. So you are expected to balance the content and length of each part accordingly. Typically Section~\ref{sec:other} is considerably smaller than the other sections. Often Sections~\ref{sec:goals}, \ref{sec:approach}, and~\ref{sec:evidence} are the largest sections.
+
+\bibliographystyle{abbrv}  
+\bibliography{references}
+
+\appendix
+\section{Appendix}
+
+You may provide any type of material as appendix to your project proposal. Typical appendices include additional details about the methodology, further pilot studies for illustration and demonstration of feasibility, images and results that were created, pointers to code (or pseudo-code itself), pointers to data, etc. There is no limit in the length of the appendices. For example, this appendix contain Table~\ref{table:somethinginside}, which has information that are not relevant but shows how to use a table here.
+
+\begin{table}[ht]
+\caption{Some results of something. It is recommend not to try to understand it.\label{table:somethinginside}}
+\begin{center}
+\begin{tabular}{cccc|cc|cc}
+& & & & \multicolumn{2}{c|}{Median} & \multicolumn{2}{c}{Maximum}\\ 
+Problem & Description & Max Value & Nodes & Memory & Time(s) & Memory & Time(s)\\
+\hline
+MINAP & naive Bayes w/ & $10^{6}$ & 50 & $59$ & $0.06$ & $84$ & $0.08$ \\
+ & random params   &   & 100 & $125$ & $0.198$ & $200$ & $0.285$ \\
+ &  &   & 200 & $396$ & $1.328$ & $1238$ & $1.893$ \\
+ &   &   & 300 & $1103$ & $2.793$ & $20863$ & $9.893$ \\
+MAP & naive Bayes w/ & $10^{6}$ & 50 & $5$ & $0.01$ & $7$ & $0.015$ \\
+ &  random params  &   & 100 & $5$ & $0.017$ & $6$ & $0.023$ \\
+ &   &   & 200 & $5$ & $0.04$ & $7$ & $0.047$ \\
+ &   &   & 300 & $5$ & $0.043$ & $7$ & $0.049$ \\
+MINAP & partition & $10^{4}$ & 10 & $512$ & $0.034$ & $512$ & $0.039$ \\
+ & problem  &   & 20 & $91857$ & $11.553$ & $100842$ & $17.42$ \\
+ &   &   & 30 & $236979$ & $77.09$ & $264638$ & $82.81$ \\
+ &  & $10^{5}$ & 10 & $512$ & $0.036$ & $512$ & $0.045$ \\
+ &   &   & 20 & $347065$ & $27.599$ & $372670$ & $31.10$ \\
+ &   &   & 30 & $2046264$ & $532.318$ & $2237859$ & $586.4$ \\
+ &  & $10^{6}$ & 10 & $512$ & $0.035$ & $512$ & $0.038$ \\
+ &   &   & 20 & $501347$ & $34.672$ & $510413$ & $38.13$ \\
+ &   &   & 30 & $>10$Mln & $>600$ & $>10$Mln & $>600$ \\
+MINAP & random struct. & $10^{6}$ & 50 & $57$ & $0.046$ & $101$ & $0.073$ \\
+ & and parameters  &   & 100 & $143$ & $0.21$ & $197$ & $0.326$ \\
+ &   &   & 200 & $417$ & $1.288$ & $713$ & $1.761$ \\
+ &   &   & 300 & $1129$ & $2.509$ & $10403$ & $14.53$ \\
+MAP & random struct. & $10^{6}$ & 50 & $5$ & $0.009$ & $7$ & $0.014$ \\
+ & and parameters  &   & 100 & $5$ & $0.018$ & $6$ & $0.023$ \\
+ &   &   & 200 & $5$ & $0.042$ & $7$ & $0.047$ \\
+ &   &   & 300 & $6$ & $0.049$ & $7$ & $0.061$ \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\lipsum[1-4]
+
+\end{document}
+
