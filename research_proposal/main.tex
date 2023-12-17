@@ -27,6 +27,8 @@
 \usepackage{tikz}
 \usetikzlibrary{positioning}
 \usepackage{comment}
+\usepackage{todonotes}
+\usepackage{newclude}
 
 
 \newcommand{\cX}{\mathcal{X}}
@@ -41,99 +43,25 @@
 \newtheorem{proposition}{Proposition}
 \newtheorem{corollary}{Corollary}
 
-\title{The First Line of my Research Proposal Title\\is Followed by the Optional Second Line of the\\Research Proposal Title}
+\title{Estimating Uncertainty using Generative Models in Object Detection}
 
 
 \author{
- First name, Last name (replace this row with your name) \\
- ID: (put here your Student id)\\
+ H.J.M., van Genuchten \\
+ ID: 1297333\\
  Artificial Intelligence and Data Engineering Lab\\
 Eindhoven University of Technology\\
-  \texttt{youremailaddress@student.tue.nl} \\
+  \texttt{h.j.m.v.genuchten@student.tue.nl} \\
 }
 
 \begin{document}
-\maketitle
 %%------------------------------------------------------------------------------
-\begin{abstract}
-  Provide an informative summary of your proposal (topic, approach and potential importance of the results) in no more than three hundred words.
-  %
-  Make sure to provide an informative and relevant abstract, as this is often the first part of your proposal that reviewers will read. The abstract should clearly describe what you are going to investigate, why you are going to investigate this subject and which results you expect to find.
-  %
-  The abstract should have no more than 300 words and should contain a single paragraph.
-  %
-  This proposal should be self-contained and has a limit of pages per section. \textbf{Title page, Abstract, Sections 1 and 2 have a combined limit of 8 pages. Section 3 has a limit of 8 pages. Section 4 has a limit of 2 pages. References and Appendices are unlimited.} You should not change the overall format considerably. Please do not change the margins nor introduce considerable LaTeX code that try to compress the content. You may use the appendices for any further information that you want to provide. While there is no page limit in the appendix, reviewers are not obliged to read all your appendix content.
-
-  \noindent\textbf{Wordcount: 190}
-\end{abstract}
+\include*{chapters/abstract}
 
 %%------------------------------------------------------------------------------
 \section{Overall aim and goals}
 \label{sec:goals}
-%%------------------------------------------------------------------------------
-\subsection{Motivation and Challenges}
-
-This section provides a motivation for the project, which may come from a business case, a scientific interest from the research community, or any other motivation. It is useful to explain the problem here and contextualize it, explain the (scientific) relevance and challenges, as well as the originality and innovative character. In some cases, it might be preferable to reorder the subsections within the same Section~\ref{sec:goals}. This is a valid change to the template.
-
-%%------------------------------------------------------------------------------
-\subsection{Broad Literature Analysis}\label{sec:broadliterature}
-
-This part presents some background for the project, including a broad literature analysis that puts the proposal in context. It describes previous work in general terms, but typically does not go deep into the technical details, which are instead later presented in the Background (Section~\ref{sec:background}). This can include, for instance, a complete literature analysis and description of the approaches that could be compared, such as baselines and competitors, to the research proposed here. These citations in the end of this sentence make no sense with the rest of the text here but are given as example of how to cite other papers~\citep{al2019predicting,alotaibi2020applications}.
-
-This is an example of an equation:
-\begin{eqnarray}
-  \label{eq:example}
-  \cX + \cY & \leq & \left[ \cL \cdot (\bX \times \bY) \right]\\
-  a + b & = & c + d \nonumber
-\end{eqnarray}
-\noindent
-and it is possible to make a comment about Expression~\eqref{eq:example} in the text. Typically equations are seldom present in a broad literature analysis and often appear in a more in-depth background section. Yet, there are exceptions to this rule, in particular when those technical details are needed to build the case for the proposal and to describe the formulation of the problem and objectives clearly.
-
-%%------------------------------------------------------------------------------
-\subsection{Formulation of the problem and objectives}
-
-Include a description of the overall aim and key objectives. Explain your research questions as well as possible. Identify potential general tasks that will need to be tackled in order to complete the project successfully.
-
-As a general rule-of-thumb, a potential evaluator would be asked to summarise the strong and weak points of the proposal as a whole. They will consider the strengths and weaknesses in such a way that they are comprehensible and substantiated for a broader scientific group. They will assess the quality, innovative character and academic impact of the proposal, including the challenging content, originality of the topic, scientific elements, potential to make an important contribution, effectiveness of proposed methodology, importance of the proposed research topic, etc.
-
-%% THESE CITATION (nocite) ARE USED ONLY TO ILLUSTRATE THE REFERENCES. YOU SHOULD USE \cite (OR THE APPROPRIATE DERIVATION SUCH AS \citep \citet etc) WITHIN YOUR TEXT AS NEEDED
-\nocite{arias2016scalable}
-\nocite{batal2013efficient}
-\nocite{bi2013inferring}
-\nocite{bielza2011multi}
-
-\begin{figure}[!h]
-  \begin{center}
-
-    \begin{tikzpicture}[align = center, node distance=30mm, thick, main/.style = {draw, circle}]
-      \node[main, fill=green] (x1) {$X_1$};
-      \node[main, fill=green] (x2) [right of=x1] {$X_2$};
-      \node[main, fill=green] (x3) [right of=x2] {$X_3$};
-      \node[main, fill=green] (x4) [right of=x3] {$X_4$};
-      \node[main, fill=green] (x5) [right of=x4] {$X_5$};
-      \node[main, fill=cyan] (y1) [above right of=x1] {$\bar{Y}_1$};
-      \node[main, fill=cyan] (y2) [above right of=x2] {$\bar{Y}_2$};
-      \node[main, fill=cyan] (y3) [above right of=x3] {$\bar{Y}_3$};
-      \node[main, fill=cyan] (y4) [above right of=x4] {$\bar{Y}_4$};
-      \draw[draw=black,->] (y1) -- (x1);
-      \draw[draw=black,->] (y2) -- (x2);
-      \draw[draw=black,->] (y2) -- (x3);
-      \draw[draw=black,->] (y3) -- (x4);
-      \draw[draw=black,->] (y4) -- (x4);
-      \draw[draw=black,->] (y4) -- (x5);
-      \draw[draw=black,->] (x2) -- (x1);
-      \draw[draw=black,->] (x2) -- (x3);
-      \draw[draw=black,->] (x4) -- (x3);
-      \draw[draw=black,->] (x5) -- (x4);
-      \draw [draw=black,-latex] (x5) to [bend left=20] (x3);
-      \draw[draw=cyan,->] (y1) -- (y2);
-      \draw[draw=cyan,->] (y3) -- (y4);
-    \end{tikzpicture}
-
-    \caption{Just an example of graph using tikz, by V.L.Nguyen.}
-    \label{fig:examplegraph}
-  \end{center}
-\end{figure}
+\include*{chapters/introduction}
 
 
 %%------------------------------------------------------------------------------
@@ -146,6 +74,11 @@ This subsection should explain the methodology that will be used during the proj
 
 %%------------------------------------------------------------------------------
 \subsection{Methods and techniques}
+
+\begin{itemize}
+  \item Describe current metrics
+  \item 
+\end{itemize}
 
 This subsection is devoted to explaining the methods and techniques that are central to the development of the proposed research. The amount of detail will depend on the requirements, but in general this is provided in a general level as the goal is not to give a detailed view of methods and techniques but enough information to support the ideas and feasibility line of research and how the challenges will be tackled. You must measure yourself how much information is required to convey that message. There is an opportunity later to be more focused and detailed in the section about the background material (Section~\ref{sec:background}).
 
