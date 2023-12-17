@@ -12,6 +12,16 @@ Using a generative model we can generate a better explanation of why a scene is 
 \end{equation}
 The separate parts can be used to give a more detailed
 
+
+\subsection{RQ}
+Current Ideas for possible RQs
+
+\begin{itemize}
+    \item Is uncertainty a good indicator for active learning?
+    \item Is uncertainty a good indicator for relabeling?
+    \item
+\end{itemize}
+
 %%------------------------------------------------------------------------------
 \subsection{Motivation and Challenges}
 
@@ -22,16 +32,16 @@ Uncertainty Quantification is especially difficult in the case of Object Detecti
 %%------------------------------------------------------------------------------
 \subsection{Broad Literature Analysis}\label{sec:broadliterature}
 
-This project covers broader research areas, each will be covered separately in subsections \ref{sec:broadliterature:uncertainty} and \ref{sec:broadliterature:object_detection}. Prior work in the combination will be described in subsection \ref{sec:broadliterature:combination}
+This project covers broader research areas, each will be covered separately in subsections \ref{sec:broadliterature:uncertainty} and \ref{sec:broadliterature:object_detection}. Related work in the combination will be described in subsection \ref{sec:broadliterature:combination}
 
 \subsubsection{Uncertainty Quantification}\label{sec:broadliterature:uncertainty}
-The ability to distinguish certain and uncertain outputs from machine learning models are very useful. It can be used to help decide which samples are most valuable to be manually labeled \todo{Talk about active learning}
+The ability to distinguish certain and uncertain outputs from machine learning models is useful for various reasons. It can be used for active learning \cite{yang2009effective, settles2009active, Bernhardt_2022}, which makes better use of limited labeling capacity.
 
-\citep{gal2016uncertainty} distinguishes two kinds of uncertainty. Aleatoric uncertainty, the uncertainty that is caused by inprecise input data (i.e. $x$) and epistemic uncertainty, the uncertainty that is caused by the model.
+\citep{gal2016uncertainty} distinguishes two kinds of uncertainty. Aleatoric uncertainty, the uncertainty that is caused by imprecise input data (i.e. $x$) and epistemic uncertainty, the uncertainty that is caused by the model.
 
-Neural Networks (NN) have proven to be excelent at a broad range of tasks. However with
+Neural Networks (NN) have proven to be excellent at a broad range of tasks. However with
 
-Uncertainty Quantification (UQ) is an important factor to increase the trust in automated processes based on machine learning. Their exist a various amount of methods both post-hoc (e.g. ) and
+Uncertainty Quantification (UQ) is an important factor to increase the trust in automated processes based on machine learning. Their exist a various amount of methods both post-hoc \todo{Add post-hoc citations} and built-in \todo{Add citations}.
 
 
 
