@@ -1,3 +1,7 @@
+\makeatletter
+\let\blx@rerun@biber\relax
+\makeatother
+
 \documentclass{article}
 
 \usepackage{arxiv}
@@ -15,7 +19,7 @@
 \usepackage{graphicx}
 \graphicspath{ {./images/} }
 
-\usepackage{natbib}
+\usepackage[natbib=true]{biblatex}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsthm}
@@ -54,6 +58,8 @@ Eindhoven University of Technology\\
   \texttt{h.j.m.v.genuchten@student.tue.nl} \\
 }
 
+\addbibresource{references.bib}
+
 \begin{document}
 %%------------------------------------------------------------------------------
 \include*{chapters/abstract}
@@ -62,7 +68,7 @@ Eindhoven University of Technology\\
 \include*{chapters/introduction}
 
 \begin{comment}
-  
+
 
 %%------------------------------------------------------------------------------
 \section{Research approach}
@@ -184,7 +190,8 @@ Note that the importance of each section and subsection and their respective con
 \end{comment}
 
 \bibliographystyle{abbrv}
-\bibliography{references}
+\printbibliography
+% \bibliography{references}
 
 \begin{comment}
 \appendix

@@ -1,16 +1,10 @@
 \section{Overall aim and goals}\label{sec:goals}
 \begin{itemize}
-    \item Create a generative model to model the uncertainty of various scences
-          \subitem i.e. Detecting weird combinations of objects within a scence
+    \item Create a generative model to model the uncertainty of various scenes
+          \subitem i.e. Detecting weird combinations of objects within a scene
     \item Use uncertainty to make more efficient use of human labelers.
     \item Design a system which can make efficient use of uncertainty of previous stages.
 \end{itemize}
-
-Using a generative model we can generate a better explanation of why a scene is uncertain. E.g. if we are able to model the following equation:
-\begin{equation}
-    p(b, c, x) = p(x) * p(b | x) * p(c | x)
-\end{equation}
-The separate parts can be used to give a more detailed
 
 
 \subsection{RQ}
@@ -27,7 +21,7 @@ Current Ideas for possible RQs
 
 Artificial Intelligence solutions are increasingly put in new and challenging scenarios. Yet, often AI models are only able to give a distinction between a small set of answers even when the actual answer is outside of this set \todo{Add citation} or the model has never seen anything like it before, and will gues an answer \todo{Add citation of OoD}. Uncertainty Quantification (UQ) can enable a system to detect when a prediction might be of lesser quality, and allow it to preemptively react to that. Either by stopping or requesting human intervention. Furthermore, understanding when models are uncertain, allows for more effective data sampling and labeling by making use of active learning schemes \todo{Add citations active learning usage}. The later is especially useful in industries where labeling is expensive or timeconsuming.\todo{Add citation of label cost}.
 
-Uncertainty Quantification is especially difficult in the case of Object Detection. It requires both localization (often by using regression) and classification.
+Uncertainty Quantification is especially difficult in the case of Object Detection. It requires both localization (often by using regression) and classification \cite{Gasperini_2022}.
 
 %%------------------------------------------------------------------------------
 \subsection{Broad Literature Analysis}\label{sec:broadliterature}
@@ -50,7 +44,7 @@ Reliable uncertainty estimation of Artificial Intelligence Models is important i
 \subsubsection{Object Detection}\label{sec:broadliterature:object_detection}
 
 \todo{Expand difference between one-stage and multi-stage}
-There are two main paradigms within Object Detection, One-Stage \cite{zhou2019objects, bochkovskiy2020yolov4, wang2022yolov7} and Multi-Stage detectors \cite{girshick2014rich, girshick2015fast, }. Single stage detectors directly detect a set of bounding boxes and their respective classes, whereas Multi-Stage detectors often first identify interesting patches which are then classified.
+There are two main paradigms within Object Detection, One-Stage \cite{zhou2019objects, bochkovskiy2020yolov4, wang2022yolov7} and Multi-Stage detectors \cite{girshick2014rich, girshick2015fast}. Single stage detectors directly detect a set of bounding boxes and their respective classes, whereas Multi-Stage detectors often first identify interesting patches which are then classified.
 
 DiffusionDet: \cite{chen2023diffusiondet}
 
