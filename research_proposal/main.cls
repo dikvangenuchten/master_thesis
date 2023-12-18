@@ -1,1 +1,0 @@
-\addbibresource{references.bib}

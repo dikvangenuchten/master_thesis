@@ -1,4 +1,5 @@
 \section{Overall aim and goals}\label{sec:goals}
+The main goal of this thesis will be the implementation of a (generative) Object Detection model that is able to provide reliable uncertainty estimates on its own predictions. Secondary to that,
 \begin{itemize}
     \item Create a generative model to model the uncertainty of various scenes
           \subitem i.e. Detecting weird combinations of objects within a scene
@@ -7,21 +8,32 @@
 \end{itemize}
 
 
-\subsection{RQ}
-Current Ideas for possible RQs
+\subsection{Possible RQs}
+Current Ideas for possible RQs. (For the seminar we need to have (at least) 5 RQs, they do not need to all be answered)
 
 \begin{itemize}
+    \item Can generative models be used for uncertainty prediction in Object Detection?
+    \item Does increasing the iterations of a generative model decrease the uncertainty?
     \item Is uncertainty a good indicator for active learning?
     \item Is uncertainty a good indicator for relabeling?
-    \item
+    \item Can temporal data be used to improve Uncertainty Quantification?
 \end{itemize}
 
 %%------------------------------------------------------------------------------
 \subsection{Motivation and Challenges}
 
-Artificial Intelligence solutions are increasingly put in new and challenging scenarios. Yet, often AI models are only able to give a distinction between a small set of answers even when the actual answer is outside of this set \todo{Add citation} or the model has never seen anything like it before, and will gues an answer \todo{Add citation of OoD}. Uncertainty Quantification (UQ) can enable a system to detect when a prediction might be of lesser quality, and allow it to preemptively react to that. Either by stopping or requesting human intervention. Furthermore, understanding when models are uncertain, allows for more effective data sampling and labeling by making use of active learning schemes \todo{Add citations active learning usage}. The later is especially useful in industries where labeling is expensive or timeconsuming.\todo{Add citation of label cost}.
+Artificial Intelligence solutions are increasingly put in new and challenging scenarios. They are known to work well when the training and inference set are from the same distribution \cite{krizhevsky2012imagenet}. However, it has been shown that models will predict with high scores for inputs that are not relevant \cite{Nguyen_2015_CVPR,szegedy2013intriguing}. It has also been shown that this can be used to attack these networks\cite{goodfellow2014explaining,dong2018boosting}.
+Uncertainty Quantification (UQ) can enable a system to detect when a prediction might be of lesser quality \cite{däubener2020detecting}, and allow it to preemptively react to that\cite{osti_1481629}. Either by stopping or requesting human intervention.
+Furthermore, understanding when models are uncertain, allows for more effective data sampling and labeling by making use of active learning schemes \cite{settles2009active,Bernhardt_2022,yang2009effective}. The latter is especially useful in industries where labeling is expensive or time-consuming.
 
-Uncertainty Quantification is especially difficult in the case of Object Detection. It requires both localization (often by using regression) and classification \cite{Gasperini_2022}.
+Object Detection is an especially difficult field as the model has many outputs of different types. It requires both regression (for localization) and classification \cite{Gasperini_2022}. Moreover, there are multiple uncertainties present:
+\begin{itemize}
+    \item Objectness: \t Is a bounding box an object (of interests)?
+    \item Classification: \t Is a bounding box of a certain class?
+    \item Size: \t Is the size of the bounding box correct?
+    \item Location: \t Is the location of the bounding box correct?
+\end{itemize}
+
 
 %%------------------------------------------------------------------------------
 \subsection{Broad Literature Analysis}\label{sec:broadliterature}
@@ -29,17 +41,12 @@ Uncertainty Quantification is especially difficult in the case of Object Detecti
 This project covers broader research areas, each will be covered separately in subsections \ref{sec:broadliterature:uncertainty} and \ref{sec:broadliterature:object_detection}. Related work in the combination will be described in subsection \ref{sec:broadliterature:combination}
 
 \subsubsection{Uncertainty Quantification}\label{sec:broadliterature:uncertainty}
-The ability to distinguish certain and uncertain outputs from machine learning models is useful for various reasons. It can be used for active learning \cite{yang2009effective, settles2009active, Bernhardt_2022}, which makes better use of limited labeling capacity.
+The ability to distinguish certain and uncertain outputs from machine learning models is useful for various reasons. It can be used for active learning \cite{yang2009effective,settles2009active,houlsby2011bayesian,Bernhardt_2022}, which makes better use of limited labeling capacity.
 
-\citep{gal2016uncertainty} distinguishes two kinds of uncertainty. Aleatoric uncertainty, the uncertainty that is caused by imprecise input data (i.e. $x$) and epistemic uncertainty, the uncertainty that is caused by the model.
+\citep{gal2016uncertainty} distinguishes two kinds of uncertainty. Aleatoric uncertainty, the uncertainty that is caused by imprecise input data, and epistemic uncertainty, the uncertainty that is caused by the model. Aleatoric uncertainty is often caused by imprecise measurements and can be reduced by improving the quality of our dataset and inputs. The latter, epistemic uncertainty, can be reduced by improving either the training procedure, increasing the amount of data or improving the model architecture.
 
-Neural Networks (NN) have proven to be excellent at a broad range of tasks. However with
+Uncertainty Quantification (UQ) is an important factor to increase the trust in automated processes based on machine learning. Current methods often sample from existing networks \cite{gal2016dropout,NEURIPS2019_118921ef,miller2019evaluating} or predict parameters of a distribution \cite{choi2019gaussian,swiatkowski2020ktied}.
 
-Uncertainty Quantification (UQ) is an important factor to increase the trust in automated processes based on machine learning. Their exist a various amount of methods both post-hoc \todo{Add post-hoc citations} and built-in \todo{Add citations}.
-
-
-
-Reliable uncertainty estimation of Artificial Intelligence Models is important in safety critical situations. Expressing explicit uncertainty with Deep Neural Networks (DNN) can
 
 \subsubsection{Object Detection}\label{sec:broadliterature:object_detection}
 
