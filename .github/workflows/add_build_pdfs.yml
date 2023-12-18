@@ -19,8 +19,8 @@ jobs:
           path: ./research_proposal/main.pdf
       - name: Commit files
         run: |
-          mkdir -p ../auto-build
-          mv main.pdf ../research_proposal.pdf
+          mkdir -p auto-build
+          mv ./research_proposal/main.pdf auto-build/research_proposal.pdf
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add ../research_proposal.pdf
