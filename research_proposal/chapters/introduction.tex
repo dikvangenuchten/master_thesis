@@ -1,9 +1,13 @@
 \section{Overall aim and goals}\label{sec:goals}
 The main goal of this thesis will be the implementation of a (generative) Object Detection model that is able to provide reliable uncertainty estimates on its own predictions. Secondary to that,
 \begin{itemize}
-    \item Create a generative model to model the uncertainty of various scenes
+    \item Create a (generative) model which can predict bounding boxes with Uncertainty Quantification.
           \subitem i.e. Detecting weird combinations of objects within a scene
-    \item Use uncertainty to make more efficient use of human labelers.
+    \item Validate uncertainty of the model.
+          \subitem Does certainty and precision correlate. (Statistical analyses)
+    \item Test uncertainty as measure for active learning.
+          \subitem To make more efficient use of human labelers. One possibility is to take a subset of e.g. 10\% of a labeled dataset, and then iteratively select more data. Comparing it to a random subset of equal size.
+    \item Verify uncertainty is a good predictor for OoD data.
     \item Design a system which can make efficient use of uncertainty of previous stages.
 \end{itemize}
 
@@ -34,6 +38,7 @@ Object Detection is an especially difficult field as the model has many outputs 
     \item Location: \t Is the location of the bounding box correct?
 \end{itemize}
 
+This paper is
 
 %%------------------------------------------------------------------------------
 \subsection{Broad Literature Analysis}\label{sec:broadliterature}
@@ -50,18 +55,13 @@ Uncertainty Quantification (UQ) is an important factor to increase the trust in 
 
 \subsubsection{Object Detection}\label{sec:broadliterature:object_detection}
 
-\todo{Expand difference between one-stage and multi-stage}
-There are two main paradigms within Object Detection, One-Stage \cite{zhou2019objects, bochkovskiy2020yolov4, wang2022yolov7} and Multi-Stage detectors \cite{girshick2014rich, girshick2015fast}. Single stage detectors directly detect a set of bounding boxes and their respective classes, whereas Multi-Stage detectors often first identify interesting patches which are then classified.
+% Most object detection models consist of an image classification backbone such as VGG16 \cite{simonyan2014very}, MobileNet \cite{howard2017mobilenets} or ResNet \cite{he2015deep}.
+There are two main paradigms within Object Detection, One-Stage detectors\cite{zhou2019objects, bochkovskiy2020yolov4, wang2022yolov7, liu2016ssd, duan2019centernet}, which directly predict both the bounding box and class in a single forward pass, and Multi-Stage detectors \cite{girshick2014rich, girshick2015fast}, which first detect regions of interests to then subsequently classify these regions. A more recent development is DiffusionDet \cite{chen2023diffusiondet}, which iteratively 'de-noises' a set of random bounding boxes towards the ground truth bounding boxes. Furthermore, there are some general tricks that have shown to provide improved performance at the cost of an increased training time for most object detection algorithms. These have been dubbed "Bag of Freebies" by \citep*{zhang2019bag}, as they do not increase inference time.
 
-DiffusionDet: \cite{chen2023diffusiondet}
-
-\todo{Describe the multi-faceted problem (i.e. both classification and regression)}
-
-\todo{Distinction between backbone and head, and some examples}
+\paragraph*{One-Stage Detectors}
+The Single Shot Detector proposed by \citep{liu2016ssd} makes use of many anchor boxes. For each anchor box an offset and class is predicted, which are subsequently merged using Non-Max-Suppression (NMS). During training all bounding boxes with an Intersection over Union (IoU) greater than a threshold are matched and should be predicted with that class. All unmatched boxes should be classified as a `background' class. This leads to a huge class imbalance. To tackle this, hard negative mining is used. For every positive match, at most $n$ (in the paper 3) negative boxes are included during the loss calculation.
 
 
-
-\todo{Talk about "bag of freebies", these allow for better accuracy for the same inference speed at the cost of training time}
 
 
 \subsubsection{In combination}\label{sec:broadliterature:combination}
@@ -71,12 +71,19 @@ The combination of Uncertainty Quantification and Object Detection is especially
 
 %%------------------------------------------------------------------------------
 \subsection{Formulation of the problem and objectives}
-Let $x \in \mathbb{R}^{HxWxC}$ be the input image which contains objects $O_i$, which are a combination of a bounding box coordinates: $B_i = (x_{center}, y_{center}, x_{width}, y_{height})$ and a class $c \in C$. Our goal is to create a probabilistic model which
+\paragraph*{Model formulation}
+Let $x \in \mathbb{R}^{HxWxC}$ be the input image which contains objects $O_i$, which are a combination of a bounding box: $B_i \in \mathbb{R}^{N4}$ and a class $c \in C$.
 
-\cite{Gasperini_2022}
-\todo{Formulate model}
+\paragraph*{Metric formulation}
 
-
+\todo{Mathematically formulate the following metrics}
+\begin{itemize}
+    \item IoU
+    \item mean Average Precision
+    \item Uncertainty Error \cite{miller2019evaluating}
+    \item (AU)ROC \cite{miller2019evaluating}
+    \item (AU)Precision-Recall \cite{saito2015pr}
+\end{itemize}
 
 \todo{Formulate (uncertainty) Metrics}
 
