@@ -24,7 +24,7 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git status
-          git add auto-build/
+          git add -f auto-build/research_proposal.pdf
           git commit -m "Build research_proposal.pdf"
       - name: Push changes
         uses: ad-m/github-push-action@master
