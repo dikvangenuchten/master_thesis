@@ -49,12 +49,33 @@ Reliable uncertainty estimation of Artificial Intelligence Models is important i
 
 \subsubsection{Object Detection}\label{sec:broadliterature:object_detection}
 
+\todo{Expand difference between one-stage and multi-stage}
+There are two main paradigms within Object Detection, One-Stage \cite{zhou2019objects, bochkovskiy2020yolov4, wang2022yolov7} and Multi-Stage detectors \cite{girshick2014rich, girshick2015fast, }. Single stage detectors directly detect a set of bounding boxes and their respective classes, whereas Multi-Stage detectors often first identify interesting patches which are then classified.
+
+\todo{Describe the multi-faceted problem (i.e. both classification and regression)}
+
+\todo{Distinction between backbone and head, and some examples}
+
+
+
+\todo{Talk about "bag of freebies", these allow for better accuracy for the same inference speed at the cost of training time}
+
 
 \subsubsection{In combination}\label{sec:broadliterature:combination}
+The combination of Uncertainty Quantification and Object Detection is especially difficult as Object Detection is both a regression and a classification task.
 
+\cite{Gasperini_2022}
 
 %%------------------------------------------------------------------------------
 \subsection{Formulation of the problem and objectives}
+Let $x \in \mathbb{R}^{HxWxC}$ be the input image which contains objects $O_i$, which are a combination of a bounding box coordinates: $B_i = (x_{center}, y_{center}, x_{width}, y_{height})$ and a class $c \in C$. Our goal is to create a probabilistic model which
+
+\cite{Gasperini_2022}
+\todo{Formulate model}
+
+
+
+\todo{Formulate (uncertainty) Metrics}
 
 % Include a description of the overall aim and key objectives. Explain your research questions as well as possible. Identify potential general tasks that will need to be tackled in order to complete the project successfully.
 
