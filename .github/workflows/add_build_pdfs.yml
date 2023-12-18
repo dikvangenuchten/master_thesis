@@ -23,7 +23,7 @@ jobs:
       #     name: PDF
       #     path: ./research_proposal/main.pdf
       - name: touch test
-        run touch test.md
+        run: touch test.md
       - name: Commit files
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
