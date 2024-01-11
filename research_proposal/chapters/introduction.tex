@@ -1,26 +1,34 @@
 \section{Overall aim and goals}\label{sec:goals}
-The main goal of this thesis will be the implementation of a (generative) Object Detection model that is able to provide reliable uncertainty estimates on its own predictions. Secondary to that,
+The main goal of this thesis will be the implementation of a (generative) Object Detection model for mobile robotics. An important part of this is the ability to recognize novel objects. Furthermore, it is important to be able to have a good understanding of the quality of the prediction. As it is well known that Neural Networks often perform bad when presented with Out-of-Distribution (OoD) data.\todo{Possibly add citation for this statement} As mobile robotics are required to navigate unknown terrain, it is important that the model is capable of handling OoD data. This can be achieved either by ensuring the model is robust against OoD data or enabling the model to warn the user when OoD data is detected.
+
+% To achieve the above-mentioned goal 
+% \begin{itemize}
+%     \item A (generative) model which can predict bounding boxes with Uncertainty Quantification.
+%     \item Detecting unexpected combinations of objects within a scene
+%     \item Validate uncertainty of the model.
+%           \subitem Does certainty and precision correlate. (Statistical analyses)
+%     \item Test uncertainty as measure for active learning.
+%           \subitem To make more efficient use of human labelers. One possibility is to take a subset of e.g. 10\% of a labeled dataset, and then iteratively select more data. Comparing it to a random subset of equal size.
+%     \item Verify uncertainty is a good predictor for OoD data.
+%     \item Design a system which can make efficient use of uncertainty of previous stages.
+% \end{itemize}
+
+
+
+\subsection{Research questions}
+\todo{Possibly move this to after motivation and challenges}
+To achieve the above-mentioned goal I will try to answer the following research questions:
+
 \begin{itemize}
-    \item Create a (generative) model which can predict bounding boxes with Uncertainty Quantification.
-    \item Detecting unusual combinations of objects within a scene
-    \item Validate uncertainty of the model.
-          \subitem Does certainty and precision correlate. (Statistical analyses)
-    \item Test uncertainty as measure for active learning.
-          \subitem To make more efficient use of human labelers. One possibility is to take a subset of e.g. 10\% of a labeled dataset, and then iteratively select more data. Comparing it to a random subset of equal size.
-    \item Verify uncertainty is a good predictor for OoD data.
-    \item Design a system which can make efficient use of uncertainty of previous stages.
-\end{itemize}
-
-
-
-\subsection{Possible RQs}
-Current Ideas for possible RQs. (For the seminar we need to have (at least) 5 RQs, they do not need to all be answered)
-
-\begin{itemize}
-    \item Can generative models be used for uncertainty prediction in Object Detection?
-    \item Does increasing the iterations of a generative model decrease the uncertainty?
-    \item Is uncertainty a good indicator for active learning?
-    \item Is uncertainty a good indicator for relabeling?
+    \item Is it possible to detect novel objects using Generative Object Detection?
+    \item Is it possible to do uncertainty quantification for the various aspects of object detection in a single model?
+          \subitem How likely is a bounding box an object?
+          \subitem How likely is an object of a specific class?
+          \subitem What is the uncertainty of the objects size?
+    \item What is the performance difference between SOTA Object Detection models and a Generative Object Detection model acceptable?
+    \item Is the uncertainty quantification given by the Generative model an useful indicator ...
+          \subitem for active learning?
+          \subitem detecting wrongly labeled items?
     \item Can temporal data be used to improve Uncertainty Quantification?
 \end{itemize}
 
@@ -33,10 +41,10 @@ Furthermore, understanding when models are uncertain, allows for more effective 
 
 Object Detection is an especially difficult field as the model has many outputs of different types. It requires both regression (for localization) and classification \cite{Gasperini_2022}. Moreover, there are multiple uncertainties present:
 \begin{itemize}
-    \item Objectness: \t Is a bounding box an object (of interests)?
-    \item Classification: \t Is a bounding box of a certain class?
-    \item Size: \t Is the size of the bounding box correct?
-    \item Location: \t Is the location of the bounding box correct?
+    \item Objectness: \t Is a bounding box an object?  \label{prop:Objectness}
+    \item Classification: \t Is a bounding box of a certain class? \label{prop:Classification}
+    \item Size: \t Is the size of the bounding box correct? \label{prop:Size}
+    \item Location: \t Is the location of the bounding box correct? \label{prop:Location}
 \end{itemize}
 
 
@@ -61,22 +69,36 @@ There are two main paradigms within Object Detection, One-Stage detectors\cite{z
 \paragraph*{One-Stage Detectors}
 The Single Shot Detector proposed by \citep{liu2016ssd} makes use of many anchor boxes. For each anchor box an offset and class is predicted, which are subsequently merged using Non-Max-Suppression (NMS). During training all bounding boxes with an Intersection over Union (IoU) greater than a threshold are matched and should be predicted with that class. All unmatched boxes should be classified as a `background' class. This leads to a huge class imbalance. To tackle this, hard negative mining is used. For every positive match, at most $n$ (in the paper 3) negative boxes are included during the loss calculation.
 
+\paragraph*{Multi-Stage Detectors}
+\todo{Expand the multi-stage detector part}
 
-
+\paragraph*{Self-supervised}
+Recent developments in Vision Transformers (ViT) \cite{dosovitskiy2021image} have been used to pre-train backends for object detection tasks \cite{carion2020endtoend}. The benefit of ViT is the ability to use unlabeled data to pre-train the transformer part of the model. A relatively small fine-tuning dataset can then be used to train the model for a specific task. They have also been shown to segment objects in a fully self-supervised way \cite{caron2021emerging}.
 
 \subsubsection{In combination}\label{sec:broadliterature:combination}
-The combination of Uncertainty Quantification and Object Detection is especially difficult as Object Detection is both a regression and a classification task.
-
-\cite{Gasperini_2022}
+The combination of Uncertainty Quantification and Object Detection is especially difficult as Object Detection is both a regression and a classification task. A recent advancement in this is CertainNet \cite{Gasperini_2022}. Which is capable of providing sample free certainty estimations on the various aspects of the prediction.
 
 %%------------------------------------------------------------------------------
 \subsection{Formulation of the problem and objectives}
 \paragraph*{Model formulation}
-Let $x \in \mathbb{R}^{HxWxC}$ be the input image which contains objects $O_i$, which are a combination of a bounding box: $B_i \in \mathbb{R}^{N4}$ and a class $c \in C$.
+Let $x \in \mathbb{R}^{H\times W\times C}$ be the input image which contains objects $\mathcal{O}$. Each object $o_i$ is a combination of a bounding box: $b_i \in \mathbb{R}^{4}$ and a class $c_i \in C$.
+
+A one-stage discriminative model for object detection can often be described by the following function:
+\begin{align}
+    f_{\theta}(x) & = \mathcal{O}                                             \\
+                  & = \mathbb{R}^{(4 + |C|) \times |O|} \label{eq:size_of_o}  \\
+                  & = NMS(\mathbb{R}^{(4 + |C| + 1) \times N}) \label{eq:nms}
+\end{align}
+At Equation \ref{eq:size_of_o} $|\mathcal{O}|$ is not known (or constant). This is usually solved by taking $N >> \max{|\mathcal{O}|}$\cite{bochkovskiy2020yolov4, wang2022yolov7, liu2016ssd}, and adding an extra 'negative' class. $\mathcal{O}$ is then extracted using Non-maximum Suppression (NMS).
+
+In a generative context the problem can be described by $p(\mathbf{x}, \mathcal{O})$, which can be decomposed into:
+\begin{align}
+    p(\mathbf{x}, \mathcal{O}) & = p(\mathbf{x}) \cdot p(\mathbf{\mathcal{O}} | \mathbf{x}) \label{eq:generative_model}                                                \\
+                               & = p(\mathbf{x})\prod_{\mathbf{i} = 0}^{|\mathcal{O}|}p(\mathbf{o_i} \mid \mathbf{x} \cap \mathbf{o_0} \cap ... \cap \mathbf{o_{i-1}}) \\
+\end{align}
 
 \paragraph*{Metric formulation}
-
-\todo{Mathematically formulate the following metrics}
+Current SOTA models report on the following metrics:
 \begin{itemize}
     \item IoU
     \item mean Average Precision
@@ -85,47 +107,6 @@ Let $x \in \mathbb{R}^{HxWxC}$ be the input image which contains objects $O_i$, 
     \item (AU)Precision-Recall \cite{saito2015pr}
 \end{itemize}
 
-\todo{Formulate (uncertainty) Metrics}
-
 % Include a description of the overall aim and key objectives. Explain your research questions as well as possible. Identify potential general tasks that will need to be tackled in order to complete the project successfully.
 
 % As a general rule-of-thumb, a potential evaluator would be asked to summarise the strong and weak points of the proposal as a whole. They will consider the strengths and weaknesses in such a way that they are comprehensible and substantiated for a broader scientific group. They will assess the quality, innovative character and academic impact of the proposal, including the challenging content, originality of the topic, scientific elements, potential to make an important contribution, effectiveness of proposed methodology, importance of the proposed research topic, etc.
-
-%% THESE CITATION (nocite) ARE USED ONLY TO ILLUSTRATE THE REFERENCES. YOU SHOULD USE \cite (OR THE APPROPRIATE DERIVATION SUCH AS \citep \citet etc) WITHIN YOUR TEXT AS NEEDED
-% \nocite{arias2016scalable}
-% \nocite{batal2013efficient}
-% \nocite{bi2013inferring}
-% \nocite{bielza2011multi}
-
-% \begin{figure}[!h]
-%     \begin{center}
-
-%         \begin{tikzpicture}[align = center, node distance=30mm, thick, main/.style = {draw, circle}]
-%             \node[main, fill=green] (x1) {$X_1$};
-%             \node[main, fill=green] (x2) [right of=x1] {$X_2$};
-%             \node[main, fill=green] (x3) [right of=x2] {$X_3$};
-%             \node[main, fill=green] (x4) [right of=x3] {$X_4$};
-%             \node[main, fill=green] (x5) [right of=x4] {$X_5$};
-%             \node[main, fill=cyan] (y1) [above right of=x1] {$\bar{Y}_1$};
-%             \node[main, fill=cyan] (y2) [above right of=x2] {$\bar{Y}_2$};
-%             \node[main, fill=cyan] (y3) [above right of=x3] {$\bar{Y}_3$};
-%             \node[main, fill=cyan] (y4) [above right of=x4] {$\bar{Y}_4$};
-%             \draw[draw=black,->] (y1) -- (x1);
-%             \draw[draw=black,->] (y2) -- (x2);
-%             \draw[draw=black,->] (y2) -- (x3);
-%             \draw[draw=black,->] (y3) -- (x4);
-%             \draw[draw=black,->] (y4) -- (x4);
-%             \draw[draw=black,->] (y4) -- (x5);
-%             \draw[draw=black,->] (x2) -- (x1);
-%             \draw[draw=black,->] (x2) -- (x3);
-%             \draw[draw=black,->] (x4) -- (x3);
-%             \draw[draw=black,->] (x5) -- (x4);
-%             \draw [draw=black,-latex] (x5) to [bend left=20] (x3);
-%             \draw[draw=cyan,->] (y1) -- (y2);
-%             \draw[draw=cyan,->] (y3) -- (y4);
-%         \end{tikzpicture}
-
-%         \caption{Just an example of graph using tikz, by V.L.Nguyen.}
-%         \label{fig:examplegraph}
-%     \end{center}
-% \end{figure}
