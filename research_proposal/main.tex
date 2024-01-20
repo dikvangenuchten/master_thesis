@@ -92,47 +92,29 @@ The project consist of 2 (+ 1 possible extension) parts, the first is the reprod
 %%------------------------------------------------------------------------------
 \subsection{Methods and techniques}
 
-\paragraph*{Model formulation} The Latent Diffusion Model for Segmentation requires a dataset consisting of images $x \in \mathbb{R}^{H\times W\times C}$ and corresponding panoptic segmentation masks $y \in \mathbb{R}^{H\times W\times N}$. An auto-encoder is trained to get the latent representations $z_i$ and $z_t$ for the image and target respectively. A diffusion model is then trained conditioned on the latent image $z_t$, resulting in Eq. \ref{eq:LDMS}.
+\paragraph*{Model formulation} The Latent Diffusion Model for Segmentation requires a dataset consisting of images $x \in \mathbb{R}^{H\times W\times C}$ and corresponding panoptic segmentation masks $y \in \mathbb{R}^{H\times W\times N}$. An auto-encoder is trained to get the latent representations $z_i$ and $z_y$ for the image and target respectively. A diffusion model is then trained conditioned on the latent image $z_i$, resulting in Eq. \ref{eq:LDMS}.
 
 \begin{align}
-  p(y|x) = p(y|z_t, z_i) * p(z_t) \label{eq:LDMS}
+  p(y|x) = p(y|z_y, z_i) * p(z_y) \label{eq:LDMS}
 \end{align}
 
-For the uncertainty quantification, a similar process as \cite{tanno2021uncertainty} is used. Instead of using the output of the model directly, the model produces 2 outputs per pixel which are then used to sample a Gaussian noise using $\mathcal{N}(\mu, \sigma)$. Where $\mu$ and $\sigma$ are the outputs of the model.
+For the uncertainty quantification, similar to \cite{tanno2021uncertainty,gasperini2023segmenting, van2020uncertainty}, instead of using the output of the model directly, the model produces 2 outputs per pixel which are then used to sample a Gaussian noise using $\mathcal{N}(\mu, \sigma)$. Where $\mu$ and $\sigma$ are the outputs of the model. The loss can then be adapted as shown in Eq. \ref{eq:uq_loss}.
 
-
-\paragraph*{Model formulation}
-Let $x \in \mathbb{R}^{H\times W\times C}$ be the input image which contains objects $\mathcal{O}$. Each object $o_i$ is a combination of a bounding box: $b_i \in \mathbb{R}^{4}$ and a class $c_i \in C$.
-
-A one-stage discriminative model for object detection can often be described by the following function:
 \begin{align}
-  f_{\theta}(x) & = \mathcal{O}                                             \\
-                & = \mathbb{R}^{(4 + |C|) \times |O|} \label{eq:size_of_o}  \\
-                & = NMS(\mathbb{R}^{(4 + |C| + 1) \times N}) \label{eq:nms}
+  L_uq(\mu, \sigma, y) = \frac{L(\mu, y)}{1 + \sigma} + \exp{\sigma} \label{eq:uq_loss}
 \end{align}
-At Equation \ref{eq:size_of_o} $|\mathcal{O}|$ is not known (or constant). This is usually solved by taking $N >> \max{|\mathcal{O}|}$\cite{bochkovskiy2020yolov4, wang2022yolov7, liu2016ssd}, and adding an extra 'negative' class. $\mathcal{O}$ is then extracted using Non-maximum Suppression (NMS).
 
-In a generative context the problem can be described by $p(\mathbf{x}, \mathcal{O})$, which can be decomposed into:
-\begin{align}
-  p(\mathbf{x}, \mathcal{O}) & = p(\mathbf{x}) \cdot p(\mathbf{\mathcal{O}} | \mathbf{x}) \label{eq:generative_model}                                                \\
-                             & = p(\mathbf{x})\prod_{\mathbf{i} = 0}^{|\mathcal{O}|}p(\mathbf{o_i} \mid \mathbf{x} \cap \mathbf{o_0} \cap ... \cap \mathbf{o_{i-1}}) \\
-\end{align}
+The model can easily be extended with a temporal dimension by using the previous time-step latent target $z_{y, t-1}$ as seed for $z_{y, t}$.
 
 \paragraph*{Metric formulation}
 Current SOTA models report on the following metrics:
 \begin{itemize}
-  \item IoU
-  \item mean Average Precision
+  \item Panoptic Quality \cite{kirillov2019panoptic}
   \item Uncertainty Error \cite{miller2019evaluating}
   \item (AU)ROC \cite{miller2019evaluating}
-  \item (AU)Precision-Recall \cite{saito2015pr}
 \end{itemize}
 
-
-% Similar to \cite{regmi2023unsupervised}
-% \begin{itemize}
-%   \item
-% \end{itemize}
+To further investigate the generalization capabilities of the model, it will tested on various datasets. E.g. trained on CityScape \cite{cordts2016cityscapes} dataset and evaluated on MSCOCO \cite{cocodataset}. For temporal segmentation only small datasets are available such as TSSB \cite{clasp2021}. However, as the model does not need to be trained on temporal data, it should be good enough as a proof of concept.
 
 % This subsection is devoted to explaining the methods and techniques that are central to the development of the proposed research. The amount of detail will depend on the requirements, but in general this is provided in a general level as the goal is not to give a detailed view of methods and techniques but enough information to support the ideas and feasibility line of research and how the challenges will be tackled. You must measure yourself how much information is required to convey that message. There is an opportunity later to be more focused and detailed in the section about the background material (Section~\ref{sec:background}).
 
