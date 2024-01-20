@@ -1,36 +1,5 @@
 \section{Overall aim and goals}\label{sec:goals}
-The main goal of this thesis will be the implementation of a (generative) Object Detection model for mobile robotics. An important part of this is the ability to recognize novel objects. Furthermore, it is important to be able to have a good understanding of the quality of the prediction. As it is well known that Neural Networks often perform bad when presented with Out-of-Distribution (OoD) data.\todo{Possibly add citation for this statement} As mobile robotics are required to navigate unknown terrain, it is important that the model is capable of handling OoD data. This can be achieved either by ensuring the model is robust against OoD data or enabling the model to warn the user when OoD data is detected.
-
-% To achieve the above-mentioned goal 
-% \begin{itemize}
-%     \item A (generative) model which can predict bounding boxes with Uncertainty Quantification.
-%     \item Detecting unexpected combinations of objects within a scene
-%     \item Validate uncertainty of the model.
-%           \subitem Does certainty and precision correlate. (Statistical analyses)
-%     \item Test uncertainty as measure for active learning.
-%           \subitem To make more efficient use of human labelers. One possibility is to take a subset of e.g. 10\% of a labeled dataset, and then iteratively select more data. Comparing it to a random subset of equal size.
-%     \item Verify uncertainty is a good predictor for OoD data.
-%     \item Design a system which can make efficient use of uncertainty of previous stages.
-% \end{itemize}
-
-
-
-\subsection{Research questions}
-\todo{Possibly move this to after motivation and challenges}
-To achieve the above-mentioned goal I will try to answer the following research questions:
-
-\begin{itemize}
-    \item Is it possible to detect novel objects using Generative Object Detection?
-    \item Is it possible to do uncertainty quantification for the various aspects of object detection in a single model?
-          \subitem How likely is a bounding box an object?
-          \subitem How likely is an object of a specific class?
-          \subitem What is the uncertainty of the objects size?
-    \item What is the performance difference between SOTA Object Detection models and a Generative Object Detection model acceptable?
-    \item Is the uncertainty quantification given by the Generative model an useful indicator ...
-          \subitem for active learning?
-          \subitem detecting wrongly labeled items?
-    \item Can temporal data be used to improve Uncertainty Quantification?
-\end{itemize}
+The main goal of this thesis will be the implementation of a (generative) Object Detection model for mobile robotics. An important part of this is the ability to recognize novel objects. Furthermore, it is important to be able to have a good understanding of the quality of the prediction. As it is well known that Neural Networks often perform bad when presented with Out-of-Distribution (OoD) data. As mobile robotics are required to navigate unknown terrain, it is important that the model is capable of handling OoD data. This can be achieved either by ensuring the model is robust against OoD data or enabling the model to warn the user when OoD data is detected, and fallback to a fail-safe mode.
 
 %%------------------------------------------------------------------------------
 \subsection{Motivation and Challenges}
@@ -41,12 +10,25 @@ Furthermore, understanding when models are uncertain, allows for more effective 
 
 Object Detection is an especially difficult field as the model has many outputs of different types. It requires both regression (for localization) and classification \cite{Gasperini_2022}. Moreover, there are multiple uncertainties present:
 \begin{itemize}
-    \item Objectness: \t Is a bounding box an object?  \label{prop:Objectness}
+    \item Objectness: \t Is a bounding box an object, instead of background?  \label{prop:Objectness}
     \item Classification: \t Is a bounding box of a certain class? \label{prop:Classification}
     \item Size: \t Is the size of the bounding box correct? \label{prop:Size}
     \item Location: \t Is the location of the bounding box correct? \label{prop:Location}
 \end{itemize}
+A part of these problems are less prominent in segmentation tasks. However, segmentation requires more laborious labels which increases the cost of labeling. Therefore, it is important that segmentation is either very data efficient or is robust against OoD, so that it can be (pre)trained on public segmentation datasets.
 
+\subsection{Research questions}
+To achieve the above-mentioned goal I will try to answer the following research questions:
+
+\begin{itemize}
+    \item Is it possible to detect novel objects using Generative Segmentation Models?
+    \item What is the performance difference between SOTA Segmentation Models and a Generative Segmentation Model?
+    \item Is the Generative Segmentation Model more robust against OoD?
+    \item Is the uncertainty quantification given by the Generative model an useful indicator ...
+          \subitem detecting wrongly labeled items?
+          \subitem for active learning?
+    \item Can temporal data efficiently be used in Denoising Diffusion Segmentation?
+\end{itemize}
 
 %%------------------------------------------------------------------------------
 \subsection{Broad Literature Analysis}\label{sec:broadliterature}
@@ -60,52 +42,30 @@ The ability to distinguish certain and uncertain outputs from machine learning m
 
 Uncertainty Quantification (UQ) is an important factor to increase the trust in automated processes based on machine learning. Current methods often sample from existing networks \cite{gal2016dropout,NEURIPS2019_118921ef,miller2019evaluating} or predict parameters of a distribution \cite{choi2019gaussian,swiatkowski2020ktied}.
 
+\citep{tanno2021uncertainty} apply uncertainty quantification on a diffusion model for medical imagery. They show it is capable of predicting both the aleatoric and epistemic uncertainties. Which allows them to catch up to 90\% of the unreliable predictions.
 
 \subsubsection{Object Detection}\label{sec:broadliterature:object_detection}
 
-% Most object detection models consist of an image classification backbone such as VGG16 \cite{simonyan2014very}, MobileNet \cite{howard2017mobilenets} or ResNet \cite{he2015deep}.
 There are two main paradigms within Object Detection, One-Stage detectors\cite{zhou2019objects, bochkovskiy2020yolov4, wang2022yolov7, liu2016ssd, duan2019centernet}, which directly predict both the bounding box and class in a single forward pass, and Multi-Stage detectors \cite{girshick2014rich, girshick2015fast}, which first detect regions of interests to then subsequently classify these regions. A more recent development is DiffusionDet \cite{chen2023diffusiondet}, which iteratively 'de-noises' a set of random bounding boxes towards the ground truth bounding boxes. Furthermore, there are some general tricks that have shown to provide improved performance at the cost of an increased training time for most object detection algorithms. These have been dubbed "Bag of Freebies" by \citep*{zhang2019bag}, as they do not increase inference time.
 
 \paragraph*{One-Stage Detectors}
 The Single Shot Detector proposed by \citep{liu2016ssd} makes use of many anchor boxes. For each anchor box an offset and class is predicted, which are subsequently merged using Non-Max-Suppression (NMS). During training all bounding boxes with an Intersection over Union (IoU) greater than a threshold are matched and should be predicted with that class. All unmatched boxes should be classified as a `background' class. This leads to a huge class imbalance. To tackle this, hard negative mining is used. For every positive match, at most $n$ (in the paper 3) negative boxes are included during the loss calculation.
 
-\paragraph*{Multi-Stage Detectors}
-\todo{Expand the multi-stage detector part}
+A more recent development is the DEtection TRansformer (DETR) \cite{carion2020end}. Which uses transformers (\cite{vaswani2017attention, dosovitskiy2021image}) to generate the set of bounding boxes in parallel. It is one of the few models which does not make use of a NMS function to remove duplicate bounding boxes. Furthermore, it is easily extendable to panoptic\footnote{Panoptic segmentation is the combination of instance and semantic segmentation.} segmentation.
 
-\paragraph*{Self-supervised}
+\paragraph*{Multi-Stage Detectors}
+Multi-stage Detectors are usually made up of two parts. The first part produces proposals, i.e. patches of objects. A second network then predicts the class. The most notable family of models are the Region-CCN (R-CCN) models \cite{girshick2015fast, ren2015faster}. These methods are generally slower as they require multiple inferences for the same image.
+
+
+\paragraph*{Zero-shot Detection}
+Generalizing to unseen objects is a difficult problem, as it is hard to distinguish between a "background" and an unseen class. In \cite{bansal2018zeroshot} the problems of zero-shot object detection are explained. An often used method to tackle the problem of unseen class labels is the use of multimodel models that have a shared latent space containing both the image and (usually) text embeddings. These models can then be queried to return unseen classes. However, this does not tackle the problem of detecting unknown\footnote{Note the difference between unknown and unseen. Unknown being things we do not know exist, whereas unseen means it can be described by its attributes.}
+
 Recent developments in Vision Transformers (ViT) \cite{dosovitskiy2021image} have been used to pre-train backends for object detection tasks \cite{carion2020endtoend}. The benefit of ViT is the ability to use unlabeled data to pre-train the transformer part of the model. A relatively small fine-tuning dataset can then be used to train the model for a specific task. They have also been shown to segment objects in a fully self-supervised way \cite{caron2021emerging}.
 
+\paragraph*{Segmentation} Closely related to object detection is image segmentation. Within image segmentation there are 3 main subfields: semantic, instance and lastly panoptic segmentation. Semantic segmentation assigns a semantic value to each pixel of the image \cite{wu2016highperformance,xia2013semantic}. Instance segmentation segments the various instances within an image, assigning a different ID to each instance in the same image. Finally, panoptic segmentation combines the two, assigning both an ID and a semantic value to each pixel.
+
 \subsubsection{In combination}\label{sec:broadliterature:combination}
-The combination of Uncertainty Quantification and Object Detection is especially difficult as Object Detection is both a regression and a classification task. A recent advancement in this is CertainNet \cite{Gasperini_2022}. Which is capable of providing sample free certainty estimations on the various aspects of the prediction.
-
-%%------------------------------------------------------------------------------
-\subsection{Formulation of the problem and objectives}
-\paragraph*{Model formulation}
-Let $x \in \mathbb{R}^{H\times W\times C}$ be the input image which contains objects $\mathcal{O}$. Each object $o_i$ is a combination of a bounding box: $b_i \in \mathbb{R}^{4}$ and a class $c_i \in C$.
-
-A one-stage discriminative model for object detection can often be described by the following function:
-\begin{align}
-    f_{\theta}(x) & = \mathcal{O}                                             \\
-                  & = \mathbb{R}^{(4 + |C|) \times |O|} \label{eq:size_of_o}  \\
-                  & = NMS(\mathbb{R}^{(4 + |C| + 1) \times N}) \label{eq:nms}
-\end{align}
-At Equation \ref{eq:size_of_o} $|\mathcal{O}|$ is not known (or constant). This is usually solved by taking $N >> \max{|\mathcal{O}|}$\cite{bochkovskiy2020yolov4, wang2022yolov7, liu2016ssd}, and adding an extra 'negative' class. $\mathcal{O}$ is then extracted using Non-maximum Suppression (NMS).
-
-In a generative context the problem can be described by $p(\mathbf{x}, \mathcal{O})$, which can be decomposed into:
-\begin{align}
-    p(\mathbf{x}, \mathcal{O}) & = p(\mathbf{x}) \cdot p(\mathbf{\mathcal{O}} | \mathbf{x}) \label{eq:generative_model}                                                \\
-                               & = p(\mathbf{x})\prod_{\mathbf{i} = 0}^{|\mathcal{O}|}p(\mathbf{o_i} \mid \mathbf{x} \cap \mathbf{o_0} \cap ... \cap \mathbf{o_{i-1}}) \\
-\end{align}
-
-\paragraph*{Metric formulation}
-Current SOTA models report on the following metrics:
-\begin{itemize}
-    \item IoU
-    \item mean Average Precision
-    \item Uncertainty Error \cite{miller2019evaluating}
-    \item (AU)ROC \cite{miller2019evaluating}
-    \item (AU)Precision-Recall \cite{saito2015pr}
-\end{itemize}
+The combination of Uncertainty Quantification and Object Detection is especially difficult as Object Detection is both a regression and a classification task. A recent advancement in this is CertainNet by \citep{Gasperini_2022}. Which is capable of providing sample free certainty estimations on the various aspects of the prediction. A followup paper also by \citep{gasperini2023segmenting} expands the methods into segmentation. They furthermore propose the U3HS framework to enhance the capabilities of the model to detect unknown unseen instances. These unknown instances can still be used to do tracking, trajectory prediction and path planning during inference. Furthermore, within an online training scheme it allows for active learning.
 
 % Include a description of the overall aim and key objectives. Explain your research questions as well as possible. Identify potential general tasks that will need to be tackled in order to complete the project successfully.
 
