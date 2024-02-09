@@ -1,9 +1,10 @@
 import pytest
+import torch
 
 from model import BinarySegmentationModel
 
 
-def test_binary_segmentation_model(test_image_batch):
+def test_binary_segmentation_model(test_image_batch: torch.Tensor):
     BSModel = BinarySegmentationModel()
     mask = BSModel(test_image_batch)
     assert mask.shape[0] == test_image_batch.shape[0], "Invalid batch dimension size"
