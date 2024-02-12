@@ -8,22 +8,19 @@ from torchvision.transforms import v2 as transforms
 from torchvision.tv_tensors import Mask
 
 
-def binary_segmentation_dataloader():
-
-    pass
-
-
 class SegmentationToyDataset(data.Dataset):
     """A toy dataset for image segmentation"""
 
-    def __init__(self, background_dataset: Optional[data.Dataset] = None, limit: int=100):
+    def __init__(
+        self, background_dataset: Optional[data.Dataset] = None, limit: int = 100
+    ):
         if background_dataset is None:
             background_dataset = self.default_background_dataset()
         self._background_dataset = datasets.wrap_dataset_for_transforms_v2(
-            background_dataset, # target_keys=["masks", "labels"]
+            background_dataset,  # target_keys=["masks", "labels"]
         )
         self._limit = limit
-        
+
         self.transforms = transforms.Compose(
             [
                 transforms.ToImage(),
@@ -47,7 +44,7 @@ class SegmentationToyDataset(data.Dataset):
         base_path = "/datasets/coco/"
         split = "val"
         return datasets.CocoDetection(
-            os.path.join(base_path, f"{split}2017/"),            
+            os.path.join(base_path, f"{split}2017/"),
             os.path.join(base_path, f"annotations/instances_{split}2017.json"),
         )
 
@@ -74,14 +71,10 @@ class ToySegmentationTransform(nn.Module):
         y = torch.randint(self._y_size, h - self._y_size, [1])
 
         img[
-            0,
-            x - self._x_size : x + self._x_size,
-            y - self._y_size : y + self._y_size
+            0, x - self._x_size : x + self._x_size, y - self._y_size : y + self._y_size
         ] = 255
         mask[
-            0,
-            x - self._x_size : x + self._x_size,
-            y - self._y_size : y + self._y_size
+            0, x - self._x_size : x + self._x_size, y - self._y_size : y + self._y_size
         ] = 255
 
         return img, mask

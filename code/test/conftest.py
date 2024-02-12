@@ -1,3 +1,4 @@
+import os
 import pytest
 import torch
 
@@ -20,3 +21,8 @@ def test_image_batch(test_image):
 @pytest.fixture
 def bs_model():
     return BinarySegmentationModel()
+
+
+@pytest.fixture(autouse=True)
+def set_wandb_to_offline():
+    os.environ["WANDB_MODE"] = "offline"
