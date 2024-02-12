@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 import logging
 
 import torch
@@ -6,6 +6,8 @@ from torch import nn, optim
 from torch.utils import data
 from tqdm import tqdm
 from accelerate import Accelerator
+
+from metrics.base_metric import BaseMetric
 
 
 class Trainer:
@@ -17,8 +19,11 @@ class Trainer:
         optimizer: optim.Optimizer,
         scheduler: Optional[optim.lr_scheduler.LRScheduler] = None,
         eval_dataloader: Optional[data.DataLoader] = None,
+        config: dict = {},
+        metrics: List[BaseMetric] = []
     ) -> None:
         self._accelerator = Accelerator(log_with="wandb")
+        self._accelerator.init_trackers(project_name="MasterThesis", config=config)
 
         if scheduler is None:
             # If no scheduler is given create a 'constant' scheduler
@@ -40,10 +45,23 @@ class Trainer:
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.eval_dataloader = eval_dataloader
+        self.metrics = metrics
 
     @property
     def device(self):
         return self._accelerator.device
+    
+    def _metrics_add_batch(self, *args, **kwargs):
+        for metric in self.metrics:
+            metric.add_batch(*args, **kwargs)
+    
+    def _log_and_reset_metrics(self):
+        log_dict = {}
+        for metric in self.metrics:
+            log_dict.update(**metric.get_log_dict())
+            metric.reset()
+        
+        self._accelerator.log(log_dict)
 
     def epoch(self) -> torch.Tensor:
         loss_sum = 0
@@ -64,8 +82,12 @@ class Trainer:
             loss_d = loss.detach()
             loss_sum += loss_d.sum()
             loss_count += img.shape[0]
+            
+            self._metrics_add_batch(img, target, pred, loss_d)
 
         self.scheduler.step()
+        self._log_and_reset_metrics()
+        
         return loss_sum / loss_count
 
     def eval_epoch(self) -> torch.Tensor:
@@ -84,4 +106,7 @@ class Trainer:
                 loss_sum += loss_d.sum()
                 loss_count += img.shape[0]
 
+                self._metrics_add_batch(img, target, pred, loss_d)
+
+        self._log_and_reset_metrics()
         return loss_sum / loss_count

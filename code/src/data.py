@@ -12,10 +12,13 @@ class SegmentationToyDataset(data.Dataset):
     """A toy dataset for image segmentation"""
 
     def __init__(
-        self, background_dataset: Optional[data.Dataset] = None, limit: int = 100
+        self,
+        background_dataset: Optional[data.Dataset] = None,
+        limit: int = 100,
+        split: str = "val",
     ):
         if background_dataset is None:
-            background_dataset = self.default_background_dataset()
+            background_dataset = self.default_background_dataset(split)
         self._background_dataset = datasets.wrap_dataset_for_transforms_v2(
             background_dataset,  # target_keys=["masks", "labels"]
         )
@@ -24,6 +27,7 @@ class SegmentationToyDataset(data.Dataset):
         self.transforms = transforms.Compose(
             [
                 transforms.ToImage(),
+                transforms.Resize((480, 64)),
                 ToySegmentationTransform(),
                 transforms.ToDtype(torch.float32),
             ]
@@ -37,12 +41,13 @@ class SegmentationToyDataset(data.Dataset):
         return img, mask
 
     def __len__(self) -> int:
+        if self._limit == -1:
+            return len(self._background_dataset)
         return min(self._limit, len(self._background_dataset))
 
     @staticmethod
-    def default_background_dataset():
+    def default_background_dataset(split: str):
         base_path = "/datasets/coco/"
-        split = "val"
         return datasets.CocoDetection(
             os.path.join(base_path, f"{split}2017/"),
             os.path.join(base_path, f"annotations/instances_{split}2017.json"),
