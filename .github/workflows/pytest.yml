@@ -13,6 +13,8 @@ defaults:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: nvcr.io/nvidia/pytorch:24.01-py3
     steps:
     - uses: actions/checkout@v2
     - name: Build docker images
