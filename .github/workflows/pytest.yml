@@ -1,0 +1,21 @@
+# This workflow will install dependencies, create coverage tests and run Pytest Coverage Commentator
+# For more information see: https://github.com/coroo/pytest-coverage-commentator
+name: pytest-coverage-commentator
+on:
+  pull_request:
+    branches: 
+      - '*'
+
+defaults:
+ run:
+  working-directory: ./code
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build docker images
+      run: docker build -t local < .devcontainer/Dockerfile
+    - name: Run tests
+      run: docker run -it -v $PWD:/app -w/app local pytest test
