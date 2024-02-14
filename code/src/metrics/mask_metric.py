@@ -38,12 +38,12 @@ class MaskMetric(BaseMetric):
                 wandb.Image(
                     img,
                     masks={
-                        "predictions": {"mask_data": pr_mask[0] > 0.5},
-                        "ground_truth": {"mask_data": gt_mask[0]},
+                        "predictions": {"mask_data": pr_mask[..., 0] > 0.5},
+                        "ground_truth": {"mask_data": gt_mask[..., 0]},
                     },
                 )
             )
         return {self.name: images}
 
     def reset(self):
-        return super().reset()
+        self._first_batch = None

@@ -1,11 +1,10 @@
 import os
 import pytest
-import torch
 
 from torchvision.tv_tensors import Image
 from PIL import Image as PImage
 
-from model import BinarySegmentationModel
+from models.binary_segmentation_model import BinarySegmentationModel
 
 
 @pytest.fixture
@@ -15,6 +14,8 @@ def test_image(path="test/test_data/example.jpg"):
 
 @pytest.fixture
 def test_image_batch(test_image):
+    import torch
+
     return torch.reshape(test_image, [1, *test_image.shape]).to(torch.float32)
 
 

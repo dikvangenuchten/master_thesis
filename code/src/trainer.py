@@ -20,7 +20,7 @@ class Trainer:
         scheduler: Optional[optim.lr_scheduler.LRScheduler] = None,
         eval_dataloader: Optional[data.DataLoader] = None,
         config: dict = {},
-        metrics: List[BaseMetric] = []
+        metrics: List[BaseMetric] = [],
     ) -> None:
         self._accelerator = Accelerator(log_with="wandb")
         self._accelerator.init_trackers(project_name="MasterThesis", config=config)
@@ -50,29 +50,32 @@ class Trainer:
     @property
     def device(self):
         return self._accelerator.device
-    
+
     def _metrics_add_batch(self, *args, **kwargs):
         for metric in self.metrics:
             metric.add_batch(*args, **kwargs)
-    
-    def _log_and_reset_metrics(self):
+
+    def _log_and_reset_metrics(self, prefix: str=""):
         log_dict = {}
         for metric in self.metrics:
             log_dict.update(**metric.get_log_dict())
             metric.reset()
-        
+
+        log_dict = {f"{prefix}_{k}": v for k, v in log_dict.items()}
         self._accelerator.log(log_dict)
 
-    def epoch(self) -> torch.Tensor:
+    def epoch(self, epoch: Optional[int]=None) -> torch.Tensor:
         loss_sum = 0
         loss_count = 0
+        self.model.train()
+        
         for batch_idx, (img, target) in enumerate(
-            tqdm(self.train_dataloader, leave=False)
+            tqdm(self.train_dataloader, leave=False, desc="training")
         ):
             self.optimizer.zero_grad()
 
-            pred = self.model(img)
-            loss = self.loss_fn(pred, target)
+            logits = self.model(img)
+            loss = self.loss_fn(logits, target)
 
             # Backpropagation
             loss.backward()
@@ -82,31 +85,33 @@ class Trainer:
             loss_d = loss.detach()
             loss_sum += loss_d.sum()
             loss_count += img.shape[0]
-            
-            self._metrics_add_batch(img, target, pred, loss_d)
+
+            self._metrics_add_batch(img, target, logits.sigmoid(), loss_d)
 
         self.scheduler.step()
-        self._log_and_reset_metrics()
-        
+        self._log_and_reset_metrics("train")
+
         return loss_sum / loss_count
 
-    def eval_epoch(self) -> torch.Tensor:
+    def eval_epoch(self, epoch: Optional[int]=None) -> torch.Tensor:
         loss_sum = 0
         loss_count = 0
+        self.model.eval()
 
         with torch.no_grad():
             for batch_idx, (img, target) in enumerate(
-                tqdm(self.train_dataloader, leave=False)
+                tqdm(self.eval_dataloader, leave=False, desc="evaluation")
             ):
-                pred = self.model(img)
-                loss = self.loss_fn(pred, target)
+                logits = self.model(img)
+                loss = self.loss_fn(logits, target)
 
                 # Keep track of average loss
                 loss_d = loss.detach()
                 loss_sum += loss_d.sum()
                 loss_count += img.shape[0]
 
-                self._metrics_add_batch(img, target, pred, loss_d)
+                self._metrics_add_batch(img, target, logits.sigmoid(), loss_d)
 
-        self._log_and_reset_metrics()
+
+        self._log_and_reset_metrics("eval")
         return loss_sum / loss_count

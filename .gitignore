@@ -477,3 +477,9 @@ TSWLatexianTemp*
 
 # All pdfs will be auto generated on git
 *.pdf
+
+# WandB local log folder
+*/wandb/*
+
+# Test visualization
+*/dbg/*

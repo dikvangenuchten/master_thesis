@@ -3,7 +3,7 @@ import torch
 from torchvision.tv_tensors import Image
 from PIL import Image as PImage
 
-from data import SegmentationToyDataset, ToySegmentationTransform
+from datasets.toy_data import SegmentationToyDataset, ToySegmentationTransform
 
 
 def test_toy_dataset_initialization():

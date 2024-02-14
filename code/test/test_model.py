@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from model import BinarySegmentationModel
+from models.binary_segmentation_model import BinarySegmentationModel
 
 
 def test_binary_segmentation_model(test_image_batch: torch.Tensor):

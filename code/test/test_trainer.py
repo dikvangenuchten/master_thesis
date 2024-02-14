@@ -3,7 +3,7 @@ from torch import nn, optim
 from torch.utils import data
 
 from trainer import Trainer
-from data import SegmentationToyDataset
+from datasets.toy_data import SegmentationToyDataset
 
 
 @pytest.fixture
