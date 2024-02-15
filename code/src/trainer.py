@@ -55,14 +55,14 @@ class Trainer:
         for metric in self.metrics:
             metric.add_batch(*args, **kwargs)
 
-    def _log_and_reset_metrics(self, prefix: str = ""):
+    def _log_and_reset_metrics(self, prefix: str = "", epoch: Optional[int] = None):
         log_dict = {}
         for metric in self.metrics:
             log_dict.update(**metric.get_log_dict())
             metric.reset()
 
         log_dict = {f"{prefix}_{k}": v for k, v in log_dict.items()}
-        self._accelerator.log(log_dict)
+        self._accelerator.log(log_dict, step=epoch)
 
     def epoch(self, epoch: Optional[int] = None) -> torch.Tensor:
         loss_sum = 0
@@ -86,10 +86,10 @@ class Trainer:
             loss_sum += loss_d.sum()
             loss_count += img.shape[0]
 
-            self._metrics_add_batch(img, target, logits.sigmoid(), loss_d)
+            self._metrics_add_batch(img, target, logits.softmax(1), loss_d)
 
         self.scheduler.step()
-        self._log_and_reset_metrics("train")
+        self._log_and_reset_metrics("train", epoch)
 
         return loss_sum / loss_count
 
@@ -110,7 +110,7 @@ class Trainer:
                 loss_sum += loss_d.sum()
                 loss_count += img.shape[0]
 
-                self._metrics_add_batch(img, target, logits.sigmoid(), loss_d)
+                self._metrics_add_batch(img, target, logits.softmax(1), loss_d)
 
-        self._log_and_reset_metrics("eval")
+        self._log_and_reset_metrics("eval", epoch)
         return loss_sum / loss_count

@@ -7,7 +7,11 @@ from dotenv import load_dotenv
 import segmentation_models_pytorch as smp
 
 
-from datasets.oxford_pet import OxfordPetDataset
+from datasets.oxford_pet import (
+    OxfordPetDataset,
+    OxfordPetForegroundDataset,
+    OxfordSpeciesDataset,
+)
 from datasets.toy_data import SegmentationToyDataset, OneColorBackground
 from models.binary_segmentation_model import BinarySegmentationModel
 from models.u_net import UNet
@@ -30,18 +34,20 @@ def main():
         ]
     )
 
-    train_dataset = OxfordPetDataset(
+    train_dataset = OxfordSpeciesDataset(
         root=DATA_ROOT, mode="train", transform=data_transforms
     )
-    val_dataset = OxfordPetDataset(
+    val_dataset = OxfordSpeciesDataset(
         root=DATA_ROOT, mode="valid", transform=data_transforms
     )
 
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     eval_dataloader = DataLoader(val_dataset, batch_size=batch_size)
 
-    model = UNet(3, 1)
-    loss_fn = smp.losses.DiceLoss(mode="binary", from_logits=True)
+    num_classes = len(train_dataset.class_map)
+    model = UNet(3, num_classes)
+    mode = "binary" if num_classes == 2 else "multiclass"
+    loss_fn = smp.losses.DiceLoss(mode=mode, from_logits=True)
     optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
     run_metrics = [

@@ -87,8 +87,11 @@ class OxfordPetDataset(torch.utils.data.Dataset):
         return len(self.filenames)
 
     def __getitem__(self, idx):
-
         filename = self.filenames[idx]
+        class_id = self.class_id[idx]
+        species = self.species[idx]
+        breed_id = self.breed_id[idx]
+
         image_path = os.path.join(self.images_directory, filename + ".jpg")
         mask_path = os.path.join(self.masks_directory, filename + ".png")
 
@@ -96,25 +99,17 @@ class OxfordPetDataset(torch.utils.data.Dataset):
 
         trimap = Image.open(mask_path)
 
-        image, trimap = TImage(image), Mask(trimap)
+        image, trimap = TImage(image), Mask(trimap, dtype=torch.long)
         if self.transform is not None:
             image, trimap = self.transform(image, trimap)
 
-        mask = self._preprocess_tensor_mask(trimap)
-
-        return image, mask
+        return image, trimap, class_id, species, breed_id
 
     @staticmethod
     def _preprocess_mask(mask):
         mask = mask.astype(np.float32)
         mask[mask == 2.0] = 0.0
         mask[(mask == 1.0) | (mask == 3.0)] = 1.0
-        return mask
-
-    @staticmethod
-    def _preprocess_tensor_mask(mask):
-        mask[mask == 2] = 0
-        mask[(mask == 1) | (mask == 3)] = 1
         return mask
 
     def _read_split(self):
@@ -127,14 +122,14 @@ class OxfordPetDataset(torch.utils.data.Dataset):
         )
         if self.mode == "train":  # 90% for train
             filenames = [x for i, x in enumerate(filenames) if i % 10 != 0]
-            class_id = [x for i, x in enumerate(class_id) if i % 10 != 0]
-            species = [x for i, x in enumerate(species) if i % 10 != 0]
-            breed_id = [x for i, x in enumerate(breed_id) if i % 10 != 0]
+            class_id = [int(x) for i, x in enumerate(class_id) if i % 10 != 0]
+            species = [int(x) for i, x in enumerate(species) if i % 10 != 0]
+            breed_id = [int(x) for i, x in enumerate(breed_id) if i % 10 != 0]
         elif self.mode == "valid":  # 10% for validation
             filenames = [x for i, x in enumerate(filenames) if i % 10 == 0]
-            class_id = [x for i, x in enumerate(class_id) if i % 10 == 0]
-            species = [x for i, x in enumerate(species) if i % 10 == 0]
-            breed_id = [x for i, x in enumerate(breed_id) if i % 10 == 0]
+            class_id = [int(x) for i, x in enumerate(class_id) if i % 10 == 0]
+            species = [int(x) for i, x in enumerate(species) if i % 10 == 0]
+            breed_id = [int(x) for i, x in enumerate(breed_id) if i % 10 == 0]
         return filenames, class_id, species, breed_id
 
     @staticmethod
@@ -155,6 +150,41 @@ class OxfordPetDataset(torch.utils.data.Dataset):
             filepath=filepath,
         )
         extract_archive(filepath)
+
+
+class OxfordPetForegroundDataset(OxfordPetDataset):
+
+    @property
+    def class_map(self) -> dict:
+        return {0: "background", 1: "foreground"}
+
+    def __getitem__(self, idx):
+        image, trimap, _class_id, _species, _breed_id = super().__getitem__(idx)
+        mask = self._preprocess_tensor_mask(trimap)
+        return image, mask
+
+    @staticmethod
+    def _preprocess_tensor_mask(mask):
+        mask[mask == 2] = 0
+        mask[(mask == 1) | (mask == 3)] = 1
+        return mask
+
+
+class OxfordSpeciesDataset(OxfordPetDataset):
+    @property
+    def class_map(self) -> dict:
+        return {0: "background", 1: "cat", 2: "dog"}
+
+    def __getitem__(self, idx):
+        image, trimap, _class_id, species, _breed_id = super().__getitem__(idx)
+        mask = self._preprocess_tensor_mask(trimap)
+        return image, mask * species
+
+    @staticmethod
+    def _preprocess_tensor_mask(mask):
+        mask[mask == 2] = 0
+        mask[(mask == 1) | (mask == 3)] = 1
+        return mask
 
 
 class TqdmUpTo(tqdm):
