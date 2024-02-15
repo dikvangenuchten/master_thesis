@@ -11,7 +11,7 @@ class UNet(nn.Module):
             encoder_depth=5,
             encoder_weights="imagenet",
             classes=1,
-            activation=None
+            activation=None,
         )
 
         # TODO add DUQ/Evidence Based Head

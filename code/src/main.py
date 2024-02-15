@@ -16,31 +16,29 @@ import metrics
 
 DATA_ROOT = "/datasets/"
 
+
 def main():
     print("Main")
     load_dotenv()
     batch_size = 64
-    
+
     data_transforms = transforms.Compose(
         [
             transforms.Resize((128, 128)),
             transforms.ToDtype(torch.float32, scale=True),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ]
     )
-    
-    train_dataset = OxfordPetDataset(root=DATA_ROOT, mode="train", transform=data_transforms)
-    val_dataset = OxfordPetDataset(root=DATA_ROOT, mode="valid", transform=data_transforms)
-    
-    train_dataloader = DataLoader(
-        train_dataset,
-        batch_size=batch_size,
-        shuffle=True
+
+    train_dataset = OxfordPetDataset(
+        root=DATA_ROOT, mode="train", transform=data_transforms
     )
-    eval_dataloader = DataLoader(
-        val_dataset,
-        batch_size=batch_size
+    val_dataset = OxfordPetDataset(
+        root=DATA_ROOT, mode="valid", transform=data_transforms
     )
+
+    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    eval_dataloader = DataLoader(val_dataset, batch_size=batch_size)
 
     model = UNet(3, 1)
     loss_fn = smp.losses.DiceLoss(mode="binary", from_logits=True)
@@ -68,5 +66,5 @@ def main():
 
 
 if __name__ == "__main__":
-    
+
     main()

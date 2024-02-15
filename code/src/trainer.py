@@ -55,7 +55,7 @@ class Trainer:
         for metric in self.metrics:
             metric.add_batch(*args, **kwargs)
 
-    def _log_and_reset_metrics(self, prefix: str=""):
+    def _log_and_reset_metrics(self, prefix: str = ""):
         log_dict = {}
         for metric in self.metrics:
             log_dict.update(**metric.get_log_dict())
@@ -64,11 +64,11 @@ class Trainer:
         log_dict = {f"{prefix}_{k}": v for k, v in log_dict.items()}
         self._accelerator.log(log_dict)
 
-    def epoch(self, epoch: Optional[int]=None) -> torch.Tensor:
+    def epoch(self, epoch: Optional[int] = None) -> torch.Tensor:
         loss_sum = 0
         loss_count = 0
         self.model.train()
-        
+
         for batch_idx, (img, target) in enumerate(
             tqdm(self.train_dataloader, leave=False, desc="training")
         ):
@@ -93,7 +93,7 @@ class Trainer:
 
         return loss_sum / loss_count
 
-    def eval_epoch(self, epoch: Optional[int]=None) -> torch.Tensor:
+    def eval_epoch(self, epoch: Optional[int] = None) -> torch.Tensor:
         loss_sum = 0
         loss_count = 0
         self.model.eval()
@@ -111,7 +111,6 @@ class Trainer:
                 loss_count += img.shape[0]
 
                 self._metrics_add_batch(img, target, logits.sigmoid(), loss_d)
-
 
         self._log_and_reset_metrics("eval")
         return loss_sum / loss_count

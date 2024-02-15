@@ -5,11 +5,16 @@ from torch import nn
 from torch.utils import data
 from torchvision import datasets
 from torchvision.transforms import v2 as transforms
-from torchvision.tv_tensors import Mask
+from torchvision.tv_tensors import Image, Mask
 
 
 class OneColorBackground(data.Dataset):
-    def __init__(self, img_size: Tuple[int, int], color: Tuple[int, int, int]=(0, 0, 0), size: int=100):
+    def __init__(
+        self,
+        img_size: Tuple[int, int],
+        color: Tuple[int, int, int] = (0, 0, 0),
+        size: int = 100,
+    ):
         super().__init__()
         self._sample = torch.ones((3, *img_size)) * torch.tensor(color).view(3, 1, 1)
         self._size = size
@@ -19,6 +24,7 @@ class OneColorBackground(data.Dataset):
 
     def __len__(self) -> int:
         return self._size
+
 
 class SegmentationToyDataset(data.Dataset):
     """A toy dataset for image segmentation"""
@@ -37,9 +43,11 @@ class SegmentationToyDataset(data.Dataset):
         self.transforms = transforms.Compose(
             [
                 transforms.Resize((128, 128)),
-                transforms.ToTensor(),
+                transforms.ToDtype(torch.float32, scale=True),
                 ToySegmentationTransform(),
-                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                ),
             ]
         )
 
@@ -47,6 +55,8 @@ class SegmentationToyDataset(data.Dataset):
         img = self._background_dataset[index]
         if isinstance(img, tuple):
             img = img[0]
+
+        img = Image(img)
 
         img, mask = self.transforms(img)
         return img, mask
@@ -87,7 +97,7 @@ class ToySegmentationTransform(nn.Module):
         _, w, h = mask.shape
         x = torch.randint(self._x_size, w - self._x_size, [1])
         y = torch.randint(self._y_size, h - self._y_size, [1])
-        
+
         if img.dtype == torch.uint8:
             val = 255
         else:
