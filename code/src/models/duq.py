@@ -39,13 +39,15 @@ class DUQHead(nn.Module):
             "length_scale", torch.tensor([length_scale])
         )
 
-        self.m = self.register_buffer("m", torch.normal(0, 1, (embedding_size, num_classes)))
+        self.m = self.register_buffer(
+            "m", torch.normal(0, 1, (embedding_size, num_classes))
+        )
         # 12 is hardcoded in the original implementation, not sure why.
         self.N = self.register_buffer("N", torch.ones(num_classes) * 12)
 
     def forward(self, features: torch.Tensor) -> torch.Tensor:
         embeddings = _conv_duq_last_layer(features, self.weights)
-        
+
         raise NotImplementedError("#TODO calculate the centroids and distance")
 
     def update_centroids(self, features: torch.Tensor, y_true: torch.Tensor):

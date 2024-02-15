@@ -11,10 +11,12 @@ from hypothesis import given, settings, strategies as st
 
 from models.duq import _conv_duq_last_layer
 
+
 def reference_duq_last_layer(feature_matrix, weight_matrix) -> torch.Tensor:
     """"""
     # Equal to y[i] = weights.matmul(feature_matrix[i])
     return torch.einsum("ij,mnj->imn", feature_matrix, weight_matrix)
+
 
 @given(st.integers(1, 32), st.integers(1, 32), st.integers(1, 32), st.integers(1, 32))
 def test_native_implementation(
@@ -48,6 +50,7 @@ def reference_duq_conv(feature_matrix, weight_matrix) -> torch.Tensor:
                 feature_matrix[:, i, j], weight_matrix
             )
     return output
+
 
 # Comprehensive test
 # Takes ~4 minutes
@@ -98,18 +101,18 @@ def test_conv_implementation_of_last_layer(
 
 def reference_distance_implementation(embeddings, centroids, sigma):
     """Taken from https://github.com/y0ast/deterministic-uncertainty-quantification/blob/master/
-    
+
     There are 2 implementations in the codebase
-    
+
     resnet_duq.py:  `(diff ** 2).mean(1).div(2 * self.sigma ** 2).mul(-1).exp()`
     cnn_duq.py:     `(-(diff**2)).mean(1).div(2 * self.sigma**2).exp()`
 
     Args:
         embeddings (torch.Tensor): The output of the model
         centroids (torch.Tensor): The tracked average output of the model for each class (already normalized)
-        
+
         sigma (float): Hyperparameter, also calles length_scale
-    
+
     Note:
         The reference implementation calls the tracked average outputs embeddings (we use centroids)
         Furthermore, it uses `z` for the model output (we use embeddings)
@@ -117,7 +120,8 @@ def reference_distance_implementation(embeddings, centroids, sigma):
     diff = embeddings - centroids.unsqueeze(0)
     distances = (-(diff**2)).mean(1).div(2 * sigma**2).exp()
     return distances
-    
+
+
 @pytest.mark.parametrize("sigma", [0.1])
 def test_conv_distance_implementation(sigma: float):
     assert False, "Continue here :)"
