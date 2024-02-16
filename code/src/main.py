@@ -7,8 +7,11 @@ from torchvision.transforms import v2 as transforms
 from tqdm import tqdm, trange
 
 import metrics
-from datasets.oxford_pet import (OxfordPetDataset, OxfordPetForegroundDataset,
-                                 OxfordSpeciesDataset)
+from datasets.oxford_pet import (
+    OxfordPetDataset,
+    OxfordPetForegroundDataset,
+    OxfordSpeciesDataset,
+)
 from datasets.toy_data import OneColorBackground, SegmentationToyDataset
 from models.binary_segmentation_model import BinarySegmentationModel
 from models.u_net import UNet
