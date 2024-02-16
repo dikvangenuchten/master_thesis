@@ -1,11 +1,11 @@
-from typing import List, Optional
 import logging
+from typing import List, Optional
 
 import torch
+from accelerate import Accelerator
 from torch import nn, optim
 from torch.utils import data
 from tqdm import tqdm
-from accelerate import Accelerator
 
 from metrics.base_metric import BaseMetric
 

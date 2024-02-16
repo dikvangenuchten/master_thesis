@@ -2,9 +2,9 @@ from typing import Dict
 
 import numpy as np
 from torch import Tensor
-from metrics.base_metric import BaseMetric
 
 import wandb
+from metrics.base_metric import BaseMetric
 
 
 class MaskMetric(BaseMetric):

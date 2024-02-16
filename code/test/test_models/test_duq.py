@@ -6,8 +6,9 @@ https://github.com/y0ast/deterministic-uncertainty-quantification/blob/master/ut
 
 import pytest
 import torch
+from hypothesis import given, settings
+from hypothesis import strategies as st
 from torch import nn
-from hypothesis import given, settings, strategies as st
 
 from models.duq import _conv_duq_last_layer
 

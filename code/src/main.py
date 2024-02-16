@@ -1,22 +1,18 @@
-from tqdm import tqdm, trange
+import segmentation_models_pytorch as smp
 import torch
-from torch import optim, nn
+from dotenv import load_dotenv
+from torch import nn, optim
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2 as transforms
-from dotenv import load_dotenv
-import segmentation_models_pytorch as smp
+from tqdm import tqdm, trange
 
-
-from datasets.oxford_pet import (
-    OxfordPetDataset,
-    OxfordPetForegroundDataset,
-    OxfordSpeciesDataset,
-)
-from datasets.toy_data import SegmentationToyDataset, OneColorBackground
+import metrics
+from datasets.oxford_pet import (OxfordPetDataset, OxfordPetForegroundDataset,
+                                 OxfordSpeciesDataset)
+from datasets.toy_data import OneColorBackground, SegmentationToyDataset
 from models.binary_segmentation_model import BinarySegmentationModel
 from models.u_net import UNet
 from trainer import Trainer
-import metrics
 
 DATA_ROOT = "/datasets/"
 

@@ -1,8 +1,8 @@
 import os
-import pytest
 
-from torchvision.tv_tensors import Image
+import pytest
 from PIL import Image as PImage
+from torchvision.tv_tensors import Image
 
 from models.binary_segmentation_model import BinarySegmentationModel
 

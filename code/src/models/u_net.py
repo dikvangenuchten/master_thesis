@@ -1,6 +1,6 @@
+import segmentation_models_pytorch as smp
 import torch
 from torch import nn
-import segmentation_models_pytorch as smp
 
 
 class UNet(nn.Module):

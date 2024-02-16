@@ -56,14 +56,15 @@ See [1] for list of websites.
 """
 
 import os
-import torch
-from torchvision.tv_tensors import Mask, Image as TImage
 import shutil
-import numpy as np
-
-from PIL import Image
-from tqdm import tqdm
 from urllib.request import urlretrieve
+
+import numpy as np
+import torch
+from PIL import Image
+from torchvision.tv_tensors import Image as TImage
+from torchvision.tv_tensors import Mask
+from tqdm import tqdm
 
 
 class OxfordPetDataset(torch.utils.data.Dataset):

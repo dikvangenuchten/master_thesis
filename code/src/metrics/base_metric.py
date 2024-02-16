@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Callable
+from typing import Callable, Dict
 
 from torch import Tensor
-
 
 LogSignature = Callable[[Tensor, Tensor, Tensor, Tensor], Tensor]
 

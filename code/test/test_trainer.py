@@ -2,8 +2,8 @@ import pytest
 from torch import nn, optim
 from torch.utils import data
 
-from trainer import Trainer
 from datasets.toy_data import SegmentationToyDataset
+from trainer import Trainer
 
 
 @pytest.fixture
