@@ -1,13 +1,18 @@
 FROM nvcr.io/nvidia/pytorch:24.01-py3 as base
 
-COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
+COPY requirements.tx[t] requirements.txt
+RUN touch requirements.txt && pip install -r requirements.txt
 
 FROM base as dev
 
 ARG USERNAME=dev-user
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
+
+# Copy and install development requirements
+COPY dev-requirements.tx[t] .
+# Create the file if it not exists, then install using pip
+RUN touch dev-requirements.txt && pip install -r dev-requirements.txt
 
 # Create the user
 RUN groupadd --gid $USER_GID $USERNAME \

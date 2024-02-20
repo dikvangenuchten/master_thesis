@@ -25,7 +25,8 @@
 			"extensions": [
 				"donjayamanne.python-extension-pack",
 				"jonnyasmar.run-it-on-v2",
-				"mikoz.black-py"
+				"mikoz.black-py",
+				"charliermarsh.ruff"
 			]
 		}
 	},
