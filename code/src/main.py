@@ -1,19 +1,15 @@
 import segmentation_models_pytorch as smp
 import torch
 from dotenv import load_dotenv
-from torch import nn, optim
+from torch import optim
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2 as transforms
-from tqdm import tqdm, trange
+from tqdm import trange
 
 import metrics
 from datasets.oxford_pet import (
-    OxfordPetDataset,
-    OxfordPetForegroundDataset,
     OxfordSpeciesDataset,
 )
-from datasets.toy_data import OneColorBackground, SegmentationToyDataset
-from models.binary_segmentation_model import BinarySegmentationModel
 from models.u_net import UNet
 from trainer import Trainer
 
@@ -71,5 +67,4 @@ def main():
 
 
 if __name__ == "__main__":
-
     main()

@@ -69,7 +69,6 @@ from tqdm import tqdm
 
 class OxfordPetDataset(torch.utils.data.Dataset):
     def __init__(self, root, mode="train", transform=None):
-
         assert mode in {"train", "valid", "test"}
 
         self.name = "oxford_pet"
@@ -80,9 +79,12 @@ class OxfordPetDataset(torch.utils.data.Dataset):
         self.images_directory = os.path.join(self.root, "images")
         self.masks_directory = os.path.join(self.root, "annotations", "trimaps")
 
-        self.filenames, self.class_id, self.species, self.breed_id = (
-            self._read_split()
-        )  # read train/valid/test splits
+        (
+            self.filenames,
+            self.class_id,
+            self.species,
+            self.breed_id,
+        ) = self._read_split()  # read train/valid/test splits
 
     def __len__(self):
         return len(self.filenames)
@@ -135,7 +137,6 @@ class OxfordPetDataset(torch.utils.data.Dataset):
 
     @staticmethod
     def download(root):
-
         # load images
         filepath = os.path.join(root, "images.tar.gz")
         download_url(
@@ -154,7 +155,6 @@ class OxfordPetDataset(torch.utils.data.Dataset):
 
 
 class OxfordPetForegroundDataset(OxfordPetDataset):
-
     @property
     def class_map(self) -> dict:
         return {0: "background", 1: "foreground"}

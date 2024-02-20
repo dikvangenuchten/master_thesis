@@ -1,6 +1,5 @@
 import pytest
 from torch import nn, optim
-from torch.utils import data
 
 from datasets.toy_data import SegmentationToyDataset
 from trainer import Trainer
@@ -33,6 +32,6 @@ def test_trainer_single_epoch(test_image_batch, trainer):
 def test_trainer_eval_epoch(test_image_batch, trainer):
     input = test_image_batch.to(trainer.device)
     pre = trainer.model(input)
-    pre_loss = trainer.eval_epoch()
+    _ = trainer.eval_epoch()
     post = trainer.model(input)
     assert (pre == post).all(), "Evaluation should not modify model"

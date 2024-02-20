@@ -1,4 +1,3 @@
-import pytest
 import torch
 
 from models.binary_segmentation_model import BinarySegmentationModel

@@ -33,10 +33,14 @@ class Trainer:
             logging.warning("No eval data provided, Using train data as eval data")
             eval_dataloader = train_dataloader
 
-        model, optimizer, train_dataloader, eval_dataloader, scheduler = (
-            self._accelerator.prepare(
-                model, optimizer, train_dataloader, eval_dataloader, scheduler
-            )
+        (
+            model,
+            optimizer,
+            train_dataloader,
+            eval_dataloader,
+            scheduler,
+        ) = self._accelerator.prepare(
+            model, optimizer, train_dataloader, eval_dataloader, scheduler
         )
 
         self.train_dataloader = train_dataloader

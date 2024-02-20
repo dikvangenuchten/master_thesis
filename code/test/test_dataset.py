@@ -1,6 +1,4 @@
-import pytest
 import torch
-from PIL import Image as PImage
 from torchvision.tv_tensors import Image
 
 from datasets.toy_data import SegmentationToyDataset, ToySegmentationTransform
