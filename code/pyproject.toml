@@ -2,8 +2,8 @@
 pythonpath = [
   "src"
 ]
-testpathts = [
-  "tests"
+testpaths = [
+  "test"
 ]
 
 [tool.ruff]

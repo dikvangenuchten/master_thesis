@@ -25,8 +25,9 @@ class DUQHead(nn.Module):
         length_scale: float [0.10]  Hyperparameter for the length_scale of the RBF kernel.
 
         # The following arguments are intendent for testing purposes only
-        _m: Optional[torch.Tensor]  Set the initial values for the m accumulator, used to calculate EMA centroids
-        _N: Optional[torch.Tensor]  Set the initial values for the N accumulator, used to calculate EMA centroids
+        _m: Optional[torch.Tensor]          Set the initial values for the m accumulator, used to calculate EMA centroids.
+        _N: Optional[torch.Tensor]          Set the initial values for the N accumulator, used to calculate EMA centroids.
+        _weights: Optional[torch.Tensor]    Set the initial weights.
     """
 
     def __init__(
@@ -47,6 +48,8 @@ class DUQHead(nn.Module):
 
         # Sigma in the paper
         self.register_buffer("length_scale", torch.tensor([length_scale]))
+
+        self.register_buffer("gamma", torch.tensor([gamma]))
 
         # m keeps track of the moving average sum of centroids for that class
         # N keeps track of the moving average frequency of centroids for that class
@@ -70,16 +73,21 @@ class DUQHead(nn.Module):
         self.register_buffer("N", torch.ones(num_classes) * 12)
 
     def forward(self, features: torch.Tensor) -> torch.Tensor:
-        embeddings = _conv_duq_last_layer(features, self.weights)
+        embeddings = self.calculate_embeddings(features)
         logits = _rbf(embeddings, self.centroids, self.length_scale)
         return logits
+    
+    def calculate_embeddings(self, features: torch.Tensor) -> torch.Tensor:
+        return _conv_duq_last_layer(features, self.weights)
 
     @property
     def centroids(self) -> torch.Tensor:
         return self.m / self.N
 
     def update_centroids(self, features: torch.Tensor, y_true: torch.Tensor):
-        pass
+        self.N, self.m = _update_centroids(
+            self.N, self.m, self.gamma, self.calculate_embeddings(features), y_true
+        )
 
 
 def _conv_duq_last_layer(features: torch.Tensor, weights: torch.Tensor) -> torch.Tensor:

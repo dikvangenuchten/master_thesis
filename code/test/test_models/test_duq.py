@@ -310,9 +310,9 @@ def test_reference_update_centroid():
     assert torch.allclose(act_m, expected_m)
 
 
+@pytest.mark.parametrize("batch_size", [1, 2, 8])
 @pytest.mark.parametrize("gamma", np.linspace(1, 0, 10, endpoint=False))
-def test_update_centroid_against_reference(gamma: float):
-    batch_size = 4
+def test_update_centroid_against_reference(batch_size: int, gamma: float):
     embedding_size = 8
     num_classes = batch_size * 16
 
@@ -346,24 +346,27 @@ def test_update_centroid_against_reference(gamma: float):
     ), "Centroids are not updated correctly"
 
 
-def test_update_centroid_indepent():
+@pytest.mark.parametrize("embedding_size", [1, 2, 8])
+@pytest.mark.parametrize("num_classes", [1, 2, 8])
+def test_update_centroid_indepent(embedding_size: int, num_classes: int):
     """Each centroid is independent of each other centroid"""
+    batch_size = 1 # When batch_size > 1 this test might fail due to
     feature_size = 8
-    num_classes = 4
-    embedding_size = 2
 
     duq_layer = DUQHead(
-        in_channels=feature_size, num_classes=num_classes, embedding_size=embedding_size
+        in_channels=feature_size, num_classes=num_classes, embedding_size=embedding_size, gamma=0.7
     )
 
-    # Get initial centroids
-    centroids = duq_layer.centroids
-
-    # Given a batch which does not
-
-    # Given a gamma of 0, the moving average should be equal to the last value
-
-    # Given a gamma of 1, the moving average should not update
-
     for i in range(num_classes):
-        pass
+        example_features = torch.rand((batch_size, feature_size))
+        example_labels = F.one_hot(torch.tensor([i]), num_classes).repeat((batch_size, 1), 0).to(dtype=torch.float32)
+        pre_distance = duq_layer(example_features)
+        duq_layer.update_centroids(example_features, example_labels)
+        post_distance = duq_layer(example_features)
+        
+        # The centroid with the class should have been updated
+        assert torch.all(pre_distance[example_labels == 1.0] < post_distance[example_labels == 1.0])
+
+        # The other centroids should be the same
+        assert torch.allclose(pre_distance[example_labels != 1.0], post_distance[example_labels != 1.0])
+
