@@ -21,12 +21,13 @@ def main():
     load_dotenv()
     batch_size = 64
 
+    image_net_transforms = [
+        # Rescale to [0, 1], then normalize using mean and std of ImageNet1K DS
+        transforms.ToDtype(torch.float32, scale=True),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ]
     data_transforms = transforms.Compose(
-        [
-            transforms.Resize((128, 128)),
-            transforms.ToDtype(torch.float32, scale=True),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ]
+        [transforms.Resize((128, 128)), *image_net_transforms]
     )
 
     train_dataset = OxfordSpeciesDataset(

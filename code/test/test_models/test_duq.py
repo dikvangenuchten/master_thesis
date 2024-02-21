@@ -20,6 +20,32 @@ def reference_duq_last_layer(feature_matrix, weight_matrix) -> torch.Tensor:
     return torch.einsum("ij,mnj->imn", feature_matrix, weight_matrix)
 
 
+def rbf_channels_last(embeddings: torch.Tensor, centroids: torch.Tensor, sigma: float):
+    embeddings_ = torch.einsum("bhwec->bechw", embeddings)
+    rbf = _rbf(embeddings_, centroids, sigma)
+    return torch.einsum("bchw->bhwc", rbf)
+
+
+def conv_duq_last_layer_channels_last(
+    features: torch.Tensor, weights: torch.Tensor
+) -> torch.Tensor:
+    features_ = torch.einsum("...hwc->...chw", features)
+    embeddings = _conv_duq_last_layer(features_, weights)
+    # embeddings: [b, e, c, h, w]
+    embeddings_ = torch.einsum("bechw->bhwec", embeddings)
+    return embeddings_
+
+
+def conv_duq_single_value(
+    features: torch.Tensor, weights: torch.Tensor
+) -> torch.Tensor:
+    b, f = features.shape
+    features_ = features.reshape(b, 1, 1, f)
+    e, c, f_ = weights.shape
+    assert f == f_, f"Weight matrix is incompatible with feature matrix ({f} != {f_})"
+    return conv_duq_last_layer_channels_last(features_, weights).reshape(b, e, c)
+
+
 @given(st.integers(1, 32), st.integers(1, 32), st.integers(1, 32), st.integers(1, 32))
 def test_native_implementation(
     batch_size: int,
@@ -33,11 +59,12 @@ def test_native_implementation(
     )
 
     reference = reference_duq_last_layer(feature_matrix, weight_matrix)
-    implementation = _conv_duq_last_layer(feature_matrix, weight_matrix)
+    implementation = conv_duq_single_value(feature_matrix, weight_matrix)
 
-    assert (
-        reference == implementation
-    ).all(), f"Reference and implementation are not equal for {feature_matrix =}, {weight_matrix =}"
+    assert reference.shape == implementation.shape, "Shapes are incorrect"
+    assert torch.allclose(
+        reference, implementation
+    ), f"Reference and implementation are not equal for {feature_matrix =}, {weight_matrix =}"
 
 
 def reference_duq_conv(feature_matrix, weight_matrix) -> torch.Tensor:
@@ -94,7 +121,9 @@ def test_conv_implementation_of_last_layer(
     )
 
     reference = reference_duq_conv(feature_matrix, weight_matrix).detach()
-    implementation = _conv_duq_last_layer(feature_matrix, weight_matrix).detach()
+    implementation = conv_duq_last_layer_channels_last(
+        feature_matrix, weight_matrix
+    ).detach()
 
     assert torch.allclose(
         reference, implementation
@@ -171,7 +200,7 @@ def test_conv_distance_implementation(sigma: float):
         num_classes,
     ), "reference did not have the expected shape"
 
-    own = _rbf(embeddings, centroids, sigma)
+    own = rbf_channels_last(embeddings, centroids, sigma)
     assert tuple(own.shape) == (
         batch_size,
         height,
@@ -197,9 +226,9 @@ def test_forward_pass_shape():
         in_channels=feature_size, num_classes=num_classes, embedding_size=embedding_size
     )
 
-    input = torch.rand((batch_size, height, width, feature_size))
+    input = torch.rand((batch_size, feature_size, height, width))
     output = duq_layer(input)
-    assert output.shape == (batch_size, height, width, num_classes)
+    assert output.shape == (batch_size, num_classes, height, width)
 
 
 def test_forward_pass_batch_indepent():
@@ -216,10 +245,10 @@ def test_forward_pass_batch_indepent():
         in_channels=feature_size, num_classes=num_classes, embedding_size=embedding_size
     )
 
-    input = torch.rand((1, height, width, feature_size))
+    input = torch.rand((1, feature_size, height, width))
     expected = duq_layer(input)
 
-    rand_batch = torch.rand((batch_size, height, width, feature_size))
+    rand_batch = torch.rand((batch_size, feature_size, height, width))
     for i in range(batch_size):
         in_ = rand_batch.clone()
         in_[i] = input
@@ -350,23 +379,38 @@ def test_update_centroid_against_reference(batch_size: int, gamma: float):
 @pytest.mark.parametrize("num_classes", [1, 2, 8])
 def test_update_centroid_indepent(embedding_size: int, num_classes: int):
     """Each centroid is independent of each other centroid"""
-    batch_size = 1 # When batch_size > 1 this test might fail due to
+    # When size > 1 this test might fail due to the same label being assigned multiple times in a batch
+    batch_size = height = width = 1
+
     feature_size = 8
 
     duq_layer = DUQHead(
-        in_channels=feature_size, num_classes=num_classes, embedding_size=embedding_size, gamma=0.7
+        in_channels=feature_size,
+        num_classes=num_classes,
+        embedding_size=embedding_size,
+        gamma=0.7,
     )
 
     for i in range(num_classes):
-        example_features = torch.rand((batch_size, feature_size))
-        example_labels = F.one_hot(torch.tensor([i]), num_classes).repeat((batch_size, 1), 0).to(dtype=torch.float32)
+        example_features = torch.rand((batch_size, feature_size, height, width))
+        example_labels = (
+            F.one_hot(
+                torch.ones(batch_size, height, width, dtype=torch.long) * i, num_classes
+            )
+            .to(dtype=torch.float32)
+            .permute(0, 3, 1, 2)
+        )
+
         pre_distance = duq_layer(example_features)
         duq_layer.update_centroids(example_features, example_labels)
         post_distance = duq_layer(example_features)
-        
+
         # The centroid with the class should have been updated
-        assert torch.all(pre_distance[example_labels == 1.0] < post_distance[example_labels == 1.0])
+        assert torch.all(
+            pre_distance[example_labels == 1.0] < post_distance[example_labels == 1.0]
+        )
 
         # The other centroids should be the same
-        assert torch.allclose(pre_distance[example_labels != 1.0], post_distance[example_labels != 1.0])
-
+        assert torch.allclose(
+            pre_distance[example_labels != 1.0], post_distance[example_labels != 1.0]
+        )

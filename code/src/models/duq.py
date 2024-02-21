@@ -76,7 +76,7 @@ class DUQHead(nn.Module):
         embeddings = self.calculate_embeddings(features)
         logits = _rbf(embeddings, self.centroids, self.length_scale)
         return logits
-    
+
     def calculate_embeddings(self, features: torch.Tensor) -> torch.Tensor:
         return _conv_duq_last_layer(features, self.weights)
 
@@ -98,8 +98,15 @@ def _conv_duq_last_layer(features: torch.Tensor, weights: torch.Tensor) -> torch
 
     This implementation is quite slow, it might be required to
     implement it as a 1x1 conv later, not sure if that is faster.
+
+    b: batch dim
+    h: height dim
+    w: width dim
+    f: feature dim
+    e: embedding dim
+    c: classes dim
     """
-    return torch.einsum("...j,mnj->...mn", features, weights)
+    return torch.einsum("bfhw,ecf->bechw", features, weights)
 
 
 def _rbf(
@@ -110,7 +117,13 @@ def _rbf(
     maximal iff embeddings == centroids -> _rbf(embeddings, centroids) == torch.ones_like(embeddings)
     """
     gamma = -1 / (2 * sigma**2)
-    return (embeddings - centroids.unsqueeze(0)).pow(2).mean(-2).mul(gamma).exp()
+    return (
+        (embeddings - centroids.reshape(1, *centroids.shape, 1, 1))
+        .pow(2)
+        .mean(1)
+        .mul(gamma)
+        .exp()
+    )
 
 
 def _update_centroids(
@@ -120,12 +133,20 @@ def _update_centroids(
     embeddings: torch.Tensor,
     labels: torch.Tensor,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
-    bs = labels.shape[0]
+    b, e, c_e, *shape_e = embeddings.shape
+    b, c_l, *shape_l = labels.shape
+    assert c_e == c_l, f"Number of classes do not match ({c_e}  == {c_l})"
+    assert (
+        shape_e == shape_l
+    ), f"Remaining shape does not match ({shape_e}  == {shape_l})"
 
-    batch_frequency = labels.sum(0) / bs
+    flat_embeddings = embeddings.reshape(-1, e, c_e)
+    flat_labels = labels.reshape(-1, c_l)
+
+    batch_frequency = flat_labels.sum(0) / b
     new_N = gamma * prev_N + (1 - gamma) * batch_frequency
-    embedding_sum = torch.einsum("ijk,ik->jk", embeddings, labels)
-    embedding_sum = embedding_sum / bs
+    embedding_sum = torch.einsum("ijk,ik->jk", flat_embeddings, flat_labels)
+    embedding_sum = embedding_sum / b
     new_m = gamma * prev_m + (1 - gamma) * embedding_sum
 
     return new_N, new_m

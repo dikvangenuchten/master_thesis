@@ -8,6 +8,7 @@ from torch.utils import data
 from tqdm import tqdm
 
 from metrics.base_metric import BaseMetric
+from losses.gradient_penalty import GradientPenalty
 
 
 class Trainer:
@@ -50,6 +51,7 @@ class Trainer:
         self.scheduler = scheduler
         self.eval_dataloader = eval_dataloader
         self.metrics = metrics
+        self._gradient_penalty = GradientPenalty()
 
     @property
     def device(self):
@@ -78,8 +80,14 @@ class Trainer:
         ):
             self.optimizer.zero_grad()
 
-            logits = self.model(img)
-            loss = self.loss_fn(logits, target)
+            # img.requires_grad_(True) # Is required for the gp
+
+            output = self.model(img)
+            loss = self.loss_fn(output, target)
+
+            # Gradient penalty
+            # gp = self._gradient_penalty(img, output)
+            # loss += gp
 
             # Backpropagation
             loss.backward()
@@ -90,7 +98,7 @@ class Trainer:
             loss_sum += loss_d.sum()
             loss_count += img.shape[0]
 
-            self._metrics_add_batch(img, target, logits.softmax(1), loss_d)
+            self._metrics_add_batch(img, target, output.softmax(1), loss_d)
 
         self.scheduler.step()
         self._log_and_reset_metrics("train", epoch)
