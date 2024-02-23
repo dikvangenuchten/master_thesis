@@ -2,6 +2,7 @@ import torch
 from torchvision.tv_tensors import Image
 
 from datasets.toy_data import SegmentationToyDataset, ToySegmentationTransform
+from datasets.coco import CoCoDataset
 
 
 def test_toy_dataset_initialization():
@@ -28,3 +29,13 @@ def test_toy_transform(test_image: Image):
     # os.makedirs(path, exist_ok=True)
     # pillify(img).save(os.path.join(path, "img.png"))
     # pillify(mask + 0).save(os.path.join(path, "msk.png"))
+
+
+def test_coco_dataset():
+    ds = CoCoDataset()
+    # TODO add instance mask
+    img, semantic_mask = ds[0]
+
+    assert (
+        img.shape[1, 2] == semantic_mask[1, 2]
+    ), f"Semantic and image shape do not match."

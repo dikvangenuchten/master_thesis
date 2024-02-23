@@ -14,6 +14,7 @@ class MaskMetric(BaseMetric):
         super().__init__(name)
         self._first_batch = None
         self._limit = limit
+        self.class_labels = class_labels
 
     def add_batch(self, x: Tensor, y_true: Tensor, y_pred: Tensor, loss: Tensor):
         if self._first_batch is None:
@@ -33,7 +34,6 @@ class MaskMetric(BaseMetric):
 
     def get_log_dict(self) -> Dict[str, Tensor]:
         images = []
-        class_labels = {0: "background", 1: "cat", 2: "dog"}
         for img, gt_mask, pr_mask in zip(*self._first_batch):
             images.append(
                 wandb.Image(
@@ -41,11 +41,11 @@ class MaskMetric(BaseMetric):
                     masks={
                         "predictions": {
                             "mask_data": pr_mask.argmax(-1),
-                            "class_labels": class_labels,
+                            "class_labels": self.class_labels,
                         },
                         "ground_truth": {
                             "mask_data": gt_mask[..., 0],
-                            "class_labels": class_labels,
+                            "class_labels": self.class_labels,
                         },
                     },
                 )

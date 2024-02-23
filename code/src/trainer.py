@@ -83,7 +83,7 @@ class Trainer:
             # img.requires_grad_(True) # Is required for the gp
 
             output = self.model(img)
-            loss = self.loss_fn(output, target)
+            loss = self.loss_fn(output, target.to(dtype=torch.long))
 
             # Gradient penalty
             # gp = self._gradient_penalty(img, output)
@@ -103,7 +103,7 @@ class Trainer:
         self.scheduler.step()
         self._log_and_reset_metrics("train", epoch)
 
-        return loss_sum / loss_count
+        return (loss_sum / loss_count).item()
 
     def eval_epoch(self, epoch: Optional[int] = None) -> torch.Tensor:
         loss_sum = 0
@@ -125,4 +125,4 @@ class Trainer:
                 self._metrics_add_batch(img, target, logits.softmax(1), loss_d)
 
         self._log_and_reset_metrics("eval", epoch)
-        return loss_sum / loss_count
+        return (loss_sum / loss_count).item()

@@ -10,6 +10,7 @@ import metrics
 from datasets.oxford_pet import (
     OxfordSpeciesDataset,
 )
+from datasets.coco import CoCoDataset
 from models.u_net import UNet
 from trainer import Trainer
 
@@ -19,7 +20,7 @@ DATA_ROOT = "/datasets/"
 def main():
     print("Main")
     load_dotenv()
-    batch_size = 64
+    batch_size = 16
 
     image_net_transforms = [
         # Rescale to [0, 1], then normalize using mean and std of ImageNet1K DS
@@ -30,12 +31,15 @@ def main():
         [transforms.Resize((128, 128)), *image_net_transforms]
     )
 
-    train_dataset = OxfordSpeciesDataset(
-        root=DATA_ROOT, mode="train", transform=data_transforms
-    )
-    val_dataset = OxfordSpeciesDataset(
-        root=DATA_ROOT, mode="valid", transform=data_transforms
-    )
+    train_dataset = CoCoDataset(split="train", transform=data_transforms)
+    val_dataset = CoCoDataset(split="val", transform=data_transforms)
+
+    # train_dataset = OxfordSpeciesDataset(
+    # root=DATA_ROOT, mode="train", transform=data_transforms
+    # )
+    # val_dataset = OxfordSpeciesDataset(
+    # root=DATA_ROOT, mode="valid", transform=data_transforms
+    # )
 
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     eval_dataloader = DataLoader(val_dataset, batch_size=batch_size)
@@ -48,7 +52,7 @@ def main():
 
     run_metrics = [
         metrics.AverageMetric("AverageLoss", lambda x, y_t, y_p, loss: loss),
-        metrics.MaskMetric("MaskMetric", {1: "blob"}),
+        metrics.MaskMetric("MaskMetric", train_dataset.class_map),
     ]
 
     trainer = Trainer(
