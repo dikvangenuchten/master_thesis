@@ -41,7 +41,11 @@ class Trainer:
             eval_dataloader,
             scheduler,
         ) = self._accelerator.prepare(
-            model, optimizer, train_dataloader, eval_dataloader, scheduler
+            model,
+            optimizer,
+            train_dataloader,
+            eval_dataloader,
+            scheduler,
         )
 
         self.train_dataloader = train_dataloader
@@ -59,12 +63,12 @@ class Trainer:
 
     def _metrics_add_batch(self, *args, **kwargs):
         for metric in self.metrics:
-            metric.add_batch(*args, **kwargs)
+            metric.update(*args, **kwargs)
 
     def _log_and_reset_metrics(self, prefix: str = "", epoch: Optional[int] = None):
         log_dict = {}
         for metric in self.metrics:
-            log_dict.update(**metric.get_log_dict())
+            log_dict.update(**metric.compute())
             metric.reset()
 
         log_dict = {f"{prefix}_{k}": v for k, v in log_dict.items()}
@@ -75,9 +79,8 @@ class Trainer:
         loss_count = 0
         self.model.train()
 
-        for batch_idx, (img, target) in enumerate(
-            tqdm(self.train_dataloader, leave=False, desc="training")
-        ):
+        pbar = tqdm(self.train_dataloader, leave=False, desc="training")
+        for batch_idx, (img, target) in enumerate(pbar):
             self.optimizer.zero_grad()
 
             # img.requires_grad_(True) # Is required for the gp
@@ -97,6 +100,7 @@ class Trainer:
             loss_d = loss.detach()
             loss_sum += loss_d.sum()
             loss_count += img.shape[0]
+            pbar.set_description(f"Training: loss={(loss_sum / loss_count).item():.4f}")
 
             self._metrics_add_batch(img, target, output.softmax(1), loss_d)
 

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Dict
+from typing import Callable
 
 from torch import Tensor
 
@@ -11,12 +11,12 @@ class BaseMetric(ABC):
         self.name = name
 
     @abstractmethod
-    def add_batch(self, x: Tensor, y_true: Tensor, y_pred: Tensor, loss: Tensor):
+    def update(self, x: Tensor, y_true: Tensor, y_pred: Tensor, loss: Tensor):
         """Add a batch of data to the metric"""
 
     @abstractmethod
-    def get_log_dict(self) -> Dict[str, Tensor]:
-        """Retreive the metric such that it can be logged"""
+    def compute(self) -> Tensor:
+        """Compute the metric"""
 
     @abstractmethod
     def reset(self):

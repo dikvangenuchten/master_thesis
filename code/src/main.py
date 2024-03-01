@@ -5,11 +5,9 @@ from torch import optim
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2 as transforms
 from tqdm import trange
+from torchmetrics.classification import MulticlassConfusionMatrix
 
 import metrics
-from datasets.oxford_pet import (
-    OxfordSpeciesDataset,
-)
 from datasets.coco import CoCoDataset
 from models.u_net import UNet
 from trainer import Trainer
@@ -41,18 +39,26 @@ def main():
     # root=DATA_ROOT, mode="valid", transform=data_transforms
     # )
 
-    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    eval_dataloader = DataLoader(val_dataset, batch_size=batch_size)
+    train_dataloader = DataLoader(
+        train_dataset, batch_size=batch_size, shuffle=True, num_workers=1
+    )
+    eval_dataloader = DataLoader(val_dataset, batch_size=batch_size, num_workers=1)
 
     num_classes = len(train_dataset.class_map)
+    ignore_index = (
+        train_dataset.ignore_index if hasattr(train_dataset, "ignore_index") else None
+    )
     model = UNet(3, num_classes)
     mode = "binary" if num_classes == 2 else "multiclass"
-    loss_fn = smp.losses.DiceLoss(mode=mode, from_logits=True)
+    loss_fn = smp.losses.DiceLoss(
+        mode=mode, from_logits=False, ignore_index=ignore_index
+    )
     optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
     run_metrics = [
         metrics.AverageMetric("AverageLoss", lambda x, y_t, y_p, loss: loss),
         metrics.MaskMetric("MaskMetric", train_dataset.class_map),
+        MulticlassConfusionMatrix(num_classes, ignore_index),
     ]
 
     trainer = Trainer(

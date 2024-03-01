@@ -15,35 +15,35 @@ def loss_fn():
 def test_average_of_single_sample(val):
     bs = 16
     average_metric = AverageMetric("AverageTestConstant", loss_fn())
-    average_metric.add_batch(
+    average_metric.update(
         x=torch.rand((bs, 1)),
         y_true=torch.rand((bs, 1)),
         y_pred=torch.rand((bs, 1)),
         loss=torch.ones((bs, 1)) * val,
     )
-    log_dict = average_metric.get_log_dict()
+    log_dict = average_metric.compute()
     assert log_dict[average_metric.name] == val, "Average was not calculated correctly"
 
 
 def test_reset():
     bs = 16
     average_metric = AverageMetric("AverageTestConstant", loss_fn())
-    average_metric.add_batch(
+    average_metric.update(
         x=torch.rand((bs, 1)),
         y_true=torch.rand((bs, 1)),
         y_pred=torch.rand((bs, 1)),
         loss=torch.ones((bs, 1)) * 1,
     )
-    log_dict = average_metric.get_log_dict()
+    log_dict = average_metric.compute()
     assert log_dict[average_metric.name] == 1, "Average was not calculated correctly"
     average_metric.reset()
-    average_metric.add_batch(
+    average_metric.update(
         x=torch.rand((bs, 1)),
         y_true=torch.rand((bs, 1)),
         y_pred=torch.rand((bs, 1)),
         loss=torch.ones((bs, 1)) * 2,
     )
-    log_dict = average_metric.get_log_dict()
+    log_dict = average_metric.compute()
     assert (
         log_dict[average_metric.name] == 2
     ), "Average was not calculated correctly after reset"

@@ -1,11 +1,9 @@
 import json
 import os
 from typing import Callable, Optional, Literal, Tuple
-import numpy as np
 
 import torch
 from PIL import Image as PImage
-from torchvision.transforms import v2 as transforms_v2
 from torchvision.tv_tensors import Image, Mask
 from pycocotools.coco import COCO
 
@@ -43,6 +41,8 @@ class CoCoDataset(torch.utils.data.Dataset):
             i: cat["name"] for i, cat in enumerate(self._panoptic_anns["categories"])
         }
 
+        self.ignore_index = len(self.class_map)
+
     def __len__(self) -> int:
         return len(self._panoptic_anns["annotations"])
 
@@ -56,11 +56,23 @@ class CoCoDataset(torch.utils.data.Dataset):
         return Image(PImage.open(os.path.join(self._image_root, path)).convert("RGB"))
 
     def _load_panoptic_mask(self, id: int) -> Mask:
+        """Load the panoptic mask for `id`
+
+        Based on the data format specified by [COCO](https://cocodataset.org/#format-data)
+
+        Args:
+            id (int): The 'id' (index) of the mask
+
+        Returns:
+            Mask: A panoptic mask in the shape of [2, W, H]
+        """
         ann = self._panoptic_anns["annotations"][id]
         path = ann["file_name"]
         mask = Image(
             PImage.open(os.path.join(self._panoptic_root, path)).convert("RGB")
         )
+        # Unlabeled places are given the 0 class
+
         instance_mask = rgb2id(mask)
         sem_mask = torch.zeros_like(instance_mask, dtype=torch.long)
         for segment_info in ann["segments_info"]:
@@ -68,6 +80,9 @@ class CoCoDataset(torch.utils.data.Dataset):
                 segment_info["category_id"]
             ]
         # Temporarily only load semantic mask
+
+        # Set unlabeled values
+        sem_mask[mask.sum(0) == 0] = len(self.class_map)
         return Mask(sem_mask.unsqueeze(0))
 
         ins_mask = torch.zeros_like(instance_mask, dtype=torch.long)
@@ -85,6 +100,16 @@ class CoCoDataset(torch.utils.data.Dataset):
 
 
 def rgb2id(color: torch.Tensor):
+    """Convert an RGB value to an id
+
+    Using the formula: ids=R+G*256+B*256^2
+
+    Args:
+        color (torch.Tensor): _description_
+
+    Returns:
+        _type_: _description_
+    """
     color = color.to(dtype=torch.long)
     return color[0, :, :] + 256 * color[1, :, :] + 256 * 256 * color[2, :, :]
 

@@ -1,4 +1,3 @@
-from typing import Dict
 
 from torch import Tensor
 
@@ -14,11 +13,11 @@ class AverageMetric(BaseMetric):
         self._sum = 0
         self._count = 0
 
-    def add_batch(self, x: Tensor, y_true: Tensor, y_pred: Tensor, loss: Tensor):
+    def update(self, x: Tensor, y_true: Tensor, y_pred: Tensor, loss: Tensor):
         self._count += x.shape[0]
         self._sum += self._fn(x, y_true, y_pred, loss).sum()
 
-    def get_log_dict(self) -> Dict[str, Tensor]:
+    def compute(self) -> Tensor:
         return {self.name: self._sum / self._count}
 
     def reset(self):

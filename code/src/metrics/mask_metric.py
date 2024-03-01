@@ -1,4 +1,3 @@
-from typing import Dict
 
 import numpy as np
 from torch import Tensor
@@ -16,7 +15,7 @@ class MaskMetric(BaseMetric):
         self._limit = limit
         self.class_labels = class_labels
 
-    def add_batch(self, x: Tensor, y_true: Tensor, y_pred: Tensor, loss: Tensor):
+    def update(self, x: Tensor, y_true: Tensor, y_pred: Tensor, loss: Tensor):
         if self._first_batch is None:
             if x.shape[0] > self._limit:
                 x, y_true, y_pred = (
@@ -30,9 +29,9 @@ class MaskMetric(BaseMetric):
                 np.transpose(y_true.detach().cpu().numpy(), (0, 2, 3, 1)),
                 np.transpose(y_pred.detach().cpu().numpy(), (0, 2, 3, 1)),
             )
-        return super().add_batch(x, y_true, y_pred, loss)
+        return super().update(x, y_true, y_pred, loss)
 
-    def get_log_dict(self) -> Dict[str, Tensor]:
+    def compute(self) -> Tensor:
         images = []
         for img, gt_mask, pr_mask in zip(*self._first_batch):
             images.append(
