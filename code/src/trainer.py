@@ -11,6 +11,16 @@ from metrics.base_metric import BaseMetric
 from losses.gradient_penalty import GradientPenalty
 
 
+class Runner:
+    def __init__(
+        self,
+        dataloader: data.DataLoader,
+        model: nn.Module,
+        loss_fn: nn.Module,
+    ) -> None:
+        pass
+
+
 class Trainer:
     def __init__(
         self,
@@ -83,17 +93,17 @@ class Trainer:
         for batch_idx, (img, target) in enumerate(pbar):
             self.optimizer.zero_grad()
 
-            # img.requires_grad_(True) # Is required for the gp
+            img.requires_grad_(True)  # Is required for the gp
 
             output = self.model(img)
             loss = self.loss_fn(output, target.to(dtype=torch.long))
 
             # Gradient penalty
-            # gp = self._gradient_penalty(img, output)
-            # loss += gp
+            gp = self._gradient_penalty(img, output)
+            loss += gp
 
             # Backpropagation
-            loss.backward()
+            self._accelerator.backward(loss)
             self.optimizer.step()
 
             # Keep track of average loss

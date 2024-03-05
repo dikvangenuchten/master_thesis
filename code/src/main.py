@@ -5,7 +5,7 @@ from torch import optim
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2 as transforms
 from tqdm import trange
-from torchmetrics.classification import MulticlassConfusionMatrix
+
 
 import metrics
 from datasets.coco import CoCoDataset
@@ -18,7 +18,7 @@ DATA_ROOT = "/datasets/"
 def main():
     print("Main")
     load_dotenv()
-    batch_size = 16
+    batch_size = 8
 
     image_net_transforms = [
         # Rescale to [0, 1], then normalize using mean and std of ImageNet1K DS
@@ -33,10 +33,10 @@ def main():
     val_dataset = CoCoDataset(split="val", transform=data_transforms)
 
     # train_dataset = OxfordSpeciesDataset(
-    # root=DATA_ROOT, mode="train", transform=data_transforms
+    #   root=DATA_ROOT, mode="train", transform=data_transforms
     # )
     # val_dataset = OxfordSpeciesDataset(
-    # root=DATA_ROOT, mode="valid", transform=data_transforms
+    #   root=DATA_ROOT, mode="valid", transform=data_transforms
     # )
 
     train_dataloader = DataLoader(
@@ -58,7 +58,9 @@ def main():
     run_metrics = [
         metrics.AverageMetric("AverageLoss", lambda x, y_t, y_p, loss: loss),
         metrics.MaskMetric("MaskMetric", train_dataset.class_map),
-        MulticlassConfusionMatrix(num_classes, ignore_index),
+        metrics.ConfusionMetrics(
+            "ConfusionMetrics", num_classes, ignore_index=ignore_index
+        ),
     ]
 
     trainer = Trainer(
@@ -74,8 +76,20 @@ def main():
         loss = trainer.epoch(epoch)
         eval_loss = trainer.eval_epoch(epoch)
         pbar.set_description(f"train_avg_loss: {loss}, eval_avg_loss: {eval_loss}")
-    pass
 
 
 if __name__ == "__main__":
     main()
+
+## Steps:
+# Define a model based on (V)AE
+# Create a cache creation script
+# Create a training script
+# Create a inference script
+#
+
+
+### TODO LIST
+# 1. Make experimental design specific for new idea
+#       Be explicit in what is "cached"
+#       Be explicit about what metrics

@@ -1,4 +1,3 @@
-
 from torch import Tensor
 
 from metrics.base_metric import BaseMetric, LogSignature
