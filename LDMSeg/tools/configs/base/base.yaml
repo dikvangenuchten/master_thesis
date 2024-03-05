@@ -5,8 +5,8 @@ pretrained_model_path: "CompVis/stable-diffusion-v1-4"
 wandb: False
 
 # Evaluate only
-eval_only: False
-load_path:
+eval_only: True
+load_path: "/datasets/pretrained/ldmseg.pt"
 
 # vae model path and kwargs
 image_scaling_factor: 0.18215  # standard SD scaling factor
