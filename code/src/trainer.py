@@ -96,7 +96,7 @@ class Trainer:
             img.requires_grad_(True)  # Is required for the gp
 
             output = self.model(img)
-            loss = self.loss_fn(output, target.to(dtype=torch.long))
+            loss = self.loss_fn(output, target)
 
             # Gradient penalty
             gp = self._gradient_penalty(img, output)

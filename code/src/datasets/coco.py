@@ -95,8 +95,8 @@ class CoCoDataset(torch.utils.data.Dataset):
         panoptic_mask = self._load_panoptic_mask(index)
 
         if self.transform is not None:
-            img, semantic_mask = self.transform(img, panoptic_mask)
-        return img, semantic_mask
+            return self.transform(img, panoptic_mask)
+        return img, panoptic_mask
 
 
 def rgb2id(color: torch.Tensor):

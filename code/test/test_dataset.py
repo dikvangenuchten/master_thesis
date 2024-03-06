@@ -37,5 +37,5 @@ def test_coco_dataset():
     img, semantic_mask = ds[0]
 
     assert (
-        img.shape[1, 2] == semantic_mask[1, 2]
+        img.shape[1:] == semantic_mask.shape[1:]
     ), "Semantic and image shape do not match."
