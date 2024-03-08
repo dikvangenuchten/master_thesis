@@ -89,6 +89,7 @@ class Trainer:
         loss_count = 0
         self.model.train()
 
+        stop = False
         pbar = tqdm(self.train_dataloader, leave=False, desc="training")
         for batch_idx, (img, target) in enumerate(pbar):
             self.optimizer.zero_grad()
@@ -113,6 +114,9 @@ class Trainer:
             pbar.set_description(f"Training: loss={(loss_sum / loss_count).item():.4f}")
 
             self._metrics_add_batch(img, target, output.softmax(1), loss_d)
+            if stop:
+                # Manual break using debugger
+                break
 
         self.scheduler.step()
         self._log_and_reset_metrics("train", epoch)
@@ -140,3 +144,7 @@ class Trainer:
 
         self._log_and_reset_metrics("eval", epoch)
         return (loss_sum / loss_count).item()
+
+
+def _train_step():
+    pass

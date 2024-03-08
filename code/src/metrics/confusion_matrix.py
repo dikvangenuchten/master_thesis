@@ -86,3 +86,5 @@ class ConfusionMetrics(BaseMetric):
 
     def reset(self):
         return self._confusion_matrix.reset()
+
+
