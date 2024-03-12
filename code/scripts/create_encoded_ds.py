@@ -4,11 +4,9 @@ Taking a feature extractor `f(x)->h` (Usually the encoder of a model)
 This converts the (x, y) pairs into (h, y) pairs.
 """
 import os
-import asyncio
 
 from diffusers import AutoencoderKL
 import torch
-from torch import nn
 from torch.utils.data import DataLoader
 
 from torchvision.transforms import v2 as transforms
@@ -16,33 +14,13 @@ import tqdm
 
 from datasets.coco import CoCoDataset
 
-DATA_ROOT = "/datasets/coco/latents_2/"
 BATCH_SIZE = 32
 
 
-def process_batch(model, batch_idx, image):
-    model_out = model.encode(image.to(device="cuda", non_blocking=True))
-    return batch_idx, model_out.latent_dist.parameters
+def main(model, root_dir, split):
+    save_dir = os.path.join(root_dir, f"{split}_latents")
+    os.makedirs(save_dir, exist_ok=True)
 
-@torch.no_grad
-def create_ds(model, dataloader):
-    model = model.to(device="cuda")
-    for batch_idx, (image, _) in enumerate(tqdm.tqdm(dataloader)):
-        parameters = model.encode(image.to(device="cuda", non_blocking=True)).latent_dist.parameters.cpu()
-        save_batch(batch_idx, parameters)
-
-def save_batch(batch_idx: int, parameters: torch.Tensor):
-    for i, x in enumerate(parameters):
-        idx = batch_idx * BATCH_SIZE + i
-        path = os.path.join(DATA_ROOT, f"{split}_vae_latent_{idx}.pt")
-        torch.save({"latent_parameters": x, "target": idx}, path)
-
-
-if __name__ == "__main__":
-    url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"
-    model = AutoencoderKL.from_single_file(url)
-
-    split = "train"
     image_net_transforms = [
         # Rescale to [0, 1], then normalize using mean and std of ImageNet1K DS
         transforms.ToDtype(torch.float32, scale=True),
@@ -52,11 +30,38 @@ if __name__ == "__main__":
         [transforms.Resize((128, 128)), *image_net_transforms]
     )
     dataset = CoCoDataset(split, transform=data_transforms)
-    
+
     dataloader = DataLoader(
         dataset, shuffle=False, batch_size=BATCH_SIZE, pin_memory=True, num_workers=4
     )
+    print(f"Starting on split: {split}")
+    create_ds(model, dataloader, save_dir)
+    print(f"Finished split: {split}")
 
-    os.makedirs(DATA_ROOT, exist_ok=True)
-    
-    create_ds(model, dataloader)
+
+@torch.no_grad
+def create_ds(model, dataloader, save_dir):
+    model = model.to(device="cuda")
+    for batch_idx, batch in enumerate(tqdm.tqdm(dataloader)):
+        parameters = model.encode(
+            batch["img"].to(device="cuda", non_blocking=True)
+        ).latent_dist.parameters.cpu()
+        save_batch(batch_idx, parameters, save_dir)
+
+
+def save_batch(batch_idx: int, parameters: torch.Tensor, save_dir: str):
+    for i, x in enumerate(parameters):
+        idx = batch_idx * BATCH_SIZE + i
+        path = os.path.join(save_dir, f"vae_latent_{idx}.pt")
+        torch.save(x.clone(), path)
+
+
+if __name__ == "__main__":
+    url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"
+    model = AutoencoderKL.from_single_file(url)
+    model.eval()
+
+    data_dir = "/datasets/coco/"
+
+    for split in ["train", "val"]:
+        main(model, data_dir, split)

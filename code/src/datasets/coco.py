@@ -1,27 +1,59 @@
 import json
 import os
-from typing import Callable, Optional, Literal, Tuple
+from typing import Callable, Dict, Optional, Literal, TypeVar, get_args
+from functools import cache
 
 import torch
+from diffusers.models.autoencoders.vae import DiagonalGaussianDistribution
 from PIL import Image as PImage
-from torchvision.tv_tensors import Image, Mask
+from torchvision.tv_tensors import Image, Mask, TVTensor, BoundingBoxes
 from pycocotools.coco import COCO
+
+OUTPUT_TYPES = Literal["img", "latent", "semantic_mask"]
+
+
+class LatentTensor(TVTensor):
+    """Ensure latent tensors are not changed in transforms
+
+    https://pytorch.org/vision/0.16/auto_examples/transforms/plot_custom_tv_tensors.html#sphx-glr-auto-examples-transforms-plot-custom-tv-tensors-py
+    TODO: Determine if latent variables should have some implementations
+        e.g.:
+            hflip/vflip
+    """
+
+    pass
 
 
 class CoCoDataset(torch.utils.data.Dataset):
     def __init__(
         self,
         split: Literal["train", "val"] = "val",
+        output_structure: Dict[str, OUTPUT_TYPES] = {
+            "input": "latent",
+            "target": "semantic_mask",
+        },
         root: Optional[str] = None,
         annFile: Optional[str] = None,
         transform: Optional[Callable] = None,
+        latents: bool = False,
+        sample: bool = True,
+        num_classes: Optional[int] = None,
     ):
         base_path = "/datasets/coco/"
+
+        unsuported_outs = {
+            k: v for k, v in output_structure.items() if v not in get_args(OUTPUT_TYPES)
+        }
+        assert (
+            len(unsuported_outs) == 0
+        ), f"The following outputs are not supported: {unsuported_outs}"
+        self.output_structure = output_structure
 
         self._image_root = os.path.join(base_path, f"{split}2017/")
         self._panoptic_root = os.path.join(
             base_path, "annotations", f"panoptic_{split}2017"
         )
+        self._latent_root = os.path.join(base_path, f"{split}_latents")
 
         with open(self._panoptic_root + ".json") as f:
             self._panoptic_anns = json.load(f)
@@ -42,6 +74,8 @@ class CoCoDataset(torch.utils.data.Dataset):
         }
 
         self.ignore_index = len(self.class_map)
+        self._latents = latents
+        self._sample = sample
 
     def __len__(self) -> int:
         return len(self._panoptic_anns["annotations"])
@@ -50,23 +84,35 @@ class CoCoDataset(torch.utils.data.Dataset):
     def class_map(self) -> dict:
         return self._class_map
 
-    def _load_image(self, id: int) -> Image:
-        img_id = self._panoptic_anns["annotations"][id]["image_id"]
+    @cache
+    def _load_latent(self, idx: int) -> torch.Tensor:
+        parameters: torch.Tensor = torch.load(
+            os.path.join(self._latent_root, f"vae_latent_{idx}.pt")
+        )
+        if self._sample:
+            dist = DiagonalGaussianDistribution(parameters=parameters.unsqueeze(0))
+            return LatentTensor(dist.sample().squeeze(0))
+        else:
+            mean, _logvar = parameters.chunk(parameters, 2, dim=0)
+            return LatentTensor(mean)
+
+    def _load_image(self, idx: int) -> Image:
+        img_id = self._panoptic_anns["annotations"][idx]["image_id"]
         path = self._coco.imgs[img_id]["file_name"]
         return Image(PImage.open(os.path.join(self._image_root, path)).convert("RGB"))
 
-    def _load_panoptic_mask(self, id: int) -> Mask:
+    def _load_panoptic_mask(self, idx: int) -> Mask:
         """Load the panoptic mask for `id`
 
         Based on the data format specified by [COCO](https://cocodataset.org/#format-data)
 
         Args:
-            id (int): The 'id' (index) of the mask
+            idx (int): The 'idx' (index) of the mask
 
         Returns:
             Mask: A panoptic mask in the shape of [2, W, H]
         """
-        ann = self._panoptic_anns["annotations"][id]
+        ann = self._panoptic_anns["annotations"][idx]
         path = ann["file_name"]
         mask = Image(
             PImage.open(os.path.join(self._panoptic_root, path)).convert("RGB")
@@ -90,13 +136,21 @@ class CoCoDataset(torch.utils.data.Dataset):
             ins_mask[instance_mask == old_id] = new_id
         return Mask(torch.stack([sem_mask, ins_mask]))
 
-    def __getitem__(self, index) -> Tuple[Image, Mask]:
-        img = self._load_image(index)
-        panoptic_mask = self._load_panoptic_mask(index)
-
+    def __getitem__(self, index) -> Dict[str, torch.Tensor]:
+        out = {k: self._get_type(index, v) for k, v in self.output_structure.items()}
         if self.transform is not None:
-            return self.transform(img, panoptic_mask)
-        return img, panoptic_mask
+            return self.transform(out)
+        return out
+
+    def _get_type(self, index, type_) -> torch.Tensor:
+        if type_ == "img":
+            return self._load_image(index)
+        elif type_ == "latent":
+            return self._load_latent(index)
+        elif type_ == "semantic_mask":
+            return self._load_panoptic_mask(index)
+        else:
+            raise RuntimeError(f"{type_} is not supported in {self.__qualname__}")
 
 
 def rgb2id(color: torch.Tensor):

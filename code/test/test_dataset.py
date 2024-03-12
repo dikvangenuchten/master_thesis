@@ -32,9 +32,11 @@ def test_toy_transform(test_image: Image):
 
 
 def test_coco_dataset():
-    ds = CoCoDataset()
+    ds = CoCoDataset(output_structure={"img": "img", "target": "semantic_mask"})
     # TODO add instance mask
-    img, semantic_mask = ds[0]
+    batch = ds[0]
+    img = batch["img"]
+    semantic_mask = batch["target"]
 
     assert (
         img.shape[1:] == semantic_mask.shape[1:]

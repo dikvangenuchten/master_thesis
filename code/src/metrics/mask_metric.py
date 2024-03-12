@@ -2,7 +2,7 @@ import numpy as np
 from torch import Tensor
 
 import wandb
-from metrics.base_metric import BaseMetric
+from metrics.base_metric import BaseMetric, StepData
 
 
 class MaskMetric(BaseMetric):
@@ -13,9 +13,14 @@ class MaskMetric(BaseMetric):
         self._first_batch = None
         self._limit = limit
         self.class_labels = class_labels
+        self._image_label = "image"
+        self._target_label = "target"
 
-    def update(self, x: Tensor, y_true: Tensor, y_pred: Tensor, loss: Tensor):
+    def update(self, step_data: StepData):
         if self._first_batch is None:
+            x = step_data.batch[self._image_label]
+            y_true = step_data.batch[self._target_label]
+            y_pred = step_data.model_out.out
             if x.shape[0] > self._limit:
                 x, y_true, y_pred = (
                     x[: self._limit],
@@ -28,7 +33,6 @@ class MaskMetric(BaseMetric):
                 np.transpose(y_true.detach().cpu().numpy(), (0, 2, 3, 1)),
                 np.transpose(y_pred.detach().cpu().numpy(), (0, 2, 3, 1)),
             )
-        return super().update(x, y_true, y_pred, loss)
 
     def compute(self) -> Tensor:
         images = []

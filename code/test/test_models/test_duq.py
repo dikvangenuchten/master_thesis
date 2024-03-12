@@ -402,7 +402,7 @@ def test_update_centroid_indepent(embedding_size: int, num_classes: int):
         )
 
         pre_distance = duq_layer(example_features)
-        duq_layer.update_centroids(example_features, example_labels)
+        duq_layer.update_centroids(example_labels)
         post_distance = duq_layer(example_features)
 
         # The centroid with the class should have been updated

@@ -60,7 +60,7 @@ class SegmentationToyDataset(data.Dataset):
         img = Image(img)
 
         img, mask = self.transforms(img)
-        return img, mask
+        return {"input": img, "target": mask}
 
     def __len__(self) -> int:
         if self._limit == -1:

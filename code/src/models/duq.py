@@ -13,6 +13,8 @@ from typing import Optional, Tuple
 import torch
 from torch import nn
 
+from models import ModelOutput
+
 
 class DUQHead(nn.Module):
     """Deterministic Uncertainty Quantification Head
@@ -74,8 +76,10 @@ class DUQHead(nn.Module):
 
     def forward(self, features: torch.Tensor) -> torch.Tensor:
         embeddings = self.calculate_embeddings(features)
-        logits = _rbf(embeddings, self.centroids, self.length_scale)
-        return logits
+        if self.training:
+            self._last_embeddings = embeddings
+        out = _rbf(embeddings, self.centroids, self.length_scale)
+        return ModelOutput(logits=None, out=out)
 
     def calculate_embeddings(self, features: torch.Tensor) -> torch.Tensor:
         return _conv_duq_last_layer(features, self.weights)
@@ -84,9 +88,9 @@ class DUQHead(nn.Module):
     def centroids(self) -> torch.Tensor:
         return self.m / self.N
 
-    def update_centroids(self, features: torch.Tensor, y_true: torch.Tensor):
+    def update_centroids(self, y_true: torch.Tensor):
         self.N, self.m = _update_centroids(
-            self.N, self.m, self.gamma, self.calculate_embeddings(features), y_true
+            self.N, self.m, self.gamma, self._last_embeddings, y_true
         )
 
 

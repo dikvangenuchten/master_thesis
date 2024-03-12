@@ -1,13 +1,13 @@
 import logging
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import torch
 from accelerate import Accelerator
 from torch import nn, optim
 from torch.utils import data
-from tqdm import tqdm
+from tqdm import tqdm, trange
 
-from metrics.base_metric import BaseMetric
+from metrics.base_metric import BaseMetric, StepData
 from losses.gradient_penalty import GradientPenalty
 
 
@@ -71,9 +71,9 @@ class Trainer:
     def device(self):
         return self._accelerator.device
 
-    def _metrics_add_batch(self, *args, **kwargs):
+    def _metrics_add_batch(self, step_data: StepData):
         for metric in self.metrics:
-            metric.update(*args, **kwargs)
+            metric.update(step_data)
 
     def _log_and_reset_metrics(self, prefix: str = "", epoch: Optional[int] = None):
         log_dict = {}
@@ -84,6 +84,55 @@ class Trainer:
         log_dict = {f"{prefix}_{k}": v for k, v in log_dict.items()}
         self._accelerator.log(log_dict, step=epoch)
 
+    def train_step(self, batch: Dict[str, torch.Tensor]) -> torch.Tensor:
+        self.optimizer.zero_grad()
+        # Forward pass
+        input = batch["input"]
+        input.requires_grad_(True)
+        model_out = self.model(input)
+        # Calculate Loss
+        target = batch["target"]
+        loss = self.loss_fn(model_out, target)
+        # Backward
+        self._accelerator.backward(loss)
+        self.optimizer.step()
+        step_data = StepData(batch, model_out, loss)
+        self._metrics_add_batch(step_data)
+        return loss.detach()
+
+    @torch.no_grad
+    def eval_step(self, batch: Dict[str, torch.Tensor]) -> torch.Tensor:
+        model_out = self.model(batch["input"])
+        loss = self.loss_fn(model_out, batch["target"])
+        step_data = StepData(batch, model_out, loss)
+        self._metrics_add_batch(step_data)
+        return loss.detach()
+
+    def steps(
+        self,
+        training_steps: int,
+        eval_every_n_steps: int = 100,
+        log_every_n_steps: Optional[int] = None,
+    ):
+        """Run `n` training steps
+
+        Args:
+            training_steps (int): The total number of training steps to run
+            eval_every_n_steps (int, optional): The amount of training steps for every eval step. Defaults to 100.
+            log_every_n_steps (Optional[int], optional): _description_. Defaults to None.
+        """
+        log_every_n_steps = (
+            eval_every_n_steps if log_every_n_steps is None else log_every_n_steps
+        )
+        iter_train = _Repeater(self.train_dataloader)
+        iter_eval = _Repeater(self.eval_dataloader)
+        for i in trange(training_steps):
+            self.train_step(next(iter_train))
+            if i % eval_every_n_steps == 0:
+                self.eval_step(next(iter_eval))
+            if i % log_every_n_steps == 0:
+                self._log_and_reset_metrics()
+
     def epoch(self, epoch: Optional[int] = None) -> torch.Tensor:
         loss_sum = 0
         loss_count = 0
@@ -91,17 +140,21 @@ class Trainer:
 
         stop = False
         pbar = tqdm(self.train_dataloader, leave=False, desc="training")
-        for batch_idx, (img, target) in enumerate(pbar):
+        for batch_idx, batch in enumerate(pbar):
             self.optimizer.zero_grad()
 
-            img.requires_grad_(True)  # Is required for the gp
+            input = batch["input"]
+            input.requires_grad_(True)
+            target = batch["target"]
 
-            output = self.model(img)
-            loss = self.loss_fn(output, target)
+            model_out = self.model(input)
+
+            loss = self.loss_fn(model_out, target)
 
             # Gradient penalty
-            gp = self._gradient_penalty(img, output)
-            loss += gp
+            # Gradient penalty is broken for VAE
+            # gp = self._gradient_penalty(input, output)
+            # loss += gp
 
             # Backpropagation
             self._accelerator.backward(loss)
@@ -110,10 +163,11 @@ class Trainer:
             # Keep track of average loss
             loss_d = loss.detach()
             loss_sum += loss_d.sum()
-            loss_count += img.shape[0]
+            loss_count += input.shape[0]
             pbar.set_description(f"Training: loss={(loss_sum / loss_count).item():.4f}")
 
-            self._metrics_add_batch(img, target, output.softmax(1), loss_d)
+            step_data = StepData(batch, model_out, loss)
+            self._metrics_add_batch(step_data)
             if stop:
                 # Manual break using debugger
                 break
@@ -129,22 +183,42 @@ class Trainer:
         self.model.eval()
 
         with torch.no_grad():
-            for batch_idx, (img, target) in enumerate(
+            for batch_idx, batch in enumerate(
                 tqdm(self.eval_dataloader, leave=False, desc="evaluation")
             ):
-                logits = self.model(img)
-                loss = self.loss_fn(logits, target)
+                input = batch["input"]
+                input.requires_grad_(True)
+                target = batch["target"]
+
+                model_out = self.model(input)
+
+                loss = self.loss_fn(model_out, target)
 
                 # Keep track of average loss
                 loss_d = loss.detach()
                 loss_sum += loss_d.sum()
-                loss_count += img.shape[0]
+                loss_count += input.shape[0]
 
-                self._metrics_add_batch(img, target, logits.softmax(1), loss_d)
+                step_data = StepData(batch, model_out, loss)
+                self._metrics_add_batch(step_data)
 
         self._log_and_reset_metrics("eval", epoch)
         return (loss_sum / loss_count).item()
 
 
-def _train_step():
-    pass
+class _Repeater:
+    def __init__(self, dataloader: data.DataLoader) -> None:
+        self.count = 0
+        self._dataloader = dataloader
+        self._iterable = iter(self._dataloader)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self) -> Dict:
+        try:
+            return next(self._iterable)
+        except StopIteration:
+            self.count += 1
+            self._iterable = iter(self._dataloader)
+            return next(self._iterable)

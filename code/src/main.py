@@ -1,3 +1,4 @@
+from typing import Callable
 import segmentation_models_pytorch as smp
 import torch
 from dotenv import load_dotenv
@@ -9,7 +10,7 @@ from tqdm import trange
 
 import metrics
 from datasets.coco import CoCoDataset
-from models.u_net import UNet
+from models import ModelOutput, UNet, VAE
 from trainer import Trainer
 
 DATA_ROOT = "/datasets/"
@@ -18,7 +19,7 @@ DATA_ROOT = "/datasets/"
 def main():
     print("Main")
     load_dotenv()
-    batch_size = 8
+    batch_size = 12
 
     image_net_transforms = [
         # Rescale to [0, 1], then normalize using mean and std of ImageNet1K DS
@@ -29,8 +30,18 @@ def main():
         [transforms.Resize((128, 128)), *image_net_transforms]
     )
 
-    train_dataset = CoCoDataset(split="train", transform=data_transforms)
-    val_dataset = CoCoDataset(split="val", transform=data_transforms)
+    train_dataset = CoCoDataset(
+        split="train",
+        transform=data_transforms,
+        latents=True,
+        output_structure={"input": "latent", "image": "img", "target": "semantic_mask"},
+    )
+    val_dataset = CoCoDataset(
+        split="val",
+        transform=data_transforms,
+        latents=True,
+        output_structure={"input": "latent", "image": "img", "target": "semantic_mask"},
+    )
 
     # train_dataset = OxfordSpeciesDataset(
     #   root=DATA_ROOT, mode="train", transform=data_transforms
@@ -48,15 +59,28 @@ def main():
     ignore_index = (
         train_dataset.ignore_index if hasattr(train_dataset, "ignore_index") else None
     )
-    model = UNet(3, num_classes)
+    model = VAE(3, num_classes)._decoder
     mode = "binary" if num_classes == 2 else "multiclass"
-    loss_fn = smp.losses.DiceLoss(
-        mode=mode, from_logits=False, ignore_index=ignore_index
+
+    def wrapped_loss(
+        loss_fn, from_logits: bool
+    ) -> Callable[[ModelOutput, torch.Tensor], torch.Tensor]:
+        def _inner(model_out: ModelOutput, target: torch.Tensor) -> torch.Tensor:
+            if from_logits and model_out.logits is not None:
+                return loss_fn(model_out.logits, target)
+            return loss_fn(model_out.out, target)
+
+        return _inner
+
+    loss_fn = wrapped_loss(
+        smp.losses.DiceLoss(mode=mode, from_logits=False, ignore_index=ignore_index),
+        from_logits=False,
     )
+
     optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
     run_metrics = [
-        metrics.AverageMetric("AverageLoss", lambda x, y_t, y_p, loss: loss),
+        metrics.AverageMetric("AverageLoss", lambda step_data: step_data.loss),
         metrics.MaskMetric("MaskMetric", train_dataset.class_map),
         metrics.ConfusionMetrics(
             "ConfusionMetrics", num_classes, ignore_index=ignore_index
@@ -72,24 +96,24 @@ def main():
         metrics=run_metrics,
     )
 
-    for epoch in (pbar := trange(0, 100)):
-        loss = trainer.epoch(epoch)
-        eval_loss = trainer.eval_epoch(epoch)
-        pbar.set_description(f"train_avg_loss: {loss}, eval_avg_loss: {eval_loss}")
+    trainer.steps(1_000_000, eval_every_n_steps=100)
 
 
 if __name__ == "__main__":
     main()
 
 ## Steps:
-# Define a model based on (V)AE
-# Create a cache creation script
-# Create a training script
+# Define a model based on (V)AE -- Done
+# Create a cache creation script -- Done
+# Create a training script -- Testing
 # Create a inference script
-#
+# Also with infinite sampling
 
 
 ### TODO LIST
 # 1. Make experimental design specific for new idea
 #       Be explicit in what is "cached"
 #       Be explicit about what metrics
+
+
+# Add github repo of group

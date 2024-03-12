@@ -4,7 +4,7 @@ import torch
 from torch.nn import functional as F
 from torchmetrics.classification import MultilabelConfusionMatrix
 
-from metrics.base_metric import BaseMetric
+from metrics.base_metric import BaseMetric, StepData
 
 
 class ConfusionMetrics(BaseMetric):
@@ -44,7 +44,9 @@ class ConfusionMetrics(BaseMetric):
             num_labels, threshold, ignore_index, normalize=None
         ).to(device=device)
 
-    def update(self, x: Tensor, y_true: Tensor, y_pred: Tensor, loss: Tensor):
+    def update(self, step_data: StepData):
+        y_true = step_data.batch["target"]
+        y_pred = step_data.model_out.out
         if y_true.shape != y_pred.shape:
             mask = y_true != self.ignore_index
             y_true = mask * F.one_hot(
@@ -79,12 +81,26 @@ class ConfusionMetrics(BaseMetric):
             "SQ": SQ,
             "RQ": RQ,
             "PQ": PQ,
-            "Precision": tp / (tp + fp),
-            "Recall": tp / (tp + fn),
-            "Accuracy": tp + tn / (tp + tn + fp + fn),
+            "Precision": _safe_div(tp, (tp + fp)),
+            "Recall": _safe_div(tp, (tp + fn)),
+            "Accuracy": _safe_div(tp + tn, (tp + tn + fp + fn)),
         }
 
     def reset(self):
         return self._confusion_matrix.reset()
 
 
+def _safe_div(numerator: torch.Tensor, denominator: torch.Tensor, default: float=0) -> torch.Tensor:
+    """y = numerator / denominator, but sets y[numerator==0] to `default`(=0) regardless of denominator.
+
+    Args:
+        numerator (torch.Tensor): The numerator of the division
+        denominator (torch.Tensor): The denominator of the division
+        default float: The value to use when numerator==0
+
+    Returns:
+        torch.Tensor: Resulting Tensor
+    """
+    y = numerator / numerator
+    y[numerator==0] = default
+    return y

@@ -1,6 +1,6 @@
 from torch import Tensor
 
-from metrics.base_metric import BaseMetric, LogSignature
+from metrics.base_metric import BaseMetric, LogSignature, StepData
 
 
 class AverageMetric(BaseMetric):
@@ -12,9 +12,9 @@ class AverageMetric(BaseMetric):
         self._sum = 0
         self._count = 0
 
-    def update(self, x: Tensor, y_true: Tensor, y_pred: Tensor, loss: Tensor):
-        self._count += x.shape[0]
-        self._sum += self._fn(x, y_true, y_pred, loss).sum()
+    def update(self, step_data: StepData):
+        self._count += step_data.batch["input"].shape[0]
+        self._sum += self._fn(step_data).sum()
 
     def compute(self) -> Tensor:
         return {self.name: self._sum / self._count}
