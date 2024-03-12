@@ -20,6 +20,21 @@ class Runner:
     ) -> None:
         pass
 
+class RunningMean():
+    def __init__(self, alpha = 0.99, start: Optional[torch.Tensor] = None) -> None:
+        self._alpha = alpha
+        self._val = start
+    
+    @torch.no_grad
+    def add(self, val: torch.Tensor) -> torch.Tensor:
+        if self._val is None:
+            self._val = val
+        self._val = self._alpha * self._val + (1 - self._alpha) * val
+        return self._val
+    
+    @property
+    def val(self) -> torch.Tensor:
+        return self._val
 
 class Trainer:
     def __init__(
@@ -75,14 +90,14 @@ class Trainer:
         for metric in self.metrics:
             metric.update(step_data)
 
-    def _log_and_reset_metrics(self, prefix: str = "", epoch: Optional[int] = None):
+    def _log_and_reset_metrics(self, prefix: str = "", step: Optional[int] = None):
         log_dict = {}
         for metric in self.metrics:
             log_dict.update(**metric.compute())
             metric.reset()
 
         log_dict = {f"{prefix}_{k}": v for k, v in log_dict.items()}
-        self._accelerator.log(log_dict, step=epoch)
+        self._accelerator.log(log_dict, step=step)
 
     def train_step(self, batch: Dict[str, torch.Tensor]) -> torch.Tensor:
         self.optimizer.zero_grad()
@@ -126,12 +141,20 @@ class Trainer:
         )
         iter_train = _Repeater(self.train_dataloader)
         iter_eval = _Repeater(self.eval_dataloader)
-        for i in trange(training_steps):
-            self.train_step(next(iter_train))
-            if i % eval_every_n_steps == 0:
-                self.eval_step(next(iter_eval))
-            if i % log_every_n_steps == 0:
-                self._log_and_reset_metrics()
+        
+        train_loss = RunningMean()
+        eval_loss = RunningMean()
+        
+        for step in (pbar := trange(training_steps)):
+            loss = self.train_step(next(iter_train))
+            train_loss.add(loss)
+            if step % eval_every_n_steps == 0:
+                e_loss = self.eval_step(next(iter_eval))
+                eval_loss.add(e_loss)
+            if step % log_every_n_steps == 0:
+                self._log_and_reset_metrics(step=step)
+            pbar.set_description(f"train_loss: {train_loss.val} eval_loss: {eval_loss.val}")
+            
 
     def epoch(self, epoch: Optional[int] = None) -> torch.Tensor:
         loss_sum = 0
