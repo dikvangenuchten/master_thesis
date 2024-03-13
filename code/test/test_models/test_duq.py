@@ -227,7 +227,7 @@ def test_forward_pass_shape():
     )
 
     input = torch.rand((batch_size, feature_size, height, width))
-    output = duq_layer(input)
+    output = duq_layer(input).out
     assert output.shape == (batch_size, num_classes, height, width)
 
 
@@ -246,14 +246,14 @@ def test_forward_pass_batch_indepent():
     )
 
     input = torch.rand((1, feature_size, height, width))
-    expected = duq_layer(input)
+    expected = duq_layer(input).out
 
     rand_batch = torch.rand((batch_size, feature_size, height, width))
     for i in range(batch_size):
         in_ = rand_batch.clone()
         in_[i] = input
 
-        out = duq_layer(in_)
+        out = duq_layer(in_).out
 
         assert torch.allclose(out[i], expected[0])
 
@@ -401,9 +401,9 @@ def test_update_centroid_indepent(embedding_size: int, num_classes: int):
             .permute(0, 3, 1, 2)
         )
 
-        pre_distance = duq_layer(example_features)
+        pre_distance = duq_layer(example_features).out
         duq_layer.update_centroids(example_labels)
-        post_distance = duq_layer(example_features)
+        post_distance = duq_layer(example_features).out
 
         # The centroid with the class should have been updated
         assert torch.all(

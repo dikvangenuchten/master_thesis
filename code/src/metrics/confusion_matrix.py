@@ -90,17 +90,16 @@ class ConfusionMetrics(BaseMetric):
         return self._confusion_matrix.reset()
 
 
-def _safe_div(numerator: torch.Tensor, denominator: torch.Tensor, default: float=0) -> torch.Tensor:
-    """y = numerator / denominator, but sets y[numerator==0] to `default`(=0) regardless of denominator.
+def _safe_div(numerator: torch.Tensor, denominator: torch.Tensor) -> torch.Tensor:
+    """y = numerator / denominator, but sets y[numerator==0] to 0 regardless of denominator.
 
     Args:
         numerator (torch.Tensor): The numerator of the division
         denominator (torch.Tensor): The denominator of the division
-        default float: The value to use when numerator==0
 
     Returns:
         torch.Tensor: Resulting Tensor
     """
-    y = numerator / numerator
-    y[numerator==0] = default
+    y = numerator / denominator
+    y[numerator == 0] = 0.0
     return y

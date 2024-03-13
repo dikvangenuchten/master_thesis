@@ -20,21 +20,25 @@ class Runner:
     ) -> None:
         pass
 
-class RunningMean():
-    def __init__(self, alpha = 0.99, start: Optional[torch.Tensor] = None) -> None:
+
+class RunningMean:
+    def __init__(self, alpha=0.99, start: Optional[torch.Tensor] = None) -> None:
         self._alpha = alpha
         self._val = start
-    
+        self.last = None
+
     @torch.no_grad
     def add(self, val: torch.Tensor) -> torch.Tensor:
+        self.last = val
         if self._val is None:
             self._val = val
         self._val = self._alpha * self._val + (1 - self._alpha) * val
         return self._val
-    
+
     @property
     def val(self) -> torch.Tensor:
         return self._val
+
 
 class Trainer:
     def __init__(
@@ -141,10 +145,10 @@ class Trainer:
         )
         iter_train = _Repeater(self.train_dataloader)
         iter_eval = _Repeater(self.eval_dataloader)
-        
+
         train_loss = RunningMean()
         eval_loss = RunningMean()
-        
+
         for step in (pbar := trange(training_steps)):
             loss = self.train_step(next(iter_train))
             train_loss.add(loss)
@@ -153,8 +157,10 @@ class Trainer:
                 eval_loss.add(e_loss)
             if step % log_every_n_steps == 0:
                 self._log_and_reset_metrics(step=step)
-            pbar.set_description(f"train_loss: {train_loss.val} eval_loss: {eval_loss.val}")
-            
+            pbar.set_description(
+                f"train_loss: {train_loss.val:.5f} (last: {train_loss.last:.5f}) "
+                f"eval_loss: {eval_loss.val:.5f} (last: {eval_loss.last:.5f})"
+            )
 
     def epoch(self, epoch: Optional[int] = None) -> torch.Tensor:
         loss_sum = 0
