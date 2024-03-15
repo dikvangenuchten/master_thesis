@@ -10,6 +10,7 @@ from tqdm import trange
 
 import metrics
 from datasets.coco import CoCoDataset
+from datasets.fiftyone import FiftyOneDataset
 from models import ModelOutput, UNet, VAE
 from trainer import Trainer
 
@@ -19,27 +20,28 @@ DATA_ROOT = "/datasets/"
 def main():
     print("Main")
     load_dotenv()
-    batch_size = 12
+    batch_size = 64
 
     image_net_transforms = [
         # Rescale to [0, 1], then normalize using mean and std of ImageNet1K DS
         transforms.ToDtype(torch.float32, scale=True),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ]
+
     data_transforms = transforms.Compose(
-        [transforms.Resize((128, 128)), *image_net_transforms]
+        [transforms.Resize((64, 64)), *image_net_transforms]
     )
 
-    train_dataset = CoCoDataset(
+    train_dataset = FiftyOneDataset(
         split="train",
         transform=data_transforms,
-        latents=True,
+        # latents=True,
         output_structure={"input": "latent", "image": "img", "target": "semantic_mask"},
     )
-    val_dataset = CoCoDataset(
-        split="val",
+    val_dataset = FiftyOneDataset(
+        split="validation",
         transform=data_transforms,
-        latents=True,
+        # latents=True,
         output_structure={"input": "latent", "image": "img", "target": "semantic_mask"},
     )
 
@@ -59,7 +61,7 @@ def main():
     ignore_index = (
         train_dataset.ignore_index if hasattr(train_dataset, "ignore_index") else None
     )
-    model = VAE(3, num_classes)._decoder
+    model = VAE(3, num_classes)
     mode = "binary" if num_classes == 2 else "multiclass"
 
     def wrapped_loss(
@@ -79,11 +81,19 @@ def main():
 
     optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
-    run_metrics = [
-        metrics.AverageMetric("AverageLoss", lambda step_data: step_data.loss),
-        metrics.MaskMetric("MaskMetric", train_dataset.class_map),
+    train_metrics = [
+        metrics.AverageMetric("TrainAverageLoss", lambda step_data: step_data.loss),
+        metrics.MaskMetric("TrainMaskMetric", train_dataset.class_map),
         metrics.ConfusionMetrics(
-            "ConfusionMetrics", num_classes, ignore_index=ignore_index
+            "ConfusionMetrics", num_classes, ignore_index=ignore_index, prefix="Train"
+        ),
+    ]
+
+    eval_metrics = [
+        metrics.AverageMetric("EvalAverageLoss", lambda step_data: step_data.loss),
+        metrics.MaskMetric("EvalMaskMetric", train_dataset.class_map),
+        metrics.ConfusionMetrics(
+            "ConfusionMetrics", num_classes, ignore_index=ignore_index, prefix="Eval"
         ),
     ]
 
@@ -93,7 +103,8 @@ def main():
         loss_fn,
         optimizer,
         eval_dataloader=eval_dataloader,
-        metrics=run_metrics,
+        train_metrics=train_metrics,
+        eval_metrics=eval_metrics,
     )
 
     trainer.steps(1_000_000, eval_every_n_steps=100)

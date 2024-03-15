@@ -35,14 +35,19 @@ class ConfusionMetrics(BaseMetric):
         logits: bool = True,
         ignore_index: Optional[int] = None,
         device: Optional[torch.device] = None,
+        prefix: Optional[str] = None,
     ):
         super().__init__(name)
+        prefix = "" if prefix is None else prefix
+        if prefix != "" and not prefix.endswith(" "):
+            prefix += " "
         self.num_classes = num_labels
         self._logits = logits
         self.ignore_index = ignore_index
         self._confusion_matrix = MultilabelConfusionMatrix(
             num_labels, threshold, ignore_index, normalize=None
         ).to(device=device)
+        self._prefix = prefix
 
     def update(self, step_data: StepData):
         y_true = step_data.batch["target"]
@@ -51,7 +56,7 @@ class ConfusionMetrics(BaseMetric):
             mask = y_true != self.ignore_index
             y_true = mask * F.one_hot(
                 mask * y_true, num_classes=self.num_classes
-            ).swapaxes(1, -1).squeeze(-1)
+            ).permute(0, -1, 1, 2).squeeze(-1)
         self._confusion_matrix.to(device=y_pred.device)
         self._confusion_matrix.update(y_pred, y_true)
 
@@ -64,26 +69,26 @@ class ConfusionMetrics(BaseMetric):
         - :math:`C_{1, 1}`: True positives
         """
         cm = self._confusion_matrix.compute()
-        tn = cm[:, 0, 0]
-        fp = cm[:, 0, 1]
-        fn = cm[:, 1, 0]
-        tp = cm[:, 1, 1]
+        tn = cm[:, 0, 0].sum()
+        fp = cm[:, 0, 1].sum()
+        fn = cm[:, 1, 0].sum()
+        tp = cm[:, 1, 1].sum()
 
-        SQ = tp / (fp + tp + fn)
-        RQ = tp / (tp + 0.5 * (fp + fn))
+        SQ = _safe_div(tp, (fp + tp + fn))
+        RQ = _safe_div(tp, (tp + 0.5 * (fp + fn)))
         PQ = SQ * RQ
 
         return {
-            "True negatives": cm[:, 0, 0],
-            "False positives": cm[:, 0, 1],
-            "False negatives": cm[:, 1, 0],
-            "True positives": cm[:, 1, 1],
-            "SQ": SQ,
-            "RQ": RQ,
-            "PQ": PQ,
-            "Precision": _safe_div(tp, (tp + fp)),
-            "Recall": _safe_div(tp, (tp + fn)),
-            "Accuracy": _safe_div(tp + tn, (tp + tn + fp + fn)),
+            f"{self._prefix}True negatives": tn,
+            f"{self._prefix}False positives": fp,
+            f"{self._prefix}False negatives": fn,
+            f"{self._prefix}True positives": tp,
+            f"{self._prefix}SQ": SQ,
+            f"{self._prefix}RQ": RQ,
+            f"{self._prefix}PQ": PQ,
+            f"{self._prefix}Precision": _safe_div(tp, (tp + fp)),
+            f"{self._prefix}Recall": _safe_div(tp, (tp + fn)),
+            f"{self._prefix}Accuracy": _safe_div(tp + tn, (tp + tn + fp + fn)),
         }
 
     def reset(self):

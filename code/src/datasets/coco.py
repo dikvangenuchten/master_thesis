@@ -1,27 +1,17 @@
 import json
 import os
-from typing import Callable, Dict, Optional, Literal, TypeVar, get_args
+from typing import Callable, Dict, Optional, Literal, get_args
 from functools import cache
 
 import torch
 from diffusers.models.autoencoders.vae import DiagonalGaussianDistribution
 from PIL import Image as PImage
-from torchvision.tv_tensors import Image, Mask, TVTensor, BoundingBoxes
+from torchvision.tv_tensors import Image, Mask
 from pycocotools.coco import COCO
 
+from datasets import LatentTensor
+
 OUTPUT_TYPES = Literal["img", "latent", "semantic_mask"]
-
-
-class LatentTensor(TVTensor):
-    """Ensure latent tensors are not changed in transforms
-
-    https://pytorch.org/vision/0.16/auto_examples/transforms/plot_custom_tv_tensors.html#sphx-glr-auto-examples-transforms-plot-custom-tv-tensors-py
-    TODO: Determine if latent variables should have some implementations
-        e.g.:
-            hflip/vflip
-    """
-
-    pass
 
 
 class CoCoDataset(torch.utils.data.Dataset):
@@ -44,9 +34,11 @@ class CoCoDataset(torch.utils.data.Dataset):
         unsuported_outs = {
             k: v for k, v in output_structure.items() if v not in get_args(OUTPUT_TYPES)
         }
+
         assert (
             len(unsuported_outs) == 0
         ), f"The following outputs are not supported: {unsuported_outs}"
+
         self.output_structure = output_structure
 
         self._image_root = os.path.join(base_path, f"{split}2017/")

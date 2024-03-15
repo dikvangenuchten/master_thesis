@@ -1,3 +1,4 @@
+import itertools
 import logging
 from typing import Dict, List, Optional
 
@@ -50,8 +51,12 @@ class Trainer:
         scheduler: Optional[optim.lr_scheduler.LRScheduler] = None,
         eval_dataloader: Optional[data.DataLoader] = None,
         config: dict = {},
-        metrics: List[BaseMetric] = [],
+        train_metrics: List[BaseMetric] = None,
+        eval_metrics: List[BaseMetric] = None,
     ) -> None:
+        train_metrics = [] if train_metrics is None else train_metrics
+        eval_metrics = [] if eval_metrics is None else eval_metrics
+
         self._accelerator = Accelerator(log_with="wandb")
         self._accelerator.init_trackers(project_name="MasterThesis", config=config)
 
@@ -83,25 +88,21 @@ class Trainer:
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.eval_dataloader = eval_dataloader
-        self.metrics = metrics
+        self.train_metrics = train_metrics
+        self.eval_metrics = eval_metrics
         self._gradient_penalty = GradientPenalty()
 
     @property
     def device(self):
         return self._accelerator.device
 
-    def _metrics_add_batch(self, step_data: StepData):
-        for metric in self.metrics:
-            metric.update(step_data)
-
-    def _log_and_reset_metrics(self, prefix: str = "", step: Optional[int] = None):
+    def _log_and_reset_metrics(self, step: Optional[int] = None):
         log_dict = {}
-        for metric in self.metrics:
+        for metric in itertools.chain(self.train_metrics, self.eval_metrics):
             log_dict.update(**metric.compute())
             metric.reset()
 
-        log_dict = {f"{prefix}_{k}": v for k, v in log_dict.items()}
-        self._accelerator.log(log_dict, step=step)
+        self._accelerator.log(log_dict, step=step, commit=True)
 
     def train_step(self, batch: Dict[str, torch.Tensor]) -> torch.Tensor:
         self.optimizer.zero_grad()
@@ -116,7 +117,7 @@ class Trainer:
         self._accelerator.backward(loss)
         self.optimizer.step()
         step_data = StepData(batch, model_out, loss)
-        self._metrics_add_batch(step_data)
+        [metric.update(step_data) for metric in self.train_metrics]
         return loss.detach()
 
     @torch.no_grad
@@ -124,7 +125,7 @@ class Trainer:
         model_out = self.model(batch["input"])
         loss = self.loss_fn(model_out, batch["target"])
         step_data = StepData(batch, model_out, loss)
-        self._metrics_add_batch(step_data)
+        [metric.update(step_data) for metric in self.eval_metrics]
         return loss.detach()
 
     def steps(

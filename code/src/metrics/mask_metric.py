@@ -1,6 +1,7 @@
 import numpy as np
 from torch import Tensor
 
+import torch
 import wandb
 from metrics.base_metric import BaseMetric, StepData
 
@@ -21,6 +22,8 @@ class MaskMetric(BaseMetric):
             x = step_data.batch[self._image_label]
             y_true = step_data.batch[self._target_label]
             y_pred = step_data.model_out.out
+            if y_true.ndim != y_pred.ndim:
+                y_true = torch.nn.functional.one_hot(y_true).permute(0, -1, 1, 2)
             if x.shape[0] > self._limit:
                 x, y_true, y_pred = (
                     x[: self._limit],

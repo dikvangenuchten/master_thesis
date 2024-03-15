@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/pytorch:24.01-py3 as base
+FROM nvcr.io/nvidia/pytorch:24.02-py3 as base
 
 COPY requirements.tx[t] requirements.txt
 RUN touch requirements.txt && pip install -r requirements.txt
@@ -9,7 +9,7 @@ ARG USERNAME=dev-user
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
-# Copy and install development requirements
+# Copy and install development requirements (iff it is present in build-context)
 COPY dev-requirements.tx[t] .
 # Create the file if it not exists, then install using pip
 RUN touch dev-requirements.txt && pip install -r dev-requirements.txt

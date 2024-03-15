@@ -27,7 +27,7 @@ def main(model, root_dir, split):
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ]
     data_transforms = transforms.Compose(
-        [transforms.Resize((128, 128)), *image_net_transforms]
+        [transforms.Resize((128, 256)), *image_net_transforms]
     )
     dataset = CoCoDataset(split, transform=data_transforms)
 
