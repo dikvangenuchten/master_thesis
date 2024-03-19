@@ -32,7 +32,7 @@ class VAE(nn.Module):
     def decode(self, z: torch.Tensor) -> torch.Tensor:
         return self._decoder(z)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, use_model_out: bool=True) -> torch.Tensor:
         """A full forward pass, from image: x to output: y
 
         Internally calls the encode and decode back to back.
@@ -44,6 +44,7 @@ class VAE(nn.Module):
             torch.Tensor: The Panoptic Segmentation output
         """
         z = self.encode(x)
+        self._decoder.conv_out.use_model_out = use_model_out
         return self.decode(z)
 
 
@@ -52,6 +53,9 @@ class ConvHead(nn.Module):
         super().__init__(*args, **kwargs)
         self._conv = nn.Conv2d(in_channels, num_classes, 1)
         self._act_fn = lambda x: torch.softmax(x, 1)
+        self.use_model_out = True
 
     def forward(self, x) -> ModelOutput:
-        return ModelOutput(logits=self._conv(x), act_fn=self._act_fn)
+        if self.use_model_out:
+            return ModelOutput(logits=self._conv(x), act_fn=self._act_fn)
+        return self._act_fn(self._conv(x))

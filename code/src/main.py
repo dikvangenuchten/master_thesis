@@ -1,4 +1,5 @@
 from typing import Callable
+
 import segmentation_models_pytorch as smp
 import torch
 from dotenv import load_dotenv
@@ -6,7 +7,7 @@ from torch import optim
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2 as transforms
 from tqdm import trange
-
+import torchinfo
 
 import metrics
 from datasets.coco import CoCoDataset
@@ -62,6 +63,8 @@ def main():
         train_dataset.ignore_index if hasattr(train_dataset, "ignore_index") else None
     )
     model = VAE(3, num_classes)
+    torchinfo.summary(model, input_size=(1, 3, 128, 128), use_model_out=False)
+
     mode = "binary" if num_classes == 2 else "multiclass"
 
     def wrapped_loss(
