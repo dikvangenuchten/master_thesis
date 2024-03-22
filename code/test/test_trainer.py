@@ -15,6 +15,9 @@ def trainer(bs_model: nn.Module):
         bs_model,
         nn.MSELoss(),
         optim.Adam(bs_model.parameters()),
+        # Default log_with is ["wandb"], but that needs to
+        # be a singleton, which causes trouble in testing
+        log_with=[],
     )
 
 
@@ -35,3 +38,14 @@ def test_trainer_eval_epoch(test_image_batch, trainer):
     _ = trainer.eval_epoch()
     post = trainer.model(input)
     assert (pre == post).all(), "Evaluation should not modify model"
+
+
+def test_save_load(trainer: Trainer, tmp_path: str):
+    path = tmp_path / "trainer-checkpoint.pt"
+    trainer.save(path)
+
+    loaded = Trainer.load(path)
+
+    assert trainer == loaded
+    # TODO check if inference is equal
+    pass

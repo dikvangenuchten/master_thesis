@@ -38,12 +38,14 @@ def main():
         transform=data_transforms,
         # latents=True,
         output_structure={"input": "latent", "image": "img", "target": "semantic_mask"},
+        max_samples=None
     )
     val_dataset = FiftyOneDataset(
         split="validation",
         transform=data_transforms,
         # latents=True,
         output_structure={"input": "latent", "image": "img", "target": "semantic_mask"},
+        max_samples=None
     )
 
     # train_dataset = OxfordSpeciesDataset(
@@ -54,9 +56,9 @@ def main():
     # )
 
     train_dataloader = DataLoader(
-        train_dataset, batch_size=batch_size, shuffle=True, num_workers=1
+        train_dataset, batch_size=batch_size, shuffle=True, num_workers=1, 
     )
-    eval_dataloader = DataLoader(val_dataset, batch_size=batch_size, num_workers=1)
+    eval_dataloader = DataLoader(val_dataset, batch_size=batch_size, num_workers=1, )
 
     num_classes = len(train_dataset.class_map)
     ignore_index = (

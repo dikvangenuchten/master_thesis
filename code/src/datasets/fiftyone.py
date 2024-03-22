@@ -20,7 +20,7 @@ class FiftyOneDataset(torch.utils.data.Dataset):
             "input": "latent",
             "target": "semantic_mask",
         },
-        max_samples: int = 1000
+        max_samples: Optional[int] = 1000
     ):
         fiftyone.config.dataset_zoo_dir = "/datasets/fiftyone/"
         fiftyone.config.default_dataset_dir = "/datasets/fiftyone/"

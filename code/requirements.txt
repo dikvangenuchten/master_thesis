@@ -10,4 +10,5 @@ accelerate==0.27.2
 segmentation-models-pytorch==0.3.3
 torcheval
 torchmetrics
+torchinfo
 torchtnt==0.2.2

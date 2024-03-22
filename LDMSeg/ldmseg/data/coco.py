@@ -177,7 +177,7 @@ class COCO(data.Dataset):
         fill_value: int = 0.5,
         ignore_label: int = 0,
         inpainting_strength: float = 0.0,
-        limit: int = 8
+        limit: Optional[int] = None
     ):
         """
         Args:
@@ -291,7 +291,7 @@ class COCO(data.Dataset):
             if len(seg_info) > 0 and not all([x['iscrowd'] == 1 for x in seg_info]):
                 images.append(image_path)
                 semsegs.append(semseg_path)
-        print('filtered out {} images without annotations'.format(len(self.semsegs) - len(semsegs)))
+        print('filtered out {} images without annotations. ({} remaining)'.format(len(self.semsegs) - len(semsegs), len(semsegs)))
         self.images = images
         self.semsegs = semsegs
         assert (len(self.images) == len(self.semsegs))
