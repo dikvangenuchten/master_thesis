@@ -178,28 +178,51 @@ class Trainer:
                 f"train_loss: {train_loss.val:.5f} (last: {train_loss.last:.5f}) "
                 f"eval_loss: {eval_loss.val:.5f} (last: {eval_loss.last:.5f})"
             )
-    
-    def save(self, path):
-        dir, fn = os.path.split(path)
+
+
+    def save(self, dir) -> None:
         os.makedirs(dir, exist_ok=True)
-        self._accelerator.save_model(self.model, path)
-    
-    def __eq__(self, __value: object) -> bool:
-        is_eq = True
-        for ((k, v), (k2, v2)) in zip(self.__dict__.items(), __value.__dict__.items()):
-            print(k, k2)
-            if k == k2 == "_accelerator":
-                compare_dicts
-            else:
-                is_eq = (k == k2) and is_eq
-                is_eq = (v == v2) and is_eq
-            if not is_eq:
-                break
-        return is_eq
+
+        torch.save(self.train_dataloader, os.path.join(dir, "train_dataloader.pt"))
+        torch.save(self.model, os.path.join(dir, "model.pt"))
+        torch.save(self.loss_fn, os.path.join(dir, "loss_fn.pt"))
+        torch.save(self.optimizer, os.path.join(dir, "optimizer.pt"))
+        torch.save(self.scheduler, os.path.join(dir, "scheduler.pt"))
+        torch.save(self.eval_dataloader, os.path.join(dir, "eval_dataloader.pt"))
+        torch.save(self.train_metrics, os.path.join(dir, "train_metrics.pt"))
+        torch.save(self.eval_metrics, os.path.join(dir, "eval_metrics.pt"))
+        self._accelerator.save_state(dir)
+
 
     @classmethod
-    def load(cls, path) -> "Trainer":
-        return torch.load(path)
+    def load(cls: "Trainer", dir) -> "Trainer":
+        train_dataloader = torch.load(os.path.join(dir, "train_dataloader.pt"))
+        model = torch.load(os.path.join(dir, "model.pt"))
+        loss_fn = torch.load(os.path.join(dir, "loss_fn.pt"))
+        optimizer = torch.load(os.path.join(dir, "optimizer.pt"))
+        scheduler = torch.load(os.path.join(dir, "scheduler.pt"))
+        eval_dataloader = torch.load(os.path.join(dir, "eval_dataloader.pt"))
+        train_metrics = torch.load(os.path.join(dir, "train_metrics.pt"))
+        eval_metrics = torch.load(os.path.join(dir, "eval_metrics.pt"))
+
+        config = {}
+        log_with = []
+        
+        trainer =  cls(
+            train_dataloader=train_dataloader,
+            model=model,
+            loss_fn=loss_fn,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            eval_dataloader=eval_dataloader,
+            config=config,
+            train_metrics=train_metrics,
+            eval_metrics=eval_metrics,
+            log_with=log_with
+        )
+        trainer._accelerator.load_state(dir)
+        return trainer
+
 
     def epoch(self, epoch: Optional[int] = None) -> torch.Tensor:
         loss_sum = 0
@@ -290,17 +313,3 @@ class _Repeater:
             self.count += 1
             self._iterable = iter(self._dataloader)
             return next(self._iterable)
-
-
-def compare_dicts(dict1, dict2):
-    is_eq = True
-    for ((k, v), (k2, v2)) in zip(dict1.items(), dict2.items()):
-        print(k, k2)
-        is_eq = (k == k2) and is_eq
-        is_eq = (v == v2) and is_eq
-        if not is_eq:
-            print("Not equal on:")
-            print(k, k2)
-            print(v, v2)
-            break
-    return is_eq

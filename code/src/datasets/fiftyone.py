@@ -77,4 +77,3 @@ class FiftyOneDataset(torch.utils.data.Dataset):
     def _get_type(self, index, type_) -> torch.Tensor:
         if type_ == "img":
             return ...
-        

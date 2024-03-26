@@ -1,4 +1,5 @@
 import pytest
+import torch
 from torch import nn, optim
 
 from datasets.toy_data import SegmentationToyDataset
@@ -40,12 +41,13 @@ def test_trainer_eval_epoch(test_image_batch, trainer):
     assert (pre == post).all(), "Evaluation should not modify model"
 
 
-def test_save_load(trainer: Trainer, tmp_path: str):
-    path = tmp_path / "trainer-checkpoint.pt"
+def test_save_load(trainer: Trainer, tmp_path: str, test_image_batch: torch.Tensor):
+    epoch = 0
+    path = tmp_path / f"trainer-ckpt-{epoch}"
     trainer.save(path)
 
     loaded = Trainer.load(path)
+    x = test_image_batch.to(device=trainer.device)
 
-    assert trainer == loaded
-    # TODO check if inference is equal
-    pass
+    assert torch.allclose(trainer.model(x), loaded.model(x))
+
