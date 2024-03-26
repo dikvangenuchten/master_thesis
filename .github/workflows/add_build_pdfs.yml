@@ -1,11 +1,18 @@
 name: Build LaTeX document
 on:
   push:
+    branch: main
     paths:
       - research_proposal/**
+      - thesis/**
+
 jobs:
   build_latex:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        working_dir: ["research_proposal", "thesis"]
     
     steps:
       - name: Set up Git repository
@@ -13,24 +20,10 @@ jobs:
       - name: Compile LaTeX document
         uses: xu-cheng/latex-action@v3
         with:
-          working_directory: ./research_proposal
+          working_directory: ./${{ working_dir }}
           root_file: main.tex
       - name: Upload PDF file
         uses: actions/upload-artifact@v3
         with:
           name: PDF
-          path: ./research_proposal/main.pdf
-      - name: Commit files
-        run: |
-          mkdir -p auto-build
-          mv ./research_proposal/main.pdf auto-build/research_proposal.pdf
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git status
-          git add -f auto-build/research_proposal.pdf
-          git commit -m "Build research_proposal.pdf"
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
+          path: ./${{ working_dir }}/main.pdf
