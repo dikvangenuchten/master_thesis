@@ -12,7 +12,10 @@ class StepData:
     """Standardize Step Data for easier logging"""
 
     def __init__(
-        self, batch: Dict[str, Tensor], model_out: ModelOutput, loss: Tensor
+        self,
+        batch: Dict[str, Tensor],
+        model_out: ModelOutput,
+        loss: Tensor,
     ) -> None:
         self.batch = batch
         self.model_out = model_out

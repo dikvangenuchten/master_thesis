@@ -1,26 +1,27 @@
 import os
 
 import pytest
-from PIL import Image as PImage
-from torchvision.tv_tensors import Image
-
-from models.binary_segmentation_model import BinarySegmentationModel
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def test_image(path="test/test_data/example.jpg"):
+    from torchvision.tv_tensors import Image
+    from PIL import Image as PImage
+
     return Image(PImage.open(path))
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def test_image_batch(test_image):
     import torch
 
     return torch.reshape(test_image, [1, *test_image.shape]).to(torch.float32)
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def bs_model():
+    from models.binary_segmentation_model import BinarySegmentationModel
+
     return BinarySegmentationModel()
 
 

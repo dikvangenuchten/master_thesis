@@ -4,7 +4,9 @@ from typing import Callable, Dict, Optional, Literal, get_args
 from functools import cache
 
 import torch
-from diffusers.models.autoencoders.vae import DiagonalGaussianDistribution
+from diffusers.models.autoencoders.vae import (
+    DiagonalGaussianDistribution,
+)
 from PIL import Image as PImage
 from torchvision.tv_tensors import Image, Mask
 from pycocotools.coco import COCO

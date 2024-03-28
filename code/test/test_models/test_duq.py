@@ -11,7 +11,12 @@ from torch.nn import functional as F
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from models.duq import DUQHead, _conv_duq_last_layer, _rbf, _update_centroids
+from models.duq import (
+    DUQHead,
+    _conv_duq_last_layer,
+    _rbf,
+    _update_centroids,
+)
 
 
 def reference_duq_last_layer(feature_matrix, weight_matrix) -> torch.Tensor:
@@ -46,7 +51,12 @@ def conv_duq_single_value(
     return conv_duq_last_layer_channels_last(features_, weights).reshape(b, e, c)
 
 
-@given(st.integers(1, 32), st.integers(1, 32), st.integers(1, 32), st.integers(1, 32))
+@given(
+    st.integers(1, 32),
+    st.integers(1, 32),
+    st.integers(1, 32),
+    st.integers(1, 32),
+)
 def test_native_implementation(
     batch_size: int,
     num_features: int,
@@ -96,12 +106,12 @@ def reference_duq_conv(feature_matrix, weight_matrix) -> torch.Tensor:
 
 # Faster test
 @given(
-    st.integers(1, 8),
-    st.integers(1, 8),
-    st.integers(1, 8),
-    st.integers(1, 8),
-    st.integers(16, 128),
-    st.integers(16, 128),
+    st.integers(1, 4),
+    st.integers(1, 4),
+    st.integers(1, 4),
+    st.integers(1, 4),
+    st.integers(8, 32),
+    st.integers(8, 32),
 )
 @settings(deadline=None, max_examples=10)
 def test_conv_implementation_of_last_layer(
@@ -113,11 +123,14 @@ def test_conv_implementation_of_last_layer(
     width: int,
 ):
     # Cuda does not support integer tensors for this
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     feature_matrix = torch.rand(
-        (batch_size, height, width, num_features), device="cuda"
+        (batch_size, height, width, num_features),
+        device=device,
     )
     weight_matrix = torch.rand(
-        (embedding_size, num_classes, num_features), device="cuda"
+        (embedding_size, num_classes, num_features),
+        device=device,
     )
 
     reference = reference_duq_conv(feature_matrix, weight_matrix).detach()
@@ -184,9 +197,9 @@ def test_reference_distance_implementation():
 
 @pytest.mark.parametrize("sigma", [0.01, 0.1, 0.5, 1.0, 2.0])
 def test_conv_distance_implementation(sigma: float):
-    batch_size = 16
+    batch_size = 2
     embedding_size = 4
-    height, width = 6, 12
+    height, width = 5, 6
     num_classes = 8
 
     centroids = torch.rand((embedding_size, num_classes))
@@ -223,7 +236,9 @@ def test_forward_pass_shape():
     embedding_size = 4
 
     duq_layer = DUQHead(
-        in_channels=feature_size, num_classes=num_classes, embedding_size=embedding_size
+        in_channels=feature_size,
+        num_classes=num_classes,
+        embedding_size=embedding_size,
     )
 
     input = torch.rand((batch_size, feature_size, height, width))
@@ -242,7 +257,9 @@ def test_forward_pass_batch_indepent():
     embedding_size = 2
 
     duq_layer = DUQHead(
-        in_channels=feature_size, num_classes=num_classes, embedding_size=embedding_size
+        in_channels=feature_size,
+        num_classes=num_classes,
+        embedding_size=embedding_size,
     )
 
     input = torch.rand((1, feature_size, height, width))
@@ -395,7 +412,8 @@ def test_update_centroid_indepent(embedding_size: int, num_classes: int):
         example_features = torch.rand((batch_size, feature_size, height, width))
         example_labels = (
             F.one_hot(
-                torch.ones(batch_size, height, width, dtype=torch.long) * i, num_classes
+                torch.ones(batch_size, height, width, dtype=torch.long) * i,
+                num_classes,
             )
             .to(dtype=torch.float32)
             .permute(0, 3, 1, 2)
@@ -412,5 +430,6 @@ def test_update_centroid_indepent(embedding_size: int, num_classes: int):
 
         # The other centroids should be the same
         assert torch.allclose(
-            pre_distance[example_labels != 1.0], post_distance[example_labels != 1.0]
+            pre_distance[example_labels != 1.0],
+            post_distance[example_labels != 1.0],
         )

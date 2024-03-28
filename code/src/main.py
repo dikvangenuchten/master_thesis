@@ -35,14 +35,22 @@ def main():
         split="train",
         transform=data_transforms,
         # latents=True,
-        output_structure={"input": "latent", "image": "img", "target": "semantic_mask"},
+        output_structure={
+            "input": "latent",
+            "image": "img",
+            "target": "semantic_mask",
+        },
         max_samples=None,
     )
     val_dataset = FiftyOneDataset(
         split="validation",
         transform=data_transforms,
         # latents=True,
-        output_structure={"input": "latent", "image": "img", "target": "semantic_mask"},
+        output_structure={
+            "input": "latent",
+            "image": "img",
+            "target": "semantic_mask",
+        },
         max_samples=None,
     )
 
@@ -95,7 +103,10 @@ def main():
         metrics.AverageMetric("TrainAverageLoss", lambda step_data: step_data.loss),
         metrics.MaskMetric("TrainMaskMetric", train_dataset.class_map),
         metrics.ConfusionMetrics(
-            "ConfusionMetrics", num_classes, ignore_index=ignore_index, prefix="Train"
+            "ConfusionMetrics",
+            num_classes,
+            ignore_index=ignore_index,
+            prefix="Train",
         ),
     ]
 
@@ -103,7 +114,10 @@ def main():
         metrics.AverageMetric("EvalAverageLoss", lambda step_data: step_data.loss),
         metrics.MaskMetric("EvalMaskMetric", train_dataset.class_map),
         metrics.ConfusionMetrics(
-            "ConfusionMetrics", num_classes, ignore_index=ignore_index, prefix="Eval"
+            "ConfusionMetrics",
+            num_classes,
+            ignore_index=ignore_index,
+            prefix="Eval",
         ),
     ]
 

@@ -160,7 +160,13 @@ class OxfordPetForegroundDataset(OxfordPetDataset):
         return {0: "background", 1: "foreground"}
 
     def __getitem__(self, idx):
-        image, trimap, _class_id, _species, _breed_id = super().__getitem__(idx)
+        (
+            image,
+            trimap,
+            _class_id,
+            _species,
+            _breed_id,
+        ) = super().__getitem__(idx)
         mask = self._preprocess_tensor_mask(trimap)
         return image, mask
 
@@ -177,7 +183,13 @@ class OxfordSpeciesDataset(OxfordPetDataset):
         return {0: "background", 1: "cat", 2: "dog"}
 
     def __getitem__(self, idx):
-        image, trimap, _class_id, species, _breed_id = super().__getitem__(idx)
+        (
+            image,
+            trimap,
+            _class_id,
+            species,
+            _breed_id,
+        ) = super().__getitem__(idx)
         mask = self._preprocess_tensor_mask(trimap)
         return image, mask * species
 

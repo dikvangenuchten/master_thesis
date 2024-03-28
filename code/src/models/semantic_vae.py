@@ -15,11 +15,19 @@ class ResBlock(nn.Module):
     ) -> None:
         super().__init__()
         self._conv1 = nn.Conv2d(
-            in_channels, out_channels, kernel_size=(3, 3), stride=stride, padding=1
+            in_channels,
+            out_channels,
+            kernel_size=(3, 3),
+            stride=stride,
+            padding=1,
         )
         self._bn1 = nn.BatchNorm2d(out_channels)
         self._conv2 = nn.Conv2d(
-            out_channels, out_channels, kernel_size=(3, 3), stride=1, padding="same"
+            out_channels,
+            out_channels,
+            kernel_size=(3, 3),
+            stride=1,
+            padding="same",
         )
         self._bn2 = nn.BatchNorm2d(out_channels)
         self._downsample = downsample
@@ -152,7 +160,9 @@ class DecoderBlock(nn.Module):
         self._prior_layer = SampleConvLayer(latent_channels)
 
         self._posterior_net = ResBlock.make_block(
-            latent_channels + skip_channels, latent_channels, downsample_factor=1
+            latent_channels + skip_channels,
+            latent_channels,
+            downsample_factor=1,
         )
         self._posterior_layer = SampleConvLayer(latent_channels)
 

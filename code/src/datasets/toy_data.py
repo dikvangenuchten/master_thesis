@@ -47,7 +47,8 @@ class SegmentationToyDataset(data.Dataset):
                 transforms.ToDtype(torch.float32, scale=True),
                 ToySegmentationTransform(),
                 transforms.Normalize(
-                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                    mean=[0.485, 0.456, 0.406],
+                    std=[0.229, 0.224, 0.225],
                 ),
             ]
         )
@@ -105,10 +106,14 @@ class ToySegmentationTransform(nn.Module):
             val = 1.0
 
         img[
-            0, x - self._x_size : x + self._x_size, y - self._y_size : y + self._y_size
+            0,
+            x - self._x_size : x + self._x_size,
+            y - self._y_size : y + self._y_size,
         ] = torch.tensor([val]).reshape([1, 1, 1])
         mask[
-            0, x - self._x_size : x + self._x_size, y - self._y_size : y + self._y_size
+            0,
+            x - self._x_size : x + self._x_size,
+            y - self._y_size : y + self._y_size,
         ] = 1
 
         return img, mask

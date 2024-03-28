@@ -6,7 +6,7 @@ from datasets.toy_data import SegmentationToyDataset
 from trainer import Trainer
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def trainer(bs_model: nn.Module):
     dataset = SegmentationToyDataset(limit=1)
     bs_dataloader = dataset.to_loader(batch_size=1)
@@ -41,7 +41,11 @@ def test_trainer_eval_epoch(test_image_batch, trainer):
     assert (pre == post).all(), "Evaluation should not modify model"
 
 
-def test_save_load(trainer: Trainer, tmp_path: str, test_image_batch: torch.Tensor):
+def test_save_load(
+    trainer: Trainer,
+    tmp_path: str,
+    test_image_batch: torch.Tensor,
+):
     epoch = 0
     path = tmp_path / f"trainer-ckpt-{epoch}"
     trainer.save(path)

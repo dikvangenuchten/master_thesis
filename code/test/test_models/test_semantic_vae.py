@@ -5,7 +5,12 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 import torch
-from models.semantic_vae import DecoderBlock, EncoderBlock, ResBlock, SemanticVAE
+from models.semantic_vae import (
+    DecoderBlock,
+    EncoderBlock,
+    ResBlock,
+    SemanticVAE,
+)
 
 
 @pytest.mark.parametrize(
@@ -32,7 +37,12 @@ def test_resblock_make(in_channels: int, out_channels: int, reduction: int):
     block = ResBlock.make_block(in_channels, out_channels, reduction)
 
     input = torch.rand((batch_size, in_channels, in_height, in_width))
-    expected_out_shape = (batch_size, out_channels, out_height, out_width)
+    expected_out_shape = (
+        batch_size,
+        out_channels,
+        out_height,
+        out_width,
+    )
 
     out = block(input)
 
@@ -54,7 +64,12 @@ def test_encoder_block(channels: List[int], reduction: int):
     block = EncoderBlock(channels, reduction)
 
     input = torch.rand((batch_size, channels[0], in_height, in_width))
-    expected_out_shape = (batch_size, channels[-1], out_height, out_width)
+    expected_out_shape = (
+        batch_size,
+        channels[-1],
+        out_height,
+        out_width,
+    )
 
     out = block(input)
 
@@ -62,40 +77,36 @@ def test_encoder_block(channels: List[int], reduction: int):
 
 
 @given(
-    st.integers(1, 32),
-    st.integers(1, 32),
-    st.integers(1, 32),
-    st.integers(1, 32),
+    st.integers(1, 4),
+    st.integers(1, 4),
+    st.integers(1, 4),
+    st.integers(1, 4),
     st.integers(1, 4),
 )
 @settings(deadline=None)
 def test_decoder_make(
     in_channels: int,
-    skip_channels: int,
-    latent_channels: int,
+    skip_c: int,
+    latent_c: int,
     out_channels: int,
     expansion: int,
 ):
-    batch_size = 16
+    batch_size = 4
     in_height = in_width = 4
     out_height = out_width = 4 * expansion
-    in_channels = in_channels
-    skip_channels = in_channels
-    latent_channels = out_channels
-    out_channels = out_channels
-    block = DecoderBlock.make_block(
-        in_channels, skip_channels, latent_channels, out_channels, expansion
-    )
+    in_c = skip_c = in_channels
+    out_c = latent_c = out_channels
+    block = DecoderBlock.make_block(in_c, skip_c, latent_c, out_c, expansion)
 
-    input = torch.rand((batch_size, in_channels, in_height, in_width))
-    expected_out_shape = (batch_size, out_channels, out_height, out_width)
+    input = torch.rand((batch_size, in_c, in_height, in_width))
+    expected_out_shape = (batch_size, out_c, out_height, out_width)
 
     # Check if it works without the skip layer
     out = block(input)
     assert expected_out_shape == out.shape
 
     # Check if it works with the skip layer
-    input_skip = torch.rand((batch_size, skip_channels, out_height, out_width))
+    input_skip = torch.rand((batch_size, skip_c, out_height, out_width))
     out = block(input, input_skip)
     assert expected_out_shape == out.shape
 

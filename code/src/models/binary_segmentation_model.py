@@ -4,7 +4,12 @@ from torch import nn
 
 class BinarySegmentationModel(nn.Module):
     def __init__(
-        self, in_channels=3, out_channels=1, activation=None, *args, **kwargs
+        self,
+        in_channels=3,
+        out_channels=1,
+        activation=None,
+        *args,
+        **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
 
