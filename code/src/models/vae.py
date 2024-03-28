@@ -3,7 +3,6 @@ from torch import nn
 from diffusers import AutoencoderKL
 
 from models import ModelOutput
-from models.duq import DUQHead
 
 
 class VAE(nn.Module):
@@ -32,7 +31,7 @@ class VAE(nn.Module):
     def decode(self, z: torch.Tensor) -> torch.Tensor:
         return self._decoder(z)
 
-    def forward(self, x: torch.Tensor, use_model_out: bool=True) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, use_model_out: bool = True) -> torch.Tensor:
         """A full forward pass, from image: x to output: y
 
         Internally calls the encode and decode back to back.

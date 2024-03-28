@@ -3,12 +3,24 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
+
 class ResBlock(nn.Module):
-    def __init__(self, in_channels: int, out_channels: int, stride: int, downsample: nn.Module, activation: nn.Module=F.relu) -> None:
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        stride: int,
+        downsample: nn.Module,
+        activation: nn.Module = F.relu,
+    ) -> None:
         super().__init__()
-        self._conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=(3, 3), stride=stride, padding=1)
+        self._conv1 = nn.Conv2d(
+            in_channels, out_channels, kernel_size=(3, 3), stride=stride, padding=1
+        )
         self._bn1 = nn.BatchNorm2d(out_channels)
-        self._conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=(3, 3), stride=1, padding="same")
+        self._conv2 = nn.Conv2d(
+            out_channels, out_channels, kernel_size=(3, 3), stride=1, padding="same"
+        )
         self._bn2 = nn.BatchNorm2d(out_channels)
         self._downsample = downsample
         self._activation = activation
@@ -28,27 +40,30 @@ class ResBlock(nn.Module):
 
         return self._activation(out)
 
-
     @classmethod
     def make_block(cls, in_channels: int, out_channels: int, downsample_factor: int):
-        """Create a block based on the required dimensions + strides
-        """
+        """Create a block based on the required dimensions + strides"""
 
         # Using conv is more flexible then using pooling and (theoratically) can become a AvgPool
-        downsample = nn.Conv2d(in_channels, out_channels, kernel_size=(downsample_factor, downsample_factor), stride=downsample_factor)
+        downsample = nn.Conv2d(
+            in_channels,
+            out_channels,
+            kernel_size=(downsample_factor, downsample_factor),
+            stride=downsample_factor,
+        )
 
         return cls(
             in_channels=in_channels,
             out_channels=out_channels,
             stride=downsample_factor,
-            downsample=downsample
+            downsample=downsample,
         )
 
 
 class EncoderBlock(nn.Module):
-    """The initial encoder block is based on the Efficient-VDVAE paper
-    """
-    def __init__(self, channels: List[int], downsample_factor: int=2) -> None:
+    """The initial encoder block is based on the Efficient-VDVAE paper"""
+
+    def __init__(self, channels: List[int], downsample_factor: int = 2) -> None:
         super().__init__()
         self.layers = []
         for i in range(len(channels) - 1):
@@ -57,7 +72,9 @@ class EncoderBlock(nn.Module):
                     in_channels=channels[i],
                     out_channels=channels[i + 1],
                     # Only downsample the last layer
-                    downsample_factor=downsample_factor if i==(len(channels)-2) else 1
+                    downsample_factor=downsample_factor
+                    if i == (len(channels) - 2)
+                    else 1,
                 )
             )
 
@@ -65,19 +82,21 @@ class EncoderBlock(nn.Module):
         for layer in self.layers:
             x = layer(x)
         return x
-    
+
+
 class UnpoolLayer(nn.Module):
     def __init__(self, in_channels: int, out_channels: int, expansion: int) -> None:
         super().__init__()
         self._conv = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=1)
         self._expansion = expansion
-    
+
     def forward(self, x) -> torch.Tensor:
         x = self._conv(x)
         x = F.relu(x)
         x = F.interpolate(x, scale_factor=self._expansion)
         return x
-        
+
+
 class SampleConvLayer(nn.Module):
     def __init__(self, in_channels: int, out_channels: Optional[int] = None) -> None:
         super().__init__()
@@ -87,7 +106,7 @@ class SampleConvLayer(nn.Module):
             in_channels=in_channels,
             # Mean and (log) variance
             out_channels=out_channels * 2,
-            kernel_size=1
+            kernel_size=1,
         )
         # Recommended value by Efficient-VDVAE
         self._softplus = nn.Softplus(beta=torch.log(torch.tensor(2.0)))
@@ -97,9 +116,17 @@ class SampleConvLayer(nn.Module):
         mean, std = torch.chunk(x, chunks=2, dim=1)
         return mean, std
 
+
 class DecoderBlock(nn.Module):
     @classmethod
-    def make_block(cls, in_channels: int, skip_channels: int, latent_channels: int, out_channels: int, expansion: int) -> "DecoderBlock":
+    def make_block(
+        cls,
+        in_channels: int,
+        skip_channels: int,
+        latent_channels: int,
+        out_channels: int,
+        expansion: int,
+    ) -> "DecoderBlock":
         return cls(
             in_channels=in_channels,
             skip_channels=skip_channels,
@@ -108,18 +135,30 @@ class DecoderBlock(nn.Module):
             expansion=expansion,
         )
 
-    def __init__(self, in_channels: int, skip_channels: int, latent_channels: int, out_channels: int, expansion: int) -> None:
+    def __init__(
+        self,
+        in_channels: int,
+        skip_channels: int,
+        latent_channels: int,
+        out_channels: int,
+        expansion: int,
+    ) -> None:
         super().__init__()
         self._unpool = UnpoolLayer(in_channels, latent_channels, expansion)
 
-        self._prior_net = ResBlock.make_block(latent_channels, latent_channels, downsample_factor=1)
+        self._prior_net = ResBlock.make_block(
+            latent_channels, latent_channels, downsample_factor=1
+        )
         self._prior_layer = SampleConvLayer(latent_channels)
 
-        self._posterior_net = ResBlock.make_block(latent_channels + skip_channels, latent_channels, downsample_factor=1)
+        self._posterior_net = ResBlock.make_block(
+            latent_channels + skip_channels, latent_channels, downsample_factor=1
+        )
         self._posterior_layer = SampleConvLayer(latent_channels)
 
-        self._out_resblock = ResBlock.make_block(latent_channels, out_channels, downsample_factor=1)
-        
+        self._out_resblock = ResBlock.make_block(
+            latent_channels, out_channels, downsample_factor=1
+        )
 
     def forward(self, x, x_skip: Optional[torch.Tensor] = None) -> torch.Tensor:
         x = self._unpool(x)
@@ -135,38 +174,39 @@ class DecoderBlock(nn.Module):
             z = self._sample(*posterior_stats)
         else:
             z = self._sample(*prior_stats)
-        
-        out = residual + z
-        
-        return self._out_resblock(out)
-        
-        
 
-    def posterior(self, x: torch.Tensor, x_skip: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        out = residual + z
+
+        return self._out_resblock(out)
+
+    def posterior(
+        self, x: torch.Tensor, x_skip: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         return (x, x)
-    
+
     def _sample(self, mu: torch.Tensor, std: torch.Tensor):
         # TODO during bootstrapping we should also sample
         if not self.training:
             return mu
         else:
             # Sample during training
-            eps = torch.empty_like(mu).normal_(0., 1.)
+            eps = torch.empty_like(mu).normal_(0.0, 1.0)
             return mu + std * eps
+
 
 class SemanticVAE(nn.Module):
     """Semantic VAE
 
     The Semantic VAE uses a VAE as pretrained model.
     The output is generated purely from the latent space.
-    
+
     During training the following options are available:
      - Complete Finetune (No freezing, no reguralizing using x-decoder)
      - Reguralize the encoder using previous decoder
      - Freeze the encoder (x-decoder is thus not necesarry)
     """
-    
-    def __init__(self, input_dims: int=3, num_classes: int=3) -> None:
+
+    def __init__(self, input_dims: int = 3, num_classes: int = 3) -> None:
         pass
 
     def encode_image(self, x: torch.Tensor) -> torch.Tensor:
@@ -180,7 +220,7 @@ class SemanticVAE(nn.Module):
 
     def decode_label(self, z: torch.Tensor) -> torch.Tensor:
         return z
-    
+
     def inference(self, x: torch.Tensor) -> torch.Tensor:
         z = self.encode_image(x)
         # TODO: Take mean

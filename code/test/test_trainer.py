@@ -50,4 +50,3 @@ def test_save_load(trainer: Trainer, tmp_path: str, test_image_batch: torch.Tens
     x = test_image_batch.to(device=trainer.device)
 
     assert torch.allclose(trainer.model(x), loaded.model(x))
-

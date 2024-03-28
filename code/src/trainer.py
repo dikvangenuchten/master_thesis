@@ -42,6 +42,7 @@ class RunningMean:
     def val(self) -> torch.Tensor:
         return self._val
 
+
 class Constant:
     def __init__(self, val) -> None:
         self._val = val
@@ -62,7 +63,7 @@ class Trainer:
         config: dict = {},
         train_metrics: List[BaseMetric] = None,
         eval_metrics: List[BaseMetric] = None,
-        log_with: List[str] = ["wandb"]
+        log_with: List[str] = ["wandb"],
     ) -> None:
         train_metrics = [] if train_metrics is None else train_metrics
         eval_metrics = [] if eval_metrics is None else eval_metrics
@@ -100,10 +101,12 @@ class Trainer:
         self.eval_dataloader = eval_dataloader
         self.train_metrics = train_metrics
         self.eval_metrics = eval_metrics
-        self._gradient_penalty = GradientPenalty(),
+        self._gradient_penalty = (GradientPenalty(),)
 
         # Save based on start time of run
-        self._ckpt_dir = os.path.join("ckpts", datetime.datetime.now().strftime("%Y/%m/%d-%H:%M"))
+        self._ckpt_dir = os.path.join(
+            "ckpts", datetime.datetime.now().strftime("%Y/%m/%d-%H:%M")
+        )
 
     @property
     def device(self):
@@ -115,7 +118,9 @@ class Trainer:
             log_dict.update(**metric.compute())
             metric.reset()
 
-        self._accelerator.log(log_dict, step=step, log_kwargs={"wandb": {"commit": True}})
+        self._accelerator.log(
+            log_dict, step=step, log_kwargs={"wandb": {"commit": True}}
+        )
 
     def train_step(self, batch: Dict[str, torch.Tensor]) -> torch.Tensor:
         self.model.train()
@@ -179,7 +184,6 @@ class Trainer:
                 f"eval_loss: {eval_loss.val:.5f} (last: {eval_loss.last:.5f})"
             )
 
-
     def save(self, dir) -> None:
         os.makedirs(dir, exist_ok=True)
 
@@ -192,7 +196,6 @@ class Trainer:
         torch.save(self.train_metrics, os.path.join(dir, "train_metrics.pt"))
         torch.save(self.eval_metrics, os.path.join(dir, "eval_metrics.pt"))
         self._accelerator.save_state(dir)
-
 
     @classmethod
     def load(cls: "Trainer", dir) -> "Trainer":
@@ -207,8 +210,8 @@ class Trainer:
 
         config = {}
         log_with = []
-        
-        trainer =  cls(
+
+        trainer = cls(
             train_dataloader=train_dataloader,
             model=model,
             loss_fn=loss_fn,
@@ -218,11 +221,10 @@ class Trainer:
             config=config,
             train_metrics=train_metrics,
             eval_metrics=eval_metrics,
-            log_with=log_with
+            log_with=log_with,
         )
         trainer._accelerator.load_state(dir)
         return trainer
-
 
     def epoch(self, epoch: Optional[int] = None) -> torch.Tensor:
         loss_sum = 0

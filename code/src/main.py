@@ -6,13 +6,11 @@ from dotenv import load_dotenv
 from torch import optim
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2 as transforms
-from tqdm import trange
 import torchinfo
 
 import metrics
-from datasets.coco import CoCoDataset
 from datasets.fiftyone import FiftyOneDataset
-from models import ModelOutput, UNet, VAE
+from models import ModelOutput, VAE
 from trainer import Trainer
 
 DATA_ROOT = "/datasets/"
@@ -38,14 +36,14 @@ def main():
         transform=data_transforms,
         # latents=True,
         output_structure={"input": "latent", "image": "img", "target": "semantic_mask"},
-        max_samples=None
+        max_samples=None,
     )
     val_dataset = FiftyOneDataset(
         split="validation",
         transform=data_transforms,
         # latents=True,
         output_structure={"input": "latent", "image": "img", "target": "semantic_mask"},
-        max_samples=None
+        max_samples=None,
     )
 
     # train_dataset = OxfordSpeciesDataset(
@@ -56,9 +54,16 @@ def main():
     # )
 
     train_dataloader = DataLoader(
-        train_dataset, batch_size=batch_size, shuffle=True, num_workers=1, 
+        train_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=1,
     )
-    eval_dataloader = DataLoader(val_dataset, batch_size=batch_size, num_workers=1, )
+    eval_dataloader = DataLoader(
+        val_dataset,
+        batch_size=batch_size,
+        num_workers=1,
+    )
 
     num_classes = len(train_dataset.class_map)
     ignore_index = (
@@ -117,19 +122,5 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-## Steps:
-# Define a model based on (V)AE -- Done
-# Create a cache creation script -- Done
-# Create a training script -- Testing
-# Create a inference script
-# Also with infinite sampling
-
-
-### TODO LIST
-# 1. Make experimental design specific for new idea
-#       Be explicit in what is "cached"
-#       Be explicit about what metrics
-
 
 # Add github repo of group
