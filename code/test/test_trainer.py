@@ -8,7 +8,7 @@ from trainer import Trainer
 
 @pytest.fixture(scope="module")
 def trainer(bs_model: nn.Module):
-    dataset = SegmentationToyDataset(limit=1)
+    dataset = SegmentationToyDataset(limit=1, base_path="test/data")
     bs_dataloader = dataset.to_loader(batch_size=1)
 
     return Trainer(

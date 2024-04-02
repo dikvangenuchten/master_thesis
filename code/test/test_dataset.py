@@ -35,7 +35,7 @@ def test_toy_transform(test_image: Image):
 
 
 def test_coco_dataset():
-    ds = CoCoDataset(output_structure={"img": "img", "target": "semantic_mask"})
+    ds = CoCoDataset(output_structure={"img": "img", "target": "semantic_mask"}, base_path="test/data/coco")
     # TODO add instance mask
     batch = ds[0]
     img = batch["img"]
