@@ -1,4 +1,3 @@
-import itertools
 from typing import List
 
 import numpy as np
@@ -137,7 +136,9 @@ def test_semantic_vae_inference_shapes(
 
     z = model.encode_image(test_image_batch)
 
-    expected_latent_shape = torch.Size([b, channels[-1], int(h / tot_reduction), int(w / tot_reduction)])
+    expected_latent_shape = torch.Size(
+        [b, channels[-1], int(h / tot_reduction), int(w / tot_reduction)]
+    )
     assert (
         z.shape == expected_latent_shape
     ), f"Latent shape is not equal to expected: {z.shape} != {expected_latent_shape}"
