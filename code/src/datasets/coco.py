@@ -32,7 +32,6 @@ class CoCoDataset(torch.utils.data.Dataset):
         sample: bool = True,
         num_classes: Optional[int] = None,
     ):
-
         unsuported_outs = {
             k: v for k, v in output_structure.items() if v not in get_args(OUTPUT_TYPES)
         }

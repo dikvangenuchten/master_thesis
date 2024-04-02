@@ -24,7 +24,7 @@ class ModelOutput:
         return self._out
 
 
-from models.u_net import UNet
-from models.vae import VAE
+from models.u_net import UNet  # noqa: E402
+from models.vae import VAE  # noqa: E402
 
 __all__ = ["UNet", "VAE"]

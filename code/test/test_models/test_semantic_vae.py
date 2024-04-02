@@ -115,7 +115,7 @@ def test_semantic_vae_inference_shapes(test_image_batch):
     model = SemanticVAE()
     z = model.encode_image(test_image_batch)
     decoded = model.decode_image(z)
-    semantic = model.decode_label(z)
+    # semantic = model.decode_label(z)
 
     assert (
         test_image_batch.shape == decoded.shape
