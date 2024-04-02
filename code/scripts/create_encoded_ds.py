@@ -32,7 +32,11 @@ def main(model, root_dir, split):
     dataset = CoCoDataset(split, transform=data_transforms)
 
     dataloader = DataLoader(
-        dataset, shuffle=False, batch_size=BATCH_SIZE, pin_memory=True, num_workers=4
+        dataset,
+        shuffle=False,
+        batch_size=BATCH_SIZE,
+        pin_memory=True,
+        num_workers=4,
     )
     print(f"Starting on split: {split}")
     create_ds(model, dataloader, save_dir)
