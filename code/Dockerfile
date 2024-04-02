@@ -10,9 +10,9 @@ ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
 # Copy and install development requirements (iff it is present in build-context)
-COPY dev-requirements.tx[t] .
+COPY requirements-dev.tx[t] .
 # Create the file if it not exists, then install using pip
-RUN touch dev-requirements.txt && pip install -r dev-requirements.txt
+RUN touch requirements-dev.txt && pip install -r requirements-dev.txt
 
 # Create the user
 RUN groupadd --gid $USER_GID $USERNAME \
