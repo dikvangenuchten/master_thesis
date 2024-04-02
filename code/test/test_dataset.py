@@ -9,7 +9,7 @@ from datasets.coco import CoCoDataset
 
 
 def test_toy_dataset_initialization():
-    dataset = SegmentationToyDataset()
+    dataset = SegmentationToyDataset(base_path="test/data/")
     assert dataset is not None
 
 

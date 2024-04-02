@@ -35,9 +35,10 @@ class SegmentationToyDataset(data.Dataset):
         background_dataset: Optional[data.Dataset] = None,
         limit: int = 100,
         split: str = "val",
+        base_path: str ="/datasets/"
     ):
         if background_dataset is None:
-            background_dataset = self.default_background_dataset(split)
+            background_dataset = self.default_background_dataset(split, base_path=base_path)
         self._background_dataset = background_dataset
         self._limit = limit
 
@@ -69,12 +70,11 @@ class SegmentationToyDataset(data.Dataset):
         return min(self._limit, len(self._background_dataset))
 
     @staticmethod
-    def default_background_dataset(split: str):
-        base_path = "/datasets/coco/"
+    def default_background_dataset(split: str, base_path: str):
         return datasets.wrap_dataset_for_transforms_v2(
             datasets.CocoDetection(
-                os.path.join(base_path, f"{split}2017/"),
-                os.path.join(base_path, f"annotations/instances_{split}2017.json"),
+                os.path.join(base_path, "coco", f"{split}2017/"),
+                os.path.join(base_path, "coco", f"annotations/instances_{split}2017.json"),
             )
         )
 

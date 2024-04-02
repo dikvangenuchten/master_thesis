@@ -4,7 +4,7 @@ import pytest
 
 
 @pytest.fixture(scope="session")
-def test_image(path="test/test_data/example.jpg"):
+def test_image(path="test/data/example.jpg"):
     from torchvision.tv_tensors import Image
     from PIL import Image as PImage
 

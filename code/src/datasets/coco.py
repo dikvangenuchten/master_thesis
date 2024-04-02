@@ -24,6 +24,7 @@ class CoCoDataset(torch.utils.data.Dataset):
             "input": "latent",
             "target": "semantic_mask",
         },
+        base_path: str = "/datasets/coco/",
         root: Optional[str] = None,
         annFile: Optional[str] = None,
         transform: Optional[Callable] = None,
@@ -31,7 +32,6 @@ class CoCoDataset(torch.utils.data.Dataset):
         sample: bool = True,
         num_classes: Optional[int] = None,
     ):
-        base_path = "/datasets/coco/"
 
         unsuported_outs = {
             k: v for k, v in output_structure.items() if v not in get_args(OUTPUT_TYPES)
