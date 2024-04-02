@@ -20,7 +20,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: "pypy3.10"
+        python-version: "pypy3.11"
         # cache: "pip"
         # cache-dependency-path: ${{env.working-directory}}/requirements.txt
     - name: Install dependencies
