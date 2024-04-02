@@ -11,7 +11,7 @@ def download_toy():
         split="train",
         label_types=["segmentations"],
         classes=["Cat", "Dog"],
-        max_samples=100
+        # max_samples=100,
     )
     train.persistent = True
     test = fiftyone.zoo.load_zoo_dataset(
@@ -19,7 +19,7 @@ def download_toy():
         split="test",
         label_types=["segmentations"],
         classes=["Cat", "Dog"],
-        max_samples=100
+        # max_samples=100,
     )
     test.persistent = True
     validation = fiftyone.zoo.load_zoo_dataset(
@@ -27,7 +27,7 @@ def download_toy():
         split="validation",
         label_types=["segmentations"],
         classes=["Cat", "Dog"],
-        max_samples=100
+        # max_samples=100,
     )
     validation.persistent = True
 

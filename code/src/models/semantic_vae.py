@@ -217,19 +217,40 @@ class SemanticVAE(nn.Module):
     """
 
     def __init__(self, input_dims: int = 3, num_classes: int = 3) -> None:
-        pass
+        super().__init__()
+        
+        self._encoder = nn.Sequential(
+            EncoderBlock([3, 8], 2), # width := (8 * 9) = 72
+            EncoderBlock([8, 16], 2), # width := (16 * 9) = 144
+            EncoderBlock([16, 32], 2), # width := (32 * 9) = 288
+            EncoderBlock([32, 64], 2), # width := (64 * 9) = 586
+        )
+        
+        self._image_decoder = nn.Sequential(
+            DecoderBlock(64, 32, 32, 32, 2),
+            DecoderBlock(32, 16, 16, 16, 2),
+            DecoderBlock(16, 8, 8, 8, 2),
+            DecoderBlock(8, 3, 3, 3, 2),
+        )
+        
+        self._label_decoder = nn.Sequential(
+            DecoderBlock(64, 64, 32, 32, 2),
+            DecoderBlock(32, 32, 16, 16, 2),
+            DecoderBlock(16, 16, 8, 8, 2),
+            DecoderBlock(8, 8, 3, 3, 2),
+        )
 
     def encode_image(self, x: torch.Tensor) -> torch.Tensor:
-        return x
+        return self._encoder(x)
 
     def encode_label(self, x: torch.Tensor) -> torch.Tensor:
-        return x
+        raise NotImplementedError
 
     def decode_image(self, z: torch.Tensor) -> torch.Tensor:
-        return z
+        return self._image_decoder(z)
 
     def decode_label(self, z: torch.Tensor) -> torch.Tensor:
-        return z
+        return self._label_decoder(z)
 
     def inference(self, x: torch.Tensor) -> torch.Tensor:
         z = self.encode_image(x)
