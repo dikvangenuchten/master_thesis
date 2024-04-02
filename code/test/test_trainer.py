@@ -27,6 +27,8 @@ def test_trainer_single_epoch(test_image_batch, trainer):
     input = test_image_batch.to(trainer.device)
     pre = trainer.model(input)
     pre_loss = trainer.epoch()
+    for _ in range(4):
+        trainer.epoch()
     post = trainer.model(input)
     post_loss = trainer.epoch()
     assert not (pre == post).all(), "The model was not updated"
