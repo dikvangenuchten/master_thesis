@@ -216,32 +216,62 @@ class SemanticVAE(nn.Module):
      - Freeze the encoder (x-decoder is thus not necesarry)
     """
 
-    def __init__(self, input_dims: int = 3, num_classes: int = 3) -> None:
+    def __init__(
+        self,
+        image_channels: int,
+        label_channels: int,
+        layer_depths: List[int],
+        reductions: List[int],
+    ) -> None:
         super().__init__()
 
-        self._encoder = nn.Sequential(
-            EncoderBlock([3, 8], 2),  # width := (8 * 9) = 72
-            EncoderBlock([8, 16], 2),  # width := (16 * 9) = 144
-            EncoderBlock([16, 32], 2),  # width := (32 * 9) = 288
-            EncoderBlock([32, 64], 2),  # width := (64 * 9) = 586
+        image_layers = [image_channels, *layer_depths]
+        self._image_encoder = nn.Sequential(
+            *[
+                EncoderBlock([image_layers[i], image_layers[i + 1]], reductions[i])
+                for i in range(len(image_layers) - 1)
+            ]
         )
 
         self._image_decoder = nn.Sequential(
-            DecoderBlock(64, 32, 32, 32, 2),
-            DecoderBlock(32, 16, 16, 16, 2),
-            DecoderBlock(16, 8, 8, 8, 2),
-            DecoderBlock(8, 3, 3, 3, 2),
+            *[
+                DecoderBlock(
+                    in_channels=image_layers[-i - 1],
+                    skip_channels=image_layers[-i - 2],
+                    latent_channels=image_layers[-i - 2],
+                    out_channels=image_layers[-i - 2],
+                    expansion=reductions[-i],
+                )
+                for i in range(len(image_layers) - 1)
+            ]
         )
 
+        label_layers = [label_channels, *layer_depths]
         self._label_decoder = nn.Sequential(
-            DecoderBlock(64, 64, 32, 32, 2),
-            DecoderBlock(32, 32, 16, 16, 2),
-            DecoderBlock(16, 16, 8, 8, 2),
-            DecoderBlock(8, 8, 3, 3, 2),
+            *[
+                DecoderBlock(
+                    in_channels=label_layers[-i - 1],
+                    skip_channels=label_layers[-i - 2],
+                    latent_channels=label_layers[-i - 2],
+                    out_channels=label_layers[-i - 2],
+                    expansion=reductions[-i],
+                )
+                for i in range(len(label_layers) - 1)
+            ]
         )
+
+    @classmethod
+    def default(
+        cls,
+        image_channels: int = 3,
+        label_channels: int = 3,
+    ):
+        layer_depths: List[int] = ([8, 16, 32, 64],)
+        reductions: List[int] = [2, 2, 2, 2]
+        return cls(image_channels, label_channels, layer_depths, reductions)
 
     def encode_image(self, x: torch.Tensor) -> torch.Tensor:
-        return self._encoder(x)
+        return self._image_encoder(x)
 
     def encode_label(self, x: torch.Tensor) -> torch.Tensor:
         raise NotImplementedError

@@ -1,5 +1,7 @@
+import itertools
 from typing import List
 
+import numpy as np
 import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
@@ -111,12 +113,44 @@ def test_decoder_make(
     assert expected_out_shape == out.shape
 
 
-def test_semantic_vae_inference_shapes(test_image_batch):
-    model = SemanticVAE()
+@pytest.mark.parametrize(
+    "channels,reductions",
+    [
+        ([4, 16], [2, 2]),
+        ([4, 16, 32], [2, 2, 2]),
+        ([4, 16, 64], [2, 2, 2]),
+    ],
+)
+def test_semantic_vae_inference_shapes(
+    test_image_batch, channels: List[int], reductions: List[int]
+):
+    tot_reduction = np.prod(reductions)
+    b, c, h, w = test_image_batch.shape
+    num_classes = 8
+
+    model = SemanticVAE(
+        3,
+        num_classes,
+        channels,
+        reductions,
+    )
+
     z = model.encode_image(test_image_batch)
+
+    expected_latent_shape = torch.Size([b, channels[-1], int(h / tot_reduction), int(w / tot_reduction)])
+    assert (
+        z.shape == expected_latent_shape
+    ), f"Latent shape is not equal to expected: {z.shape} != {expected_latent_shape}"
+
     decoded = model.decode_image(z)
-    # semantic = model.decode_label(z)
 
     assert (
         test_image_batch.shape == decoded.shape
-    ), "Shape of the decoded image is not equal"
+    ), f"Shape of the decoded image is not equal. expected: {test_image_batch.shape} != {decoded.shape} :actual"
+
+    segmentation = model.decode_label(z)
+
+    expected_segmentation_shape = torch.Size([b, num_classes, h, w])
+    assert (
+        segmentation.shape == expected_segmentation_shape
+    ), f"Segmentation shape is not equal to expected: {list(segmentation.shape)} != {expected_segmentation_shape}"
