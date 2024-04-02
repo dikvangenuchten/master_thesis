@@ -59,11 +59,9 @@ jobs:
         working-directory: ${{env.working-directory}}
         shell: bash -l {0}
         run: |
-          pip install ruff
           ruff --output-format=github .
       - name: Pytest
         working-directory: ${{env.working-directory}}
         shell: bash -l {0}
         run: |
-          pip install pytest
           pytest
