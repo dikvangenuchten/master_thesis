@@ -1,16 +1,13 @@
 \chapter{Introduction}\label{chapter:introduction}
 
-This is the \LaTeX\ template for writing a TU/e Master of Science thesis. This version is from December 2021. Although this version is created by Marko Boon, the template is based on the version by Buijs~\cite{MScBuijs2010} and Nugteren~\cite{MScNugteren2010}.
+Deep learning models require a lot of (labeled) data, and are often computationally intensive. Although data is easily acquirable, the labeling process is labor intensive and thus expensive. Thus if the unlabeled data can be used to prime a model, it will require less labeled data to finetune on the specific task required. In the context of mobile robotics it is furthermore important to have a low computational cost for inference, such that the inference can happen on the edge. Finally, it is important that the robotic devices can handle unexpected situations safely. The first step towards that is recognizing model failures. When the uncertainty of our model can be correctly estimated, it can be used as a proxy for unknown situations, which then can be used to take precautions.
 
-One of the best resources for \LaTeX basics, and advanced constructs, is the \LaTeX wikibook\footnote{To be found at~\url{http://en.wikibooks.org/wiki/LaTeX/}}. 
+\subsubsection*{Are VAEs suitable for Semantic/Panoptic segmentation, in the context of mobile robotics?}
+Variational Autoencoders (VAE) can be used to do bootstrapping, as shown in \cite{kohl2018probabilistic}. Furthermore VAEs have cheaper inference cost compared to diffusion models. In this thesis, a model will be trained showing that VAEs can be used for semantic segmenation.
 
-\section{Installation Instructions}
-
-\subsection{TU/e MiKTeX installation}
-
-This package is part of the TU/e MiK\TeX\ installation (since January 2022) and will be installed automatically if you install this TU/e MiK\TeX\ installation. The style files are located in the folder called \verb|tex/latex/tuemscthesis2021| and the sample files can be found in the folder called \verb|examples/tuemscthesis2021|. These folders are located in the local \TeX mf tree, which is usually located in \verb|C:\ProgramData\MiKTeX|.
-
-\section{Research Questions}
-
-
-
+\subsubsection*{Does pretraining on (unlabeled) data reduce the required amount of labeled data?}
+The labeling of data by humans is very costly, and often the bottleneck of improving models. Because the encoder of a VAE can be pretrained with unlabeled data, we hypothesis that this will reduce the amount of data that needs to be labeled. We take special intrest for the two possible cases:
+\begin{itemize}
+    \item Unlabeled data from the same data distribution (Simulated by taking the entire dataset for pretraining and a subset for finetuning)
+    \item Unlabeled data from a different data distribution (Simulated by taking a different dataset for the pretraining)
+\end{itemize}

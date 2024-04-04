@@ -2,6 +2,8 @@ FROM ghcr.io/xu-cheng/texlive-full:latest as base
 
 from base as dev
 
+RUN apk --update add imagemagick
+
 ARG USERNAME=dev-user
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID

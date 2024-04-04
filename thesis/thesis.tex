@@ -15,16 +15,16 @@
 % If you don't need a specific command, just leave the argument empty. 
 % For example: \docsubtitle{}
 %
-\newcommand{\doctitle}{My Thesis Title}
+\newcommand{\doctitle}{[DRAFT] Pretrained H-VAE for Image Segmentation with Uncertainty Estimation}
 \newcommand{\docsubtitle}{Master's Thesis}
 \newcommand{\me}{H.J.M. van Genuchten}
 \newcommand{\version}{Working version}
 \newcommand{\placeMonthYear}{Eindhoven, July 2024}
 \newcommand{\department}{Department of Mathematics and Computer Science}
 \newcommand{\group}{Generative Artificial Intelligence}
-\newcommand{\firstCommitteeMember}{Your First Committee Member} % use all the titles for your committee members!
-\newcommand{\secondCommitteeMember}{Your second Committee Member} % usually the daily supervisor
-\newcommand{\thirdCommitteeMember}{Your Third Committee Member} % usually the external member
+\newcommand{\firstCommitteeMember}{Dr. Jakub Tomczak} % use all the titles for your committee members!
+\newcommand{\secondCommitteeMember}{Bart Keulen} % usually the daily supervisor
+\newcommand{\thirdCommitteeMember}{TBD} % usually the external member
 
 
 \begin{document}
@@ -35,34 +35,34 @@
 %Sometimes line numbers are nice, uncomment the next line to enable:
 %\linenumbers
 
-\input{chapters/abstract}
+% \input{chapters/abstract}
 
-\input{chapters/preface}
+% \input{chapters/preface}
 
-\tableofcontents
+% \tableofcontents
 
-\listoffigures
+% \listoffigures
 
-\listoftables
+% \listoftables
 
-\lstlistoflistings
+% \lstlistoflistings
 
 \mainmatter
 
 \input{chapters/introduction}
 
-\input{chapters/first_real_chapter}
+\input{chapters/method}
 
-\input{chapters/second_real_chapter}
+\input{chapters/experiments}
 
-\input{chapters/conclusions}
+% \input{chapters/conclusions}
 
 \bibliographystyle{plain}
 \bibliography{references}
 
-\appendix
-\addcontentsline{toc}{chapter}{Appendix}
-
-\input{appendices/main}
+% \appendix
+% \addcontentsline{toc}{chapter}{Appendix}
+% 
+% \input{appendices/main}
 
 \end{document}
