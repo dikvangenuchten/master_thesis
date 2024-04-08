@@ -127,9 +127,9 @@ class CoCoDataset(torch.utils.data.Dataset):
         instance_mask = rgb2id(mask)
         sem_mask = torch.zeros_like(instance_mask, dtype=torch.long)
         for segment_info in ann["segments_info"]:
-            sem_mask[instance_mask == segment_info["id"]] = (
-                self._cat_id_to_semantic[segment_info["category_id"]]
-            )
+            sem_mask[
+                instance_mask == segment_info["id"]
+            ] = self._cat_id_to_semantic[segment_info["category_id"]]
         # Temporarily only load semantic mask
 
         # Set unlabeled values
