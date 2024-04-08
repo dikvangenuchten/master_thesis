@@ -1,13 +1,19 @@
 \chapter{Introduction}\label{chapter:introduction}
 
-Deep learning models require a lot of (labeled) data, and are often computationally intensive. Although data is easily acquirable, the labeling process is labor intensive and thus expensive. Thus if the unlabeled data can be used to prime a model, it will require less labeled data to finetune on the specific task required. In the context of mobile robotics it is furthermore important to have a low computational cost for inference, such that the inference can happen on the edge. Finally, it is important that the robotic devices can handle unexpected situations safely. The first step towards that is recognizing model failures. When the uncertainty of our model can be correctly estimated, it can be used as a proxy for unknown situations, which then can be used to take precautions.
+Deep learning models require a lot of (labeled) data, and are often computationally intensive. Although data is easily acquirable, the labeling process is labor intensive and thus expensive. Thus if the unlabeled data can be used to prime a model, it will require less labeled data to finetune on the specific task required. In the context of mobile robotics it is furthermore important to have a low computational cost for inference, such that the inference can happen on the edge. Finally, it is important that the robotic devices can handle unexpected situations safely. The first step towards that is recognizing model failures. When the uncertainty of our model can be correctly estimated, it can be used as a proxy for unknown situations, which then can be used to take precautions, such as a preemptive emergency stop.
 
-\subsubsection*{Are VAEs suitable for Semantic/Panoptic segmentation, in the context of mobile robotics?}
-Variational Autoencoders (VAE) can be used to do bootstrapping, as shown in \cite{kohl2018probabilistic}. Furthermore VAEs have cheaper inference cost compared to diffusion models. In this thesis, a model will be trained showing that VAEs can be used for semantic segmenation.
+This thesis will investigate if VAEs are a suitable solution for semantic segmentation in mobile robotics. The following research questions are defined to investigate if this is the case.
 
-\subsubsection*{Does pretraining on (unlabeled) data reduce the required amount of labeled data?}
+\paragraph*{Does bootstrapping give an accurate estimation of the error compared to state of the art solutions?} One of the main benefits of VAEs is that, by using batched inference, bootstrapping can be efficiently applied. Furthermore, bootstrapping has been proven to be useful for uncertainty quantification by several previous works \cite{chen2018use,kohl2018probabilistic,edupuganti2021uq_mri}. To measure this quantitavely the Expected Callibration Error, as proposed by ..., will be used. Furt,hermore it should not reduce the accuracy of the segmenation significantly.
+
+\paragraph*{What is the computational efficientcy of VAEs?} Due to the limited available computing power on mobile robotics it is important to measure the computational efficiency of the proposed model during inference. However, due to constant advancements in (mobile) hardware [\#Cite NVIDIA?], this is not a stationary goal. Furthermore, it is important to compare this with current State of the Art (SOTA) models with comparable computational efficiency.
+
+
+\subsubsection{Self-Supervised Foundation Models}
+It is well known that in the field of machine learning more data leads to better models. However, acquiring (quality) data is often expensive, especially when humans are required for labeling.
+
 The labeling of data by humans is very costly, and often the bottleneck of improving models. Because the encoder of a VAE can be pretrained with unlabeled data, we hypothesis that this will reduce the amount of data that needs to be labeled. We take special intrest for the two possible cases:
 \begin{itemize}
-    \item Unlabeled data from the same data distribution (Simulated by taking the entire dataset for pretraining and a subset for finetuning)
+    \item Unlabeled data from the same data distribution (Simulated by taking the entire dataset for pretraining and a subset for finetuning). The goal is to achieve the same accuracy compared
     \item Unlabeled data from a different data distribution (Simulated by taking a different dataset for the pretraining)
 \end{itemize}
