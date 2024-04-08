@@ -9,7 +9,9 @@ from metrics.base_metric import BaseMetric, StepData
 class MaskMetric(BaseMetric):
     """Saves the first batch of images with segmentation masks"""
 
-    def __init__(self, name: str, class_labels: dict, limit: int = 32) -> None:
+    def __init__(
+        self, name: str, class_labels: dict, limit: int = 32
+    ) -> None:
         super().__init__(name)
         self._first_batch = None
         self._limit = limit
@@ -23,7 +25,9 @@ class MaskMetric(BaseMetric):
             y_true = step_data.batch[self._target_label]
             y_pred = step_data.model_out.out
             if y_true.ndim != y_pred.ndim:
-                y_true = torch.nn.functional.one_hot(y_true).permute(0, -1, 1, 2)
+                y_true = torch.nn.functional.one_hot(y_true).permute(
+                    0, -1, 1, 2
+                )
             if x.shape[0] > self._limit:
                 x, y_true, y_pred = (
                     x[: self._limit],
@@ -33,8 +37,12 @@ class MaskMetric(BaseMetric):
             # Convert from BCHW to BHWC
             self._first_batch = (
                 np.transpose(x.detach().cpu().numpy(), (0, 2, 3, 1)),
-                np.transpose(y_true.detach().cpu().numpy(), (0, 2, 3, 1)),
-                np.transpose(y_pred.detach().cpu().numpy(), (0, 2, 3, 1)),
+                np.transpose(
+                    y_true.detach().cpu().numpy(), (0, 2, 3, 1)
+                ),
+                np.transpose(
+                    y_pred.detach().cpu().numpy(), (0, 2, 3, 1)
+                ),
             )
 
     def compute(self) -> Tensor:

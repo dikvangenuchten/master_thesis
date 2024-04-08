@@ -25,7 +25,9 @@ class Runner:
 
 
 class RunningMean:
-    def __init__(self, alpha=0.99, start: Optional[torch.Tensor] = None) -> None:
+    def __init__(
+        self, alpha=0.99, start: Optional[torch.Tensor] = None
+    ) -> None:
         self._alpha = alpha
         self._val = start
         self.last = None
@@ -69,14 +71,20 @@ class Trainer:
         eval_metrics = [] if eval_metrics is None else eval_metrics
 
         self._accelerator = Accelerator(log_with=log_with)
-        self._accelerator.init_trackers(project_name="MasterThesis", config=config)
+        self._accelerator.init_trackers(
+            project_name="MasterThesis", config=config
+        )
 
         if scheduler is None:
             # If no scheduler is given create a 'constant' scheduler
-            scheduler = optim.lr_scheduler.LambdaLR(optimizer, Constant(1.0))
+            scheduler = optim.lr_scheduler.LambdaLR(
+                optimizer, Constant(1.0)
+            )
 
         if eval_dataloader is None:
-            logging.warning("No eval data provided, Using train data as eval data")
+            logging.warning(
+                "No eval data provided, Using train data as eval data"
+            )
             eval_dataloader = train_dataloader
 
         (
@@ -114,7 +122,9 @@ class Trainer:
 
     def _log_and_reset_metrics(self, step: Optional[int] = None):
         log_dict = {}
-        for metric in itertools.chain(self.train_metrics, self.eval_metrics):
+        for metric in itertools.chain(
+            self.train_metrics, self.eval_metrics
+        ):
             log_dict.update(**metric.compute())
             metric.reset()
 
@@ -122,7 +132,9 @@ class Trainer:
             log_dict, step=step, log_kwargs={"wandb": {"commit": True}}
         )
 
-    def train_step(self, batch: Dict[str, torch.Tensor]) -> torch.Tensor:
+    def train_step(
+        self, batch: Dict[str, torch.Tensor]
+    ) -> torch.Tensor:
         self.model.train()
         self.optimizer.zero_grad()
         # Forward pass
@@ -162,7 +174,9 @@ class Trainer:
             log_every_n_steps (Optional[int], optional): _description_. Defaults to None.
         """
         log_every_n_steps = (
-            eval_every_n_steps if log_every_n_steps is None else log_every_n_steps
+            eval_every_n_steps
+            if log_every_n_steps is None
+            else log_every_n_steps
         )
         iter_train = _Repeater(self.train_dataloader)
         iter_eval = _Repeater(self.eval_dataloader)
@@ -187,25 +201,41 @@ class Trainer:
     def save(self, dir) -> None:
         os.makedirs(dir, exist_ok=True)
 
-        torch.save(self.train_dataloader, os.path.join(dir, "train_dataloader.pt"))
+        torch.save(
+            self.train_dataloader,
+            os.path.join(dir, "train_dataloader.pt"),
+        )
         torch.save(self.model, os.path.join(dir, "model.pt"))
         torch.save(self.loss_fn, os.path.join(dir, "loss_fn.pt"))
         torch.save(self.optimizer, os.path.join(dir, "optimizer.pt"))
         torch.save(self.scheduler, os.path.join(dir, "scheduler.pt"))
-        torch.save(self.eval_dataloader, os.path.join(dir, "eval_dataloader.pt"))
-        torch.save(self.train_metrics, os.path.join(dir, "train_metrics.pt"))
-        torch.save(self.eval_metrics, os.path.join(dir, "eval_metrics.pt"))
+        torch.save(
+            self.eval_dataloader,
+            os.path.join(dir, "eval_dataloader.pt"),
+        )
+        torch.save(
+            self.train_metrics, os.path.join(dir, "train_metrics.pt")
+        )
+        torch.save(
+            self.eval_metrics, os.path.join(dir, "eval_metrics.pt")
+        )
         self._accelerator.save_state(dir)
 
     @classmethod
     def load(cls: "Trainer", dir) -> "Trainer":
-        train_dataloader = torch.load(os.path.join(dir, "train_dataloader.pt"))
+        train_dataloader = torch.load(
+            os.path.join(dir, "train_dataloader.pt")
+        )
         model = torch.load(os.path.join(dir, "model.pt"))
         loss_fn = torch.load(os.path.join(dir, "loss_fn.pt"))
         optimizer = torch.load(os.path.join(dir, "optimizer.pt"))
         scheduler = torch.load(os.path.join(dir, "scheduler.pt"))
-        eval_dataloader = torch.load(os.path.join(dir, "eval_dataloader.pt"))
-        train_metrics = torch.load(os.path.join(dir, "train_metrics.pt"))
+        eval_dataloader = torch.load(
+            os.path.join(dir, "eval_dataloader.pt")
+        )
+        train_metrics = torch.load(
+            os.path.join(dir, "train_metrics.pt")
+        )
         eval_metrics = torch.load(os.path.join(dir, "eval_metrics.pt"))
 
         config = {}
@@ -257,7 +287,9 @@ class Trainer:
             loss_d = loss.detach()
             loss_sum += loss_d.sum()
             loss_count += input.shape[0]
-            pbar.set_description(f"Training: loss={(loss_sum / loss_count).item():.4f}")
+            pbar.set_description(
+                f"Training: loss={(loss_sum / loss_count).item():.4f}"
+            )
 
             step_data = StepData(batch, model_out, loss)
             [metric.update(step_data) for metric in self.train_metrics]
@@ -277,7 +309,9 @@ class Trainer:
 
         with torch.no_grad():
             for batch_idx, batch in enumerate(
-                tqdm(self.eval_dataloader, leave=False, desc="evaluation")
+                tqdm(
+                    self.eval_dataloader, leave=False, desc="evaluation"
+                )
             ):
                 input = batch["input"]
                 input.requires_grad_(True)
@@ -293,7 +327,10 @@ class Trainer:
                 loss_count += input.shape[0]
 
                 step_data = StepData(batch, model_out, loss)
-                [metric.update(step_data) for metric in self.eval_metrics]
+                [
+                    metric.update(step_data)
+                    for metric in self.eval_metrics
+                ]
 
         self._log_and_reset_metrics(epoch)
         return (loss_sum / loss_count).item()

@@ -17,7 +17,9 @@ class OneColorBackground(data.Dataset):
         size: int = 100,
     ):
         super().__init__()
-        self._sample = torch.ones((3, *img_size)) * torch.tensor(color).view(3, 1, 1)
+        self._sample = torch.ones((3, *img_size)) * torch.tensor(
+            color
+        ).view(3, 1, 1)
         self._size = size
 
     def __getitem__(self, index) -> Any:
@@ -77,7 +79,9 @@ class SegmentationToyDataset(data.Dataset):
             datasets.CocoDetection(
                 os.path.join(base_path, "coco", f"{split}2017/"),
                 os.path.join(
-                    base_path, "coco", f"annotations/instances_{split}2017.json"
+                    base_path,
+                    "coco",
+                    f"annotations/instances_{split}2017.json",
                 ),
             )
         )

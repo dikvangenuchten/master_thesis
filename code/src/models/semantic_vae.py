@@ -49,7 +49,9 @@ class ResBlock(nn.Module):
         return self._activation(out)
 
     @classmethod
-    def make_block(cls, in_channels: int, out_channels: int, downsample_factor: int):
+    def make_block(
+        cls, in_channels: int, out_channels: int, downsample_factor: int
+    ):
         """Create a block based on the required dimensions + strides"""
 
         # Using conv is more flexible then using pooling and (theoratically) can become a AvgPool
@@ -71,7 +73,9 @@ class ResBlock(nn.Module):
 class EncoderBlock(nn.Module):
     """The initial encoder block is based on the Efficient-VDVAE paper"""
 
-    def __init__(self, channels: List[int], downsample_factor: int = 2) -> None:
+    def __init__(
+        self, channels: List[int], downsample_factor: int = 2
+    ) -> None:
         super().__init__()
         self.layers = []
         for i in range(len(channels) - 1):
@@ -93,9 +97,13 @@ class EncoderBlock(nn.Module):
 
 
 class UnpoolLayer(nn.Module):
-    def __init__(self, in_channels: int, out_channels: int, expansion: int) -> None:
+    def __init__(
+        self, in_channels: int, out_channels: int, expansion: int
+    ) -> None:
         super().__init__()
-        self._conv = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=1)
+        self._conv = nn.Conv2d(
+            in_channels, out_channels, kernel_size=1, stride=1
+        )
         self._expansion = expansion
 
     def forward(self, x) -> torch.Tensor:
@@ -106,7 +114,9 @@ class UnpoolLayer(nn.Module):
 
 
 class SampleConvLayer(nn.Module):
-    def __init__(self, in_channels: int, out_channels: Optional[int] = None) -> None:
+    def __init__(
+        self, in_channels: int, out_channels: Optional[int] = None
+    ) -> None:
         super().__init__()
         if out_channels is None:
             out_channels = in_channels
@@ -152,7 +162,9 @@ class DecoderBlock(nn.Module):
         expansion: int,
     ) -> None:
         super().__init__()
-        self._unpool = UnpoolLayer(in_channels, latent_channels, expansion)
+        self._unpool = UnpoolLayer(
+            in_channels, latent_channels, expansion
+        )
 
         self._prior_net = ResBlock.make_block(
             latent_channels, latent_channels, downsample_factor=1
@@ -170,7 +182,9 @@ class DecoderBlock(nn.Module):
             latent_channels, out_channels, downsample_factor=1
         )
 
-    def forward(self, x, x_skip: Optional[torch.Tensor] = None) -> torch.Tensor:
+    def forward(
+        self, x, x_skip: Optional[torch.Tensor] = None
+    ) -> torch.Tensor:
         x = self._unpool(x)
         # Prior net is a residual block
         residual = self._prior_net(x)
@@ -203,7 +217,6 @@ class DecoderBlock(nn.Module):
             eps = torch.empty_like(mu).normal_(0.0, 1.0)
             return mu + std * eps
 
-
 class SemanticVAE(nn.Module):
     """Semantic VAE
 
@@ -220,7 +233,7 @@ class SemanticVAE(nn.Module):
         self,
         image_channels: int,
         label_channels: int,
-        layer_depths: List[int],
+        layer_depths: List[int] | int,
         reductions: List[int],
     ) -> None:
         super().__init__()
@@ -228,7 +241,10 @@ class SemanticVAE(nn.Module):
         image_layers = [image_channels, *layer_depths]
         self._image_encoder = nn.Sequential(
             *[
-                EncoderBlock([image_layers[i], image_layers[i + 1]], reductions[i])
+                EncoderBlock(
+                    [image_layers[i], image_layers[i + 1]],
+                    reductions[i],
+                )
                 for i in range(len(image_layers) - 1)
             ]
         )
@@ -268,7 +284,9 @@ class SemanticVAE(nn.Module):
     ):
         layer_depths: List[int] = ([8, 16, 32, 64],)
         reductions: List[int] = [2, 2, 2, 2]
-        return cls(image_channels, label_channels, layer_depths, reductions)
+        return cls(
+            image_channels, label_channels, layer_depths, reductions
+        )
 
     def encode_image(self, x: torch.Tensor) -> torch.Tensor:
         return self._image_encoder(x)

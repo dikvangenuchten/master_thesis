@@ -15,7 +15,9 @@ def test_image(path="test/data/example.jpg"):
 def test_image_batch(test_image):
     import torch
 
-    return torch.reshape(test_image, [1, *test_image.shape]).to(torch.float32)
+    return torch.reshape(test_image, [1, *test_image.shape]).to(
+        torch.float32
+    )
 
 
 @pytest.fixture(scope="module")

@@ -6,11 +6,15 @@ class GradientPenalty(nn.Module):
     def __init__(self):
         super().__init__()
 
-    def forward(self, inputs: torch.Tensor, y_pred: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self, inputs: torch.Tensor, y_pred: torch.Tensor
+    ) -> torch.Tensor:
         return functional_gp(inputs, y_pred)
 
 
-def functional_gp(inputs: torch.Tensor, y_pred: torch.Tensor) -> torch.Tensor:
+def functional_gp(
+    inputs: torch.Tensor, y_pred: torch.Tensor
+) -> torch.Tensor:
     y_pred_sum = y_pred
     gradients = torch.autograd.grad(
         outputs=y_pred_sum,

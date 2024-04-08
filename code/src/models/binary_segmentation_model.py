@@ -13,7 +13,9 @@ class BinarySegmentationModel(nn.Module):
     ) -> None:
         super().__init__(*args, **kwargs)
 
-        self._conv1 = nn.Conv2d(in_channels, out_channels, 5, padding="same")
+        self._conv1 = nn.Conv2d(
+            in_channels, out_channels, 5, padding="same"
+        )
 
     def forward(self, img: torch.Tensor) -> torch.Tensor:
         x = self._conv1(img)

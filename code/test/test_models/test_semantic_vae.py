@@ -31,7 +31,9 @@ from models.semantic_vae import (
         (8, 4, 1),
     ],
 )
-def test_resblock_make(in_channels: int, out_channels: int, reduction: int):
+def test_resblock_make(
+    in_channels: int, out_channels: int, reduction: int
+):
     batch_size = 16
     out_height = out_width = 4
     in_height = in_width = 4 * reduction
@@ -97,7 +99,9 @@ def test_decoder_make(
     out_height = out_width = 4 * expansion
     in_c = skip_c = in_channels
     out_c = latent_c = out_channels
-    block = DecoderBlock.make_block(in_c, skip_c, latent_c, out_c, expansion)
+    block = DecoderBlock.make_block(
+        in_c, skip_c, latent_c, out_c, expansion
+    )
 
     input = torch.rand((batch_size, in_c, in_height, in_width))
     expected_out_shape = (batch_size, out_c, out_height, out_width)
@@ -137,7 +141,12 @@ def test_semantic_vae_inference_shapes(
     z = model.encode_image(test_image_batch)
 
     expected_latent_shape = torch.Size(
-        [b, channels[-1], int(h / tot_reduction), int(w / tot_reduction)]
+        [
+            b,
+            channels[-1],
+            int(h / tot_reduction),
+            int(w / tot_reduction),
+        ]
     )
     assert (
         z.shape == expected_latent_shape

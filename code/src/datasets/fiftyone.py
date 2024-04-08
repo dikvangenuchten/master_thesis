@@ -42,7 +42,9 @@ class FiftyOneDataset(torch.utils.data.Dataset):
         self._full_class_map = self._inner_dataset.info["classes_map"]
 
         self.classes.insert(0, "Unlabeled")
-        self._cat_id_to_semantic = {c: i for i, c in enumerate(self.classes)}
+        self._cat_id_to_semantic = {
+            c: i for i, c in enumerate(self.classes)
+        }
         self._cat_id_to_semantic["Unlabeled"] = 0
 
         self.class_map = {i: c for i, c in enumerate(self.classes)}
@@ -65,7 +67,9 @@ class FiftyOneDataset(torch.utils.data.Dataset):
             instance_mask = detection.to_segmentation(
                 frame_size=(w, h), target=target
             ).mask
-            mask[instance_mask == 1] = self._cat_id_to_semantic.get(detection.label, 0)
+            mask[instance_mask == 1] = self._cat_id_to_semantic.get(
+                detection.label, 0
+            )
 
         mask = Mask(mask)
         out = {"input": image, "target": mask, "image": image}

@@ -88,14 +88,18 @@ class ConfusionMetrics(BaseMetric):
             f"{self._prefix}PQ": PQ,
             f"{self._prefix}Precision": _safe_div(tp, (tp + fp)),
             f"{self._prefix}Recall": _safe_div(tp, (tp + fn)),
-            f"{self._prefix}Accuracy": _safe_div(tp + tn, (tp + tn + fp + fn)),
+            f"{self._prefix}Accuracy": _safe_div(
+                tp + tn, (tp + tn + fp + fn)
+            ),
         }
 
     def reset(self):
         return self._confusion_matrix.reset()
 
 
-def _safe_div(numerator: torch.Tensor, denominator: torch.Tensor) -> torch.Tensor:
+def _safe_div(
+    numerator: torch.Tensor, denominator: torch.Tensor
+) -> torch.Tensor:
     """y = numerator / denominator, but sets y[numerator==0] to 0 regardless of denominator.
 
     Args:

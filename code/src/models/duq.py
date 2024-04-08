@@ -45,11 +45,15 @@ class DUQHead(nn.Module):
         super().__init__()
 
         self.weights = nn.Parameter(
-            torch.normal(0, 0.05, (embedding_size, num_classes, in_channels))
+            torch.normal(
+                0, 0.05, (embedding_size, num_classes, in_channels)
+            )
         )
 
         # Sigma in the paper
-        self.register_buffer("length_scale", torch.tensor([length_scale]))
+        self.register_buffer(
+            "length_scale", torch.tensor([length_scale])
+        )
 
         self.register_buffer("gamma", torch.tensor([gamma]))
 
@@ -65,7 +69,9 @@ class DUQHead(nn.Module):
         self.register_buffer("m", _m)
 
         if _N is not None:
-            assert _N.shape == (num_classes), "The given `_N` is not the expected shape"
+            assert _N.shape == (
+                num_classes
+            ), "The given `_N` is not the expected shape"
         else:
             _N = torch.ones(num_classes)
         # 12 is hardcoded in the original implementation, not sure why.
@@ -81,7 +87,9 @@ class DUQHead(nn.Module):
         out = _rbf(embeddings, self.centroids, self.length_scale)
         return ModelOutput(logits=None, out=out)
 
-    def calculate_embeddings(self, features: torch.Tensor) -> torch.Tensor:
+    def calculate_embeddings(
+        self, features: torch.Tensor
+    ) -> torch.Tensor:
         return _conv_duq_last_layer(features, self.weights)
 
     @property
@@ -94,7 +102,9 @@ class DUQHead(nn.Module):
         )
 
 
-def _conv_duq_last_layer(features: torch.Tensor, weights: torch.Tensor) -> torch.Tensor:
+def _conv_duq_last_layer(
+    features: torch.Tensor, weights: torch.Tensor
+) -> torch.Tensor:
     """Forward pass of the 'last_layer' from duq.
 
     Calculates the embedding of each pixel which is later compared
@@ -139,7 +149,9 @@ def _update_centroids(
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     b, e, c_e, *shape_e = embeddings.shape
     b, c_l, *shape_l = labels.shape
-    assert c_e == c_l, f"Number of classes do not match ({c_e}  == {c_l})"
+    assert (
+        c_e == c_l
+    ), f"Number of classes do not match ({c_e}  == {c_l})"
     assert (
         shape_e == shape_l
     ), f"Remaining shape does not match ({shape_e}  == {shape_l})"
@@ -149,7 +161,9 @@ def _update_centroids(
 
     batch_frequency = flat_labels.sum(0) / b
     new_N = gamma * prev_N + (1 - gamma) * batch_frequency
-    embedding_sum = torch.einsum("ijk,ik->jk", flat_embeddings, flat_labels)
+    embedding_sum = torch.einsum(
+        "ijk,ik->jk", flat_embeddings, flat_labels
+    )
     embedding_sum = embedding_sum / b
     new_m = gamma * prev_m + (1 - gamma) * embedding_sum
 

@@ -4,7 +4,9 @@ from torch import nn
 
 
 @torch.no_grad
-def calc_flops_per_pixel(model: nn.Module, verbose: bool = False) -> torch.Tensor:
+def calc_flops_per_pixel(
+    model: nn.Module, verbose: bool = False
+) -> torch.Tensor:
     model = model.to("cuda")
     input = torch.rand(size=(1, 3, 64, 64), device="cuda")
     with FlopTensorDispatchMode(model) as ftdm:
@@ -36,7 +38,9 @@ def calc_flops_per_pixel(model: nn.Module, verbose: bool = False) -> torch.Tenso
         flop_counts64b_i = 4 * 3 * 64 * 64
         flop_counts96b_i = 4 * 3 * 96 * 96
 
-        print("n_input, flop_counts, conv_flop normalized, bmm_flop normalized")
+        print(
+            "n_input, flop_counts, conv_flop normalized, bmm_flop normalized"
+        )
         print(
             f"{flop_counts64_i}\t {flop_counts64_i / flop_counts64_i} \t {dict(flop_counts64[''])}\t {flop_counts64['']['convolution.default'] / flop_counts64['']['convolution.default']}\t {flop_counts64['']['bmm.default'] / flop_counts64['']['bmm.default']}"
         )
@@ -50,5 +54,6 @@ def calc_flops_per_pixel(model: nn.Module, verbose: bool = False) -> torch.Tenso
             f"{flop_counts96b_i}\t {flop_counts96b_i / flop_counts64_i} \t {dict(flop_counts96b[''])}\t {flop_counts96b['']['convolution.default'] / flop_counts64['']['convolution.default']}\t {flop_counts96b['']['bmm.default'] / flop_counts64['']['bmm.default']}"
         )
     return (
-        flop_counts64[""]["convolution.default"] + flop_counts64[""]["bmm.default"]
+        flop_counts64[""]["convolution.default"]
+        + flop_counts64[""]["bmm.default"]
     ) / (64 * 64)

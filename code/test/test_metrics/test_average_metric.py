@@ -28,7 +28,9 @@ def test_average_of_single_sample(batch_size: int, val: int):
     )
     average_metric.update(sd)
     log_dict = average_metric.compute()
-    assert log_dict[average_metric.name] == val, "Average was not calculated correctly"
+    assert (
+        log_dict[average_metric.name] == val
+    ), "Average was not calculated correctly"
 
 
 def test_reset(batch_size: int):
@@ -40,7 +42,9 @@ def test_reset(batch_size: int):
     )
     average_metric.update(sd)
     log_dict = average_metric.compute()
-    assert log_dict[average_metric.name] == 1, "Average was not calculated correctly"
+    assert (
+        log_dict[average_metric.name] == 1
+    ), "Average was not calculated correctly"
     average_metric.reset()
     sd = StepData(
         {"input": torch.rand(batch_size)},

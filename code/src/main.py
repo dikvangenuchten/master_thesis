@@ -24,7 +24,9 @@ def main():
     image_net_transforms = [
         # Rescale to [0, 1], then normalize using mean and std of ImageNet1K DS
         transforms.ToDtype(torch.float32, scale=True),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        transforms.Normalize(
+            mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+        ),
     ]
 
     data_transforms = transforms.Compose(
@@ -75,17 +77,23 @@ def main():
 
     num_classes = len(train_dataset.class_map)
     ignore_index = (
-        train_dataset.ignore_index if hasattr(train_dataset, "ignore_index") else None
+        train_dataset.ignore_index
+        if hasattr(train_dataset, "ignore_index")
+        else None
     )
     model = VAE(3, num_classes)
-    torchinfo.summary(model, input_size=(1, 3, 128, 128), use_model_out=False)
+    torchinfo.summary(
+        model, input_size=(1, 3, 128, 128), use_model_out=False
+    )
 
     mode = "binary" if num_classes == 2 else "multiclass"
 
     def wrapped_loss(
         loss_fn, from_logits: bool
     ) -> Callable[[ModelOutput, torch.Tensor], torch.Tensor]:
-        def _inner(model_out: ModelOutput, target: torch.Tensor) -> torch.Tensor:
+        def _inner(
+            model_out: ModelOutput, target: torch.Tensor
+        ) -> torch.Tensor:
             if from_logits and model_out.logits is not None:
                 return loss_fn(model_out.logits, target)
             return loss_fn(model_out.out, target)
@@ -93,14 +101,18 @@ def main():
         return _inner
 
     loss_fn = wrapped_loss(
-        smp.losses.DiceLoss(mode=mode, from_logits=False, ignore_index=ignore_index),
+        smp.losses.DiceLoss(
+            mode=mode, from_logits=False, ignore_index=ignore_index
+        ),
         from_logits=False,
     )
 
     optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
     train_metrics = [
-        metrics.AverageMetric("TrainAverageLoss", lambda step_data: step_data.loss),
+        metrics.AverageMetric(
+            "TrainAverageLoss", lambda step_data: step_data.loss
+        ),
         metrics.MaskMetric("TrainMaskMetric", train_dataset.class_map),
         metrics.ConfusionMetrics(
             "ConfusionMetrics",
@@ -111,7 +123,9 @@ def main():
     ]
 
     eval_metrics = [
-        metrics.AverageMetric("EvalAverageLoss", lambda step_data: step_data.loss),
+        metrics.AverageMetric(
+            "EvalAverageLoss", lambda step_data: step_data.loss
+        ),
         metrics.MaskMetric("EvalMaskMetric", train_dataset.class_map),
         metrics.ConfusionMetrics(
             "ConfusionMetrics",

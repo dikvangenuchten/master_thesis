@@ -7,5 +7,5 @@ testpaths = [
 ]
 
 [tool.ruff]
-line-length = 88
+line-length = 72
 indent-width = 4

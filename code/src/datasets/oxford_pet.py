@@ -77,7 +77,9 @@ class OxfordPetDataset(torch.utils.data.Dataset):
         self.transform = transform
 
         self.images_directory = os.path.join(self.root, "images")
-        self.masks_directory = os.path.join(self.root, "annotations", "trimaps")
+        self.masks_directory = os.path.join(
+            self.root, "annotations", "trimaps"
+        )
 
         (
             self.filenames,
@@ -95,8 +97,12 @@ class OxfordPetDataset(torch.utils.data.Dataset):
         species = self.species[idx]
         breed_id = self.breed_id[idx]
 
-        image_path = os.path.join(self.images_directory, filename + ".jpg")
-        mask_path = os.path.join(self.masks_directory, filename + ".png")
+        image_path = os.path.join(
+            self.images_directory, filename + ".jpg"
+        )
+        mask_path = os.path.join(
+            self.masks_directory, filename + ".png"
+        )
 
         image = Image.open(image_path).convert("RGB")
 
@@ -116,23 +122,43 @@ class OxfordPetDataset(torch.utils.data.Dataset):
         return mask
 
     def _read_split(self):
-        split_filename = "test.txt" if self.mode == "test" else "trainval.txt"
-        split_filepath = os.path.join(self.root, "annotations", split_filename)
+        split_filename = (
+            "test.txt" if self.mode == "test" else "trainval.txt"
+        )
+        split_filepath = os.path.join(
+            self.root, "annotations", split_filename
+        )
         with open(split_filepath) as f:
             split_data = f.read().strip("\n").split("\n")
         filenames, class_id, species, breed_id = list(
             zip(*[x.split(" ") for x in split_data])
         )
         if self.mode == "train":  # 90% for train
-            filenames = [x for i, x in enumerate(filenames) if i % 10 != 0]
-            class_id = [int(x) for i, x in enumerate(class_id) if i % 10 != 0]
-            species = [int(x) for i, x in enumerate(species) if i % 10 != 0]
-            breed_id = [int(x) for i, x in enumerate(breed_id) if i % 10 != 0]
+            filenames = [
+                x for i, x in enumerate(filenames) if i % 10 != 0
+            ]
+            class_id = [
+                int(x) for i, x in enumerate(class_id) if i % 10 != 0
+            ]
+            species = [
+                int(x) for i, x in enumerate(species) if i % 10 != 0
+            ]
+            breed_id = [
+                int(x) for i, x in enumerate(breed_id) if i % 10 != 0
+            ]
         elif self.mode == "valid":  # 10% for validation
-            filenames = [x for i, x in enumerate(filenames) if i % 10 == 0]
-            class_id = [int(x) for i, x in enumerate(class_id) if i % 10 == 0]
-            species = [int(x) for i, x in enumerate(species) if i % 10 == 0]
-            breed_id = [int(x) for i, x in enumerate(breed_id) if i % 10 == 0]
+            filenames = [
+                x for i, x in enumerate(filenames) if i % 10 == 0
+            ]
+            class_id = [
+                int(x) for i, x in enumerate(class_id) if i % 10 == 0
+            ]
+            species = [
+                int(x) for i, x in enumerate(species) if i % 10 == 0
+            ]
+            breed_id = [
+                int(x) for i, x in enumerate(breed_id) if i % 10 == 0
+            ]
         return filenames, class_id, species, breed_id
 
     @staticmethod
@@ -220,7 +246,9 @@ def download_url(url, filepath):
         miniters=1,
         desc=os.path.basename(filepath),
     ) as t:
-        urlretrieve(url, filename=filepath, reporthook=t.update_to, data=None)
+        urlretrieve(
+            url, filename=filepath, reporthook=t.update_to, data=None
+        )
         t.total = t.n
 
 

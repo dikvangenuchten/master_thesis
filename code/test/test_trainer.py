@@ -32,7 +32,9 @@ def test_trainer_single_epoch(test_image_batch, trainer):
     post = trainer.model(input)
     post_loss = trainer.epoch()
     assert not (pre == post).all(), "The model was not updated"
-    assert pre_loss > post_loss, "Loss increased for simple example training"
+    assert (
+        pre_loss > post_loss
+    ), "Loss increased for simple example training"
 
 
 def test_trainer_eval_epoch(test_image_batch, trainer):

@@ -33,7 +33,9 @@ class CoCoDataset(torch.utils.data.Dataset):
         num_classes: Optional[int] = None,
     ):
         unsuported_outs = {
-            k: v for k, v in output_structure.items() if v not in get_args(OUTPUT_TYPES)
+            k: v
+            for k, v in output_structure.items()
+            if v not in get_args(OUTPUT_TYPES)
         }
 
         assert (
@@ -60,10 +62,12 @@ class CoCoDataset(torch.utils.data.Dataset):
         self.transform = transform
 
         self._cat_id_to_semantic = {
-            cat["id"]: i for i, cat in enumerate(self._panoptic_anns["categories"])
+            cat["id"]: i
+            for i, cat in enumerate(self._panoptic_anns["categories"])
         }
         self._class_map = {
-            i: cat["name"] for i, cat in enumerate(self._panoptic_anns["categories"])
+            i: cat["name"]
+            for i, cat in enumerate(self._panoptic_anns["categories"])
         }
 
         self.ignore_index = len(self.class_map)
@@ -83,7 +87,9 @@ class CoCoDataset(torch.utils.data.Dataset):
             os.path.join(self._latent_root, f"vae_latent_{idx}.pt")
         )
         if self._sample:
-            dist = DiagonalGaussianDistribution(parameters=parameters.unsqueeze(0))
+            dist = DiagonalGaussianDistribution(
+                parameters=parameters.unsqueeze(0)
+            )
             return LatentTensor(dist.sample().squeeze(0))
         else:
             mean, _logvar = parameters.chunk(parameters, 2, dim=0)
@@ -92,7 +98,11 @@ class CoCoDataset(torch.utils.data.Dataset):
     def _load_image(self, idx: int) -> Image:
         img_id = self._panoptic_anns["annotations"][idx]["image_id"]
         path = self._coco.imgs[img_id]["file_name"]
-        return Image(PImage.open(os.path.join(self._image_root, path)).convert("RGB"))
+        return Image(
+            PImage.open(os.path.join(self._image_root, path)).convert(
+                "RGB"
+            )
+        )
 
     def _load_panoptic_mask(self, idx: int) -> Mask:
         """Load the panoptic mask for `id`
@@ -108,16 +118,18 @@ class CoCoDataset(torch.utils.data.Dataset):
         ann = self._panoptic_anns["annotations"][idx]
         path = ann["file_name"]
         mask = Image(
-            PImage.open(os.path.join(self._panoptic_root, path)).convert("RGB")
+            PImage.open(
+                os.path.join(self._panoptic_root, path)
+            ).convert("RGB")
         )
         # Unlabeled places are given the 0 class
 
         instance_mask = rgb2id(mask)
         sem_mask = torch.zeros_like(instance_mask, dtype=torch.long)
         for segment_info in ann["segments_info"]:
-            sem_mask[instance_mask == segment_info["id"]] = self._cat_id_to_semantic[
-                segment_info["category_id"]
-            ]
+            sem_mask[
+                instance_mask == segment_info["id"]
+            ] = self._cat_id_to_semantic[segment_info["category_id"]]
         # Temporarily only load semantic mask
 
         # Set unlabeled values
@@ -130,7 +142,10 @@ class CoCoDataset(torch.utils.data.Dataset):
         return Mask(torch.stack([sem_mask, ins_mask]))
 
     def __getitem__(self, index) -> Dict[str, torch.Tensor]:
-        out = {k: self._get_type(index, v) for k, v in self.output_structure.items()}
+        out = {
+            k: self._get_type(index, v)
+            for k, v in self.output_structure.items()
+        }
         if self.transform is not None:
             return self.transform(out)
         return out
@@ -143,7 +158,9 @@ class CoCoDataset(torch.utils.data.Dataset):
         elif type_ == "semantic_mask":
             return self._load_panoptic_mask(index)
         else:
-            raise RuntimeError(f"{type_} is not supported in {self.__qualname__}")
+            raise RuntimeError(
+                f"{type_} is not supported in {self.__qualname__}"
+            )
 
 
 def rgb2id(color: torch.Tensor):
@@ -158,7 +175,11 @@ def rgb2id(color: torch.Tensor):
         _type_: _description_
     """
     color = color.to(dtype=torch.long)
-    return color[0, :, :] + 256 * color[1, :, :] + 256 * 256 * color[2, :, :]
+    return (
+        color[0, :, :]
+        + 256 * color[1, :, :]
+        + 256 * 256 * color[2, :, :]
+    )
 
 
 if __name__ == "__main__":
