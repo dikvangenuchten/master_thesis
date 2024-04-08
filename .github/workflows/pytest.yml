@@ -64,6 +64,6 @@ jobs:
         working-directory: ${{env.working-directory}}
         shell: bash -l {0}
         run: |
-          pytest --cache-clear --cov=src/ > pytest-coverage.txt
+          pytest --cache-clear --cov=src/ . > pytest-coverage.txt
       - name: Comment coverage
         uses: coroo/pytest-coverage-commentator@v1.0.2
