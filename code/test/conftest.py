@@ -20,6 +20,11 @@ def test_image_batch(test_image):
     )
 
 
+@pytest.fixture(params=[True, False])
+def true_or_false(request):
+    return request.param
+
+
 @pytest.fixture(scope="module")
 def bs_model():
     from models.binary_segmentation_model import BinarySegmentationModel

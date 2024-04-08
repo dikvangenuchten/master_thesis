@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 import torch
 from torch import nn
 from torch.nn import functional as F
@@ -130,6 +130,12 @@ class SampleConvLayer(nn.Module):
         # Recommended value by Efficient-VDVAE
         self._softplus = nn.Softplus(beta=torch.log(torch.tensor(2.0)))
 
+    def __call__(
+        self, *args: torch.Any, **kwds: torch.Any
+    ) -> distributions.Distribution:
+        """Only added for type-hinting"""
+        return super().__call__(*args, **kwds)
+
     def forward(
         self, x, distribution=True
     ) -> distributions.Distribution:
@@ -188,10 +194,21 @@ class DecoderBlock(nn.Module):
             latent_channels, out_channels, downsample_factor=1
         )
 
+    def __call__(
+        self,
+        input: Dict[str, torch.Tensor] | torch.Tensor,
+        x_skip: torch.Tensor = None,
+    ) -> torch.Any:
+        if isinstance(input, torch.tensor):
+            return super().__call__({"out": input}, x_skip)
+        return super().__call__(input, x_skip)
+
     def forward(
-        self, x, x_skip: Optional[torch.Tensor] = None
+        self,
+        input: Dict[str, torch.Tensor],
+        x_skip: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-        x = self._unpool(x)
+        x = self._unpool(input["out"])
         # Prior net is a residual block
         residual = self._prior_net(x)
         prior = self._prior_layer(residual)
@@ -200,21 +217,22 @@ class DecoderBlock(nn.Module):
             # This is only the case if no skip connection is present
             # As this model is not for generating novel images/segmentations
             post = self._posterior_net(torch.cat((x, x_skip), dim=1))
-            posterior: distributions.Distribution = (
-                self._posterior_layer(post)
-            )
+            posterior = self._posterior_layer(post)
             dist = posterior
         else:
             dist = prior
 
         if not self.training:
-            z = dist.mean()
+            z = dist.mean
         else:
             z = dist.sample()
 
         out = residual + z
 
-        return self._out_resblock(out)
+        return {
+            "out": self._out_resblock(out),
+            "priors": [*input.get("priors", []), prior],
+        }
 
     def posterior(
         self, x: torch.Tensor, x_skip: torch.Tensor
@@ -253,42 +271,36 @@ class SemanticVAE(nn.Module):
         super().__init__()
 
         image_layers = [image_channels, *layer_depths]
-        self._image_encoder = nn.Sequential(
-            *[
-                EncoderBlock(
-                    [image_layers[i], image_layers[i + 1]],
-                    reductions[i],
-                )
-                for i in range(len(image_layers) - 1)
-            ]
-        )
+        self._image_encoder_layers = [
+            EncoderBlock(
+                [image_layers[i], image_layers[i + 1]],
+                reductions[i],
+            )
+            for i in range(len(image_layers) - 1)
+        ]
 
-        self._image_decoder = nn.Sequential(
-            *[
-                DecoderBlock(
-                    in_channels=image_layers[-i - 1],
-                    skip_channels=image_layers[-i - 2],
-                    latent_channels=image_layers[-i - 2],
-                    out_channels=image_layers[-i - 2],
-                    expansion=reductions[-i],
-                )
-                for i in range(len(image_layers) - 1)
-            ]
-        )
+        self._image_decoder_layers = [
+            DecoderBlock(
+                in_channels=image_layers[-i - 1],
+                skip_channels=image_layers[-i - 2],
+                latent_channels=image_layers[-i - 2],
+                out_channels=image_layers[-i - 2],
+                expansion=reductions[-i],
+            )
+            for i in range(len(image_layers) - 1)
+        ]
 
         label_layers = [label_channels, *layer_depths]
-        self._label_decoder = nn.Sequential(
-            *[
-                DecoderBlock(
-                    in_channels=label_layers[-i - 1],
-                    skip_channels=label_layers[-i - 2],
-                    latent_channels=label_layers[-i - 2],
-                    out_channels=label_layers[-i - 2],
-                    expansion=reductions[-i],
-                )
-                for i in range(len(label_layers) - 1)
-            ]
-        )
+        self._label_decoder_layers = [
+            DecoderBlock(
+                in_channels=label_layers[-i - 1],
+                skip_channels=label_layers[-i - 2],
+                latent_channels=label_layers[-i - 2],
+                out_channels=label_layers[-i - 2],
+                expansion=reductions[-i],
+            )
+            for i in range(len(label_layers) - 1)
+        ]
 
     @classmethod
     def default(
@@ -301,6 +313,20 @@ class SemanticVAE(nn.Module):
         return cls(
             image_channels, label_channels, layer_depths, reductions
         )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x_skips = []
+        h = x
+        for layer in self._image_encoder_layers:
+            h = layer(h)
+            x_skips.append(h)
+
+        latent_space = h
+
+        for layer, x_skip in zip(
+            self._label_decoder_layers, reversed(x_skips)
+        ):
+            latent_space = layer(latent_space, x_skip)
 
     def encode_image(self, x: torch.Tensor) -> torch.Tensor:
         return self._image_encoder(x)

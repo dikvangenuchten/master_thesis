@@ -1,6 +1,7 @@
 import torch
 from models.semantic_vae import SemanticVAE
 from datasets.coco import CoCoDataset
+import losses
 from trainer import Trainer
 
 
@@ -20,10 +21,12 @@ def train(
         optimizer=optimizer, T_max=750000, eta_min=2e-4
     )
 
-    Trainer(
+    loss_fn = losses.KLDivergence()
+
+    trainer = Trainer(
         train_dataset,
         model,
-        loss_fn=...,
+        loss_fn=loss_fn,
         optimizer=optimizer,
         scheduler=schedule,
         eval_dataloader=val_dataset,
@@ -32,7 +35,7 @@ def train(
         eval_metrics=[],
     )
 
-    pass
+    trainer.steps(1000)
 
 
 if __name__ == "__main__":
