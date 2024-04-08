@@ -16,7 +16,7 @@ python -W ignore tools/main_ae.py \
     base.optimizer_kwargs.lr=1e-4 \
     base.optimizer_kwargs.weight_decay=0.05 \
     base.transformation_kwargs.type=crop_resize_pil \
-    base.transformation_kwargs.size=512 \
+    base.transformation_kwargs.size=128 \
     base.eval_kwargs.mask_th=0.8 \
     base.train_kwargs.prob_inpainting=0.0 \
     base.vae_model_kwargs.parametrization=gaussian \

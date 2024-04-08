@@ -45,19 +45,19 @@ for future extensions to a wide range of dense prediction
 tasks, e.g., depth prediction, saliency estimation, etc.
 3. __Mask Inpainting__: We successfully apply our approach to
 scene-centric datasets and demonstrate its mask inpainting
-capabilities for different sparsity levels. 
+capabilities for different sparsity levels.
 The approach shows promising results for global mask inpainting.
 
 ## 🛠 Installation
 
-The code runs with recent Pytorch versions, e.g. 2.0. 
+The code runs with recent Pytorch versions, e.g. 2.0.
 Further, you can create a python environment with [Anaconda](https://docs.anaconda.com/anaconda/install/):
 ```
 conda create -n LDMSeg python=3.11
 conda activate LDMSeg
 ```
 ### Automatic Installation
-We recommend to follow the automatic installatation (see `tools/scripts/install_env.sh`). Run the following commands to install the project in editable mode. Note that all dependencies will be installed automatically. 
+We recommend to follow the automatic installatation (see `tools/scripts/install_env.sh`). Run the following commands to install the project in editable mode. Note that all dependencies will be installed automatically.
 As this might not always work (e.g., due to CUDA or gcc issues), please have a look at the manual installation steps.
 
 ```shell
@@ -124,7 +124,7 @@ python -W ignore tools/main_ldm.py \
     base.vae_model_kwargs.pretrained_path='$AE_MODEL'
 ```
 `$AE_MODEL` denotes the path to the model obtained from the previous step.
-More details on passing arguments can be found in `tools/scripts/train_diffusion.sh`. For example, I ran this model for 200k iterations on 8 GPUs of 16 GB with a total batch size of 256. 
+More details on passing arguments can be found in `tools/scripts/train_diffusion.sh`. For example, I ran this model for 200k iterations on 8 GPUs of 16 GB with a total batch size of 256.
 
 ## 📊 Pretrained Models
 
@@ -145,7 +145,7 @@ python -W ignore tools/main_ldm.py \
     base.eval_only=True \
     base.load_path=$PRETRAINED_MODEL_PATH \
 ```
-You can add parameters if necessary. Higher thresholds such as `--base.eval_kwargs.count_th 700` or `--base.eval_kwargs.mask_th 0.9` can further boost the numbers. 
+You can add parameters if necessary. Higher thresholds such as `--base.eval_kwargs.count_th 700` or `--base.eval_kwargs.mask_th 0.9` can further boost the numbers.
 However, we use standard values by thresholding at 0.5 and removing segments with an area smaller than 512 for the evaluation.
 
 To evaluate a pretrained model from above, run `tools/scripts/eval.sh`.

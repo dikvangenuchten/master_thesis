@@ -43,7 +43,7 @@ class SegmentationLosses(nn.Module):
 
     @torch.no_grad()
     def matcher(self, outputs, targets, pred_logits=None):
-        """ 
+        """
         Matcher comes from Mask2Former: https://arxiv.org/abs/2112.01527
         This function is not used by default.
         """
@@ -54,7 +54,7 @@ class SegmentationLosses(nn.Module):
 
         for b in range(bs):
             out_mask = outputs[b]  # [num_queries, H_pred, W_pred]
-            tgt_mask = targets[b]['masks']
+            tgt_mask = targets[b]["masks"]
             if tgt_mask is None:
                 indices.append(None)
                 continue
@@ -96,21 +96,28 @@ class SegmentationLosses(nn.Module):
             indices.append(linear_sum_assignment(C))
 
         return [
-            (torch.as_tensor(i, dtype=torch.int64), torch.as_tensor(j, dtype=torch.int64))
+            (
+                torch.as_tensor(i, dtype=torch.int64),
+                torch.as_tensor(j, dtype=torch.int64),
+            )
             for i, j in indices
         ]
 
     @torch.no_grad()
     def _get_src_permutation_idx(self, indices):
         # permute predictions following indices
-        batch_idx = torch.cat([torch.full_like(src, i) for i, (src, _) in enumerate(indices)])
+        batch_idx = torch.cat(
+            [torch.full_like(src, i) for i, (src, _) in enumerate(indices)]
+        )
         src_idx = torch.cat([src for (src, _) in indices])
         return batch_idx, src_idx
 
     @torch.no_grad()
     def _get_tgt_permutation_idx(self, indices):
         # permute targets following indices
-        batch_idx = torch.cat([torch.full_like(tgt, i) for i, (_, tgt) in enumerate(indices)])
+        batch_idx = torch.cat(
+            [torch.full_like(tgt, i) for i, (_, tgt) in enumerate(indices)]
+        )
         tgt_idx = torch.cat([tgt for (_, tgt) in indices])
         return batch_idx, tgt_idx
 
@@ -127,7 +134,9 @@ class SegmentationLosses(nn.Module):
 
         # we first need to convert the targets to the format expected by the loss
         if indices is None:
-            targets, indices = self.prepare_targets(targets, ignore_label=self.ignore_label)
+            targets, indices = self.prepare_targets(
+                targets, ignore_label=self.ignore_label
+            )
 
         # filter empty masks
         masks = [t["masks"] for t in targets]
@@ -140,7 +149,9 @@ class SegmentationLosses(nn.Module):
         num_masks = sum(len(m) for m in masks)
         if num_masks == 0:
             return outputs.sum() * 0.0
-        num_masks = torch.as_tensor([num_masks], dtype=torch.float, device=outputs.device)
+        num_masks = torch.as_tensor(
+            [num_masks], dtype=torch.float, device=outputs.device
+        )
         if dist.is_available() and dist.is_initialized():
             torch.distributed.all_reduce(num_masks)
         num_masks = torch.clamp(num_masks / self.world_size, min=1).item()
@@ -162,7 +173,9 @@ class SegmentationLosses(nn.Module):
                     self.importance_sample_ratio,
                 )
             else:
-                point_coords = torch.rand(src_masks.shape[0], self.num_points, 2, device=src_masks.device)
+                point_coords = torch.rand(
+                    src_masks.shape[0], self.num_points, 2, device=src_masks.device
+                )
 
             # get gt labels
             point_labels = point_sample(
@@ -294,8 +307,8 @@ class SegmentationLosses(nn.Module):
         return -(torch.abs(gt_class_logits))
 
     def calculate_uncertainty_seg(self, sem_seg_logits):
-        """ Calculates the uncertainty when using a CE loss.
-            Defined according to PointRend: https://arxiv.org/abs/1912.08193
+        """Calculates the uncertainty when using a CE loss.
+        Defined according to PointRend: https://arxiv.org/abs/1912.08193
         """
         top2_scores = torch.topk(sem_seg_logits, k=2, dim=1)[0]
         return (top2_scores[:, 1] - top2_scores[:, 0]).unsqueeze(1)  # [B, 1, P]
@@ -307,7 +320,6 @@ class SegmentationLosses(nn.Module):
         indices: Optional[torch.Tensor] = None,
         masks: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-
         if indices is not None:
             src_masks = outputs
             masks = [t["masks"] for t in targets]
@@ -316,7 +328,12 @@ class SegmentationLosses(nn.Module):
             target_masks = target_masks.bool()
 
             h, w = target_masks.shape[-2:]
-            ce_targets = torch.full((len(targets), h, w), self.ignore_label, dtype=torch.int64, device=src_masks.device)
+            ce_targets = torch.full(
+                (len(targets), h, w),
+                self.ignore_label,
+                dtype=torch.int64,
+                device=src_masks.device,
+            )
             for mask_idx, (x, y) in enumerate(zip(*src_idx)):
                 mask_i = target_masks[mask_idx]
                 ce_targets[x, mask_i] = y
@@ -336,15 +353,21 @@ class SegmentationLosses(nn.Module):
                     self.importance_sample_ratio,
                 )
             else:
-                point_coords = torch.rand(outputs.shape[0], self.num_points, 2, device=outputs.device)
+                point_coords = torch.rand(
+                    outputs.shape[0], self.num_points, 2, device=outputs.device
+                )
 
             # get gt labels
-            point_labels = point_sample(
-                targets.unsqueeze(1).float(),
-                point_coords,
-                mode='nearest',
-                align_corners=False,
-            ).squeeze(1).to(torch.long)
+            point_labels = (
+                point_sample(
+                    targets.unsqueeze(1).float(),
+                    point_coords,
+                    mode="nearest",
+                    align_corners=False,
+                )
+                .squeeze(1)
+                .to(torch.long)
+            )
 
         point_logits = point_sample(
             outputs,
@@ -389,7 +412,7 @@ class SegmentationLosses(nn.Module):
 
         # (2) bce + dice loss for uncertain regions per object mask
         mask_loss = self.loss_masks(outputs, targets, indices=indices)
-        losses = {'ce': ce_loss, 'mask': mask_loss}
+        losses = {"ce": ce_loss, "mask": mask_loss}
 
         return losses
 
@@ -399,7 +422,6 @@ class SegmentationLosses(nn.Module):
         targets,
         ignore_label=0,
     ):
-
         """
         Function to convert targets to the format expected by the loss
 
@@ -425,14 +447,17 @@ class SegmentationLosses(nn.Module):
             instance_ids.append(
                 (
                     unique_classes_excl.cpu(),
-                    torch.arange(len(unique_classes_excl), dtype=torch.int64)
+                    torch.arange(len(unique_classes_excl), dtype=torch.int64),
                 )
             )
 
             new_targets.append(
                 {
                     "labels": torch.full(
-                        (len(masks),), 0, dtype=torch.int64, device=target.device) if len(masks) > 0 else None,
+                        (len(masks),), 0, dtype=torch.int64, device=target.device
+                    )
+                    if len(masks) > 0
+                    else None,
                     "masks": torch.stack(masks) if len(masks) > 0 else None,
                 }
             )

@@ -23,7 +23,7 @@ conda create -n ldmseg_env python -y
 conda activate ldmseg_env
 
 # install packages
-python -m pip install -e .                                           
-pip install git+https://github.com/facebookresearch/detectron2.git   # detectron2 
+python -m pip install -e .
+pip install git+https://github.com/facebookresearch/detectron2.git   # detectron2
 pip install git+https://github.com/cocodataset/panopticapi.git       # pq evaluation   (optional)
 pip install flake8 black                                             # code formatting (optional)

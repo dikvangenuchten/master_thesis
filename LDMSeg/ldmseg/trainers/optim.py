@@ -24,15 +24,17 @@ def get_optim(
     verbose: bool = True,
     save_optim: Optional[bool] = None,
 ) -> Tuple[torch.optim.Optimizer, bool]:
-
     # TODO: make `overrides`` an optional argument
 
     ret = get_optimizer_params(
-        model, weight_decay=None, weight_decay_norm=weight_decay_norm, base_lr=base_lr,
+        model,
+        weight_decay=None,
+        weight_decay_norm=weight_decay_norm,
+        base_lr=base_lr,
         lr_factor_func=lr_factor_func,
         overrides={
-            'module.backbone.image_encoder.net.pos_embed': {'weight_decay': 0.0},
-            'module.backbone_image.image_encoder.net.pos_embed': {'weight_decay': 0.0},
+            "module.backbone.image_encoder.net.pos_embed": {"weight_decay": 0.0},
+            "module.backbone_image.image_encoder.net.pos_embed": {"weight_decay": 0.0},
         },
         verbose=verbose,
     )
@@ -40,12 +42,17 @@ def get_optim(
         from torch.distributed.optim import ZeroRedundancyOptimizer
 
         optim = ZeroRedundancyOptimizer(
-            ret, optimizer_class=torch.optim.AdamW,
-            lr=base_lr, weight_decay=weight_decay, betas=betas,
+            ret,
+            optimizer_class=torch.optim.AdamW,
+            lr=base_lr,
+            weight_decay=weight_decay,
+            betas=betas,
         )
         save_optim = False if save_optim is None else save_optim
     else:
-        optim = torch.optim.AdamW(ret, lr=base_lr, weight_decay=weight_decay, betas=betas)
+        optim = torch.optim.AdamW(
+            ret, lr=base_lr, weight_decay=weight_decay, betas=betas
+        )
         save_optim = True if save_optim is None else save_optim
     return optim, save_optim
 
@@ -61,23 +68,30 @@ def get_optim_unet(
     verbose: bool = True,
     save_optim: Optional[bool] = None,
 ) -> Tuple[torch.optim.Optimizer, bool]:
-
     ret = get_optimizer_params(
-        model, weight_decay=None, weight_decay_norm=weight_decay_norm, base_lr=base_lr,
+        model,
+        weight_decay=None,
+        weight_decay_norm=weight_decay_norm,
+        base_lr=base_lr,
         lr_factor_func=lr_factor_func,
-        overrides={'module.object_queries.weight': {'weight_decay': 0.0}},
+        overrides={"module.object_queries.weight": {"weight_decay": 0.0}},
         verbose=verbose,
     )
     if zero_redundancy:
         from torch.distributed.optim import ZeroRedundancyOptimizer
 
         optim = ZeroRedundancyOptimizer(
-            ret, optimizer_class=torch.optim.AdamW,
-            lr=base_lr, weight_decay=weight_decay, betas=betas,
+            ret,
+            optimizer_class=torch.optim.AdamW,
+            lr=base_lr,
+            weight_decay=weight_decay,
+            betas=betas,
         )
         save_optim = False if save_optim is None else save_optim
     else:
-        optim = torch.optim.AdamW(ret, lr=base_lr, weight_decay=weight_decay, betas=betas)
+        optim = torch.optim.AdamW(
+            ret, lr=base_lr, weight_decay=weight_decay, betas=betas
+        )
         save_optim = True if save_optim is None else save_optim
     return optim, save_optim
 
@@ -89,32 +103,34 @@ def get_optim_general(
     zero_redundancy: bool = False,
     save_optim: Optional[bool] = None,
 ) -> Tuple[torch.optim.Optimizer, bool]:
+    """Returns the optimizer to be used for training"""
+    if name != "adamw8bit" and not zero_redundancy:
+        print(colored("Most likely not enough memory for training", "red"))
+        print(colored(f"Please use zero redundancy optimizer with {name}", "red"))
 
-    """ Returns the optimizer to be used for training
-    """
-    if name != 'adamw8bit' and not zero_redundancy:
-        print(colored('Most likely not enough memory for training', 'red'))
-        print(colored(f'Please use zero redundancy optimizer with {name}', 'red'))
-
-    if 'weight_decay_norm' in p.keys():
-        del p['weight_decay_norm']
+    if "weight_decay_norm" in p.keys():
+        del p["weight_decay_norm"]
 
     if zero_redundancy:
         # reinitialize optimizer with ZeroRedundancyOptimizer
         from torch.distributed.optim import ZeroRedundancyOptimizer
-        if name == 'adamw':
+
+        if name == "adamw":
             optim_cls = torch.optim.AdamW
-        elif name == 'adamw8bit':
+        elif name == "adamw8bit":
             import bitsandbytes as bnb
+
             optim_cls = bnb.optim.AdamW8bit
-        elif name == 'sgd':
+        elif name == "sgd":
             optim_cls = torch.optim.SGD
-            if 'momentum' not in p.keys():
-                p['momentum'] = 0.9
-            if 'betas' in p.keys():
-                del p['betas']
+            if "momentum" not in p.keys():
+                p["momentum"] = 0.9
+            if "betas" in p.keys():
+                del p["betas"]
         else:
-            raise NotImplementedError(f'Optimizer {name} not implemented with zero redundancy')
+            raise NotImplementedError(
+                f"Optimizer {name} not implemented with zero redundancy"
+            )
 
         optimizer = ZeroRedundancyOptimizer(
             params,
@@ -122,24 +138,29 @@ def get_optim_general(
             **p,
         )
         save_optim = False if save_optim is None else save_optim
-        print(colored('Using ZeroRedundancyOptimizer w/o storing optim to save memory', 'red'))
+        print(
+            colored(
+                "Using ZeroRedundancyOptimizer w/o storing optim to save memory", "red"
+            )
+        )
         return optimizer, save_optim
 
-    if name == 'adamw':
+    if name == "adamw":
         optimizer = torch.optim.AdamW(params, **p)
-    elif name == 'adamw8bit':
+    elif name == "adamw8bit":
         import bitsandbytes as bnb
+
         optimizer = bnb.optim.AdamW8bit(params, **p)
-    elif name == 'adam':
+    elif name == "adam":
         optimizer = torch.optim.Adam(params, **p)
-    elif name == 'sgd':
-        if 'momentum' not in p.keys():
-            p['momentum'] = 0.9
-        if 'betas' in p.keys():
-            del p['betas']
+    elif name == "sgd":
+        if "momentum" not in p.keys():
+            p["momentum"] = 0.9
+        if "betas" in p.keys():
+            del p["betas"]
         optimizer = torch.optim.SGD(params, **p)
     else:
-        raise NotImplementedError(f'Unknown optimizer {name}')
+        raise NotImplementedError(f"Unknown optimizer {name}")
 
     save_optim = True if save_optim is None else save_optim
     return optimizer, save_optim
@@ -156,7 +177,6 @@ def get_optimizer_params(
     overrides: Optional[Dict[str, Dict[str, float]]] = None,
     verbose: bool = False,
 ) -> List[Dict[str, Any]]:
-
     # Based on the implementation from detectron2
     # TODO: clean this up
 
@@ -208,12 +228,16 @@ def get_optimizer_params(
             if isinstance(module, norm_module_types) and weight_decay_norm is not None:
                 hyperparams["weight_decay"] = weight_decay_norm
             if lr_factor_func is not None:
-                hyperparams["lr"] *= lr_factor_func(f"{module_name}.{module_param_name}")
+                hyperparams["lr"] *= lr_factor_func(
+                    f"{module_name}.{module_param_name}"
+                )
 
             hyperparams.update(overrides.get(f"{module_name}.{module_param_name}", {}))
             params.append({"params": [value], **hyperparams})
             if verbose:
-                print(f'Adding {module_name}.{module_param_name} to optimizer with {hyperparams}')
+                print(
+                    f"Adding {module_name}.{module_param_name} to optimizer with {hyperparams}"
+                )
     return reduce_param_groups(params)
 
 

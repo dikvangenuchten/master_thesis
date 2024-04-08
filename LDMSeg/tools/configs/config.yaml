@@ -3,7 +3,7 @@
 
 setup: simple_diffusion
 run_idx: -1
-debug: False
+debug: True
 defaults:
     - _self_
     - base: base
@@ -11,5 +11,5 @@ defaults:
     - env: root_paths
     - distributed: local
 
-hydra:  
+hydra:
   output_subdir: null

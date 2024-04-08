@@ -38,7 +38,7 @@ model_kwargs:
    in_channels: 8
    init_mode_seg: copy
    init_mode_image: zero
-   cond_channels: 0
+   cond_channels: 4
    separate_conv: False
    separate_encoder: False
    add_adaptor: False
@@ -76,7 +76,7 @@ train_kwargs:
    min_noise_level: 0
    rgb_noise_level: 0
    cond_noise_level: 0
-   self_condition: False
+   self_condition: True
    sample_posterior: False
    sample_posterior_rgb: False
    remap_seg: True

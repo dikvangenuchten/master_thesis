@@ -20,7 +20,6 @@ from tabulate import tabulate
 
 from detectron2.utils import comm
 from detectron2.utils.file_io import PathManager
-from detectron2.data.datasets.builtin_meta import COCO_CATEGORIES
 from detectron2.evaluation.evaluator import DatasetEvaluator
 
 from termcolor import colored
@@ -102,8 +101,8 @@ class PanopticEvaluator(DatasetEvaluator):
             return
 
         # PanopticApi requires local files
-        gt_json = PathManager.get_local_path(self._metadata['panoptic_json'])
-        gt_folder = PathManager.get_local_path(self._metadata['panoptic_root'])
+        gt_json = PathManager.get_local_path(self._metadata["panoptic_json"])
+        gt_folder = PathManager.get_local_path(self._metadata["panoptic_root"])
 
         with tempfile.TemporaryDirectory(prefix="panoptic_eval") as pred_dir:
             logger.info("Writing all panoptic predictions to {} ...".format(pred_dir))
@@ -142,7 +141,7 @@ class PanopticEvaluator(DatasetEvaluator):
         res["RQ_st"] = 100 * pq_res["Stuff"]["rq"]
 
         results = OrderedDict({"panoptic_seg": res})
-        print(colored(get_table(pq_res), 'yellow'))
+        print(colored(get_table(pq_res), "yellow"))
 
         return results
 
@@ -153,10 +152,19 @@ def get_table(pq_res):
     for name in ["All", "Things", "Stuff"]:
         if name not in pq_res:
             continue
-        row = [name] + [pq_res[name][k] * 100 for k in ["pq", "sq", "rq"]] + [pq_res[name]["n"]]
+        row = (
+            [name]
+            + [pq_res[name][k] * 100 for k in ["pq", "sq", "rq"]]
+            + [pq_res[name]["n"]]
+        )
         data.append(row)
     table = tabulate(
-        data, headers=headers, tablefmt="pipe", floatfmt=".3f", stralign="center", numalign="center"
+        data,
+        headers=headers,
+        tablefmt="pipe",
+        floatfmt=".3f",
+        stralign="center",
+        numalign="center",
     )
     return table
 
@@ -165,10 +173,19 @@ def _print_panoptic_results(pq_res):
     headers = ["", "PQ", "SQ", "RQ", "#categories"]
     data = []
     for name in ["All", "Things", "Stuff"]:
-        row = [name] + [pq_res[name][k] * 100 for k in ["pq", "sq", "rq"]] + [pq_res[name]["n"]]
+        row = (
+            [name]
+            + [pq_res[name][k] * 100 for k in ["pq", "sq", "rq"]]
+            + [pq_res[name]["n"]]
+        )
         data.append(row)
     table = tabulate(
-        data, headers=headers, tablefmt="pipe", floatfmt=".3f", stralign="center", numalign="center"
+        data,
+        headers=headers,
+        tablefmt="pipe",
+        floatfmt=".3f",
+        stralign="center",
+        numalign="center",
     )
     logger.info("Panoptic Evaluation Results:\n" + table)
 
@@ -190,6 +207,9 @@ if __name__ == "__main__":
 
     with contextlib.redirect_stdout(io.StringIO()):
         pq_res = pq_compute(
-            args.gt_json, args.pred_json, gt_folder=args.gt_dir, pred_folder=args.pred_dir
+            args.gt_json,
+            args.pred_json,
+            gt_folder=args.gt_dir,
+            pred_folder=args.pred_dir,
         )
         _print_panoptic_results(pq_res)

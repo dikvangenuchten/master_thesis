@@ -6,10 +6,13 @@ Licensed under the CC BY-NC 4.0 license (https://creativecommons.org/licenses/by
 """
 
 import torch
-import torch.nn as nn
 from typing import Optional
-from transformers import CLIPVisionModel, CLIPVisionModelWithProjection, CLIPTokenizer, CLIPTextModel
-from functools import partial
+from transformers import (
+    CLIPVisionModel,
+    CLIPVisionModelWithProjection,
+    CLIPTokenizer,
+    CLIPTextModel,
+)
 
 
 class MyCLIPVisionModel(CLIPVisionModel):
@@ -20,7 +23,6 @@ class MyCLIPVisionModel(CLIPVisionModel):
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
     ):
-
         out = self.vision_model(
             pixel_values=pixel_values,
             output_attentions=output_attentions,
@@ -28,7 +30,7 @@ class MyCLIPVisionModel(CLIPVisionModel):
             return_dict=return_dict,
         )
 
-        return {'last_feat': out.last_hidden_state.permute(0, 2, 1)}
+        return {"last_feat": out.last_hidden_state.permute(0, 2, 1)}
 
 
 class MyCLIPVisionModelWithProjection(CLIPVisionModelWithProjection):
@@ -53,53 +55,63 @@ class MyCLIPVisionModelWithProjection(CLIPVisionModelWithProjection):
         # hidden_states = vision_outputs.hidden_states
         # attentions = vision_outputs.attentions
 
-        return {'last_feat': image_embeds.unsqueeze(-1)}
+        return {"last_feat": image_embeds.unsqueeze(-1)}
 
 
 def get_dino_image_descriptor_model():
-    raise NotImplementedError('Not yet supported')
+    raise NotImplementedError("Not yet supported")
 
 
 def get_mae_image_descriptor_model():
-    raise NotImplementedError('Not yet supported')
+    raise NotImplementedError("Not yet supported")
 
 
 def get_image_descriptor_model(descriptor_name, pretrained_model_path, unet):
     text_encoder = tokenizer = image_descriptor_model = None
-    if descriptor_name == 'clip_image':
+    if descriptor_name == "clip_image":
         # image_descriptor_model = MyCLIPVisionModel.from_pretrained("openai/clip-vit-base-patch32")
-        image_descriptor_model = MyCLIPVisionModel.from_pretrained("openai/clip-vit-large-patch14")
+        image_descriptor_model = MyCLIPVisionModel.from_pretrained(
+            "openai/clip-vit-large-patch14"
+        )
         unet.modify_encoder_hidden_state_proj(1024, 768)
 
-    elif descriptor_name == 'clip_image_proj':
+    elif descriptor_name == "clip_image_proj":
         # image_descriptor_model = MyCLIPVisionModel.from_pretrained("openai/clip-vit-base-patch32")
-        image_descriptor_model = MyCLIPVisionModelWithProjection.from_pretrained("openai/clip-vit-large-patch14")
+        image_descriptor_model = MyCLIPVisionModelWithProjection.from_pretrained(
+            "openai/clip-vit-large-patch14"
+        )
 
-    elif descriptor_name == 'dino_image':
-        raise NotImplementedError('DINO is not yet supported')
+    elif descriptor_name == "dino_image":
+        raise NotImplementedError("DINO is not yet supported")
         get_dino_image_descriptor_model()
         unet.modify_encoder_hidden_state_proj(768, 768)
-        print('adding linear projection to unet for image descriptors')
+        print("adding linear projection to unet for image descriptors")
 
-    elif descriptor_name == 'mae':
-        raise NotImplementedError('MAE is not yet supported')
+    elif descriptor_name == "mae":
+        raise NotImplementedError("MAE is not yet supported")
         get_mae_image_descriptor_model()
         unet.modify_encoder_hidden_state_proj(768, 768)
-        print('adding linear projection to unet for image descriptors')
+        print("adding linear projection to unet for image descriptors")
 
-    elif descriptor_name == 'learnable':
+    elif descriptor_name == "learnable":
         unet.define_learnable_embeddings(128, 768)
-        print(f'Successfully added learnable object queries to unet as {unet.object_queries}')
+        print(
+            f"Successfully added learnable object queries to unet as {unet.object_queries}"
+        )
 
-    elif descriptor_name == 'remove':
+    elif descriptor_name == "remove":
         unet.remove_cross_attention()
-        print('Successfully removed cross attention layers from unet')
+        print("Successfully removed cross attention layers from unet")
 
     else:
-        assert descriptor_name == 'none'
+        assert descriptor_name == "none"
         # load the pretrained CLIP model
-        tokenizer = CLIPTokenizer.from_pretrained(pretrained_model_path, subfolder="tokenizer")
-        text_encoder = CLIPTextModel.from_pretrained(pretrained_model_path, subfolder="text_encoder")
-        print('Succesfully loaded pretrained CLIP text encoder')
+        tokenizer = CLIPTokenizer.from_pretrained(
+            pretrained_model_path, subfolder="tokenizer"
+        )
+        text_encoder = CLIPTextModel.from_pretrained(
+            pretrained_model_path, subfolder="text_encoder"
+        )
+        print("Succesfully loaded pretrained CLIP text encoder")
 
     return image_descriptor_model, text_encoder, tokenizer

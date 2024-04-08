@@ -152,9 +152,19 @@ class COCO(data.Dataset):
         {"color": [208, 229, 228], "isthing": 0, "id": 194, "name": "dirt-merged"},
         {"color": [206, 186, 171], "isthing": 0, "id": 195, "name": "paper-merged"},
         {"color": [152, 161, 64], "isthing": 0, "id": 196, "name": "food-other-merged"},
-        {"color": [116, 112, 0], "isthing": 0, "id": 197, "name": "building-other-merged"},
+        {
+            "color": [116, 112, 0],
+            "isthing": 0,
+            "id": 197,
+            "name": "building-other-merged",
+        },
         {"color": [0, 114, 143], "isthing": 0, "id": 198, "name": "rock-merged"},
-        {"color": [102, 102, 156], "isthing": 0, "id": 199, "name": "wall-other-merged"},
+        {
+            "color": [102, 102, 156],
+            "isthing": 0,
+            "id": 199,
+            "name": "wall-other-merged",
+        },
         {"color": [250, 141, 255], "isthing": 0, "id": 200, "name": "rug-merged"},
     ]
 
@@ -163,21 +173,21 @@ class COCO(data.Dataset):
     def __init__(
         self,
         prefix: str,
-        split: str = 'val',
+        split: str = "val",
         tokenizer: Optional[Any] = None,
         transform: Optional[Any] = None,
         download: bool = False,
         remap_labels: bool = False,
         caption_dropout: float = 0.0,
         overfit: bool = False,
-        encoding_mode: str = 'color',
-        caption_type: str = 'none',
+        encoding_mode: str = "color",
+        caption_type: str = "none",
         inpaint_mask_size: Optional[Tuple[int]] = None,
         num_classes: int = 128,
         fill_value: int = 0.5,
         ignore_label: int = 0,
         inpainting_strength: float = 0.0,
-        limit: Optional[int] = None
+        limit: Optional[int] = None,
     ):
         """
         Args:
@@ -195,37 +205,39 @@ class COCO(data.Dataset):
         """
 
         # Set paths
-        root = MyPath.db_root_dir('coco', prefix=prefix)
+        root = MyPath.db_root_dir("coco", prefix=prefix)
         self.root = root
         self.prefix = prefix
-        valid_splits = ['train', 'val', 'test']
+        valid_splits = ["train", "val", "test"]
         print(split)
-        assert (split in valid_splits)
+        assert split in valid_splits
         assert not download
         self.split = split
         self.tokenizer = tokenizer
         self.caption_dropout = caption_dropout
 
-        self.num_classes = num_classes    # max 128 intances in panoptic segmentation
+        self.num_classes = num_classes  # max 128 intances in panoptic segmentation
         self.ignore_label = ignore_label  # void label for panoptic segmentation
-        self.fill_value = fill_value      # fill value for bit encoding in case of void
-        self.inpainting_strength = inpainting_strength   # inpainting strength (what percentage is already given?)
+        self.fill_value = fill_value  # fill value for bit encoding in case of void
+        self.inpainting_strength = inpainting_strength  # inpainting strength (what percentage is already given?)
         self.remap_labels = remap_labels
         if inpaint_mask_size is None:
             inpaint_mask_size = (64, 64)
-        self.maskgenerator = MaskingGenerator(input_size=inpaint_mask_size, mode='random_local')
+        self.maskgenerator = MaskingGenerator(
+            input_size=inpaint_mask_size, mode="random_local"
+        )
 
         # Transform
         self.transform = transform
         self.cmap = color_map()
 
         # Splits are pre-cut
-        print("Initializing dataloader for COCO {} set".format(''.join(self.split)))
-        if self.split == 'train':
-            file_dir = 'train2017'
+        print("Initializing dataloader for COCO {} set".format("".join(self.split)))
+        if self.split == "train":
+            file_dir = "train2017"
             self.training = True
-        elif self.split == 'val':
-            file_dir = 'val2017'
+        elif self.split == "val":
+            file_dir = "val2017"
             self.training = False
         else:
             raise NotImplementedError
@@ -236,12 +248,14 @@ class COCO(data.Dataset):
         lines = os.listdir(os.path.join(self.root, file_dir))
         if limit is not None:
             lines = lines[:limit]
-        
-        lines = sorted([line.split('.')[0] for line in lines])
+
+        lines = sorted([line.split(".")[0] for line in lines])
 
         panoptic_json = os.path.join(self.root, f"annotations/panoptic_{file_dir}.json")
         captions_json = os.path.join(self.root, f"annotations/captions_{file_dir}.json")
-        blip_captions_json = os.path.join('data/blip_captions', f"captions_{file_dir}.json")
+        blip_captions_json = os.path.join(
+            "data/blip_captions", f"captions_{file_dir}.json"
+        )
         if not os.path.isfile(blip_captions_json):
             blip_captions_json = None
         self.panoptic_json = panoptic_json
@@ -257,11 +271,16 @@ class COCO(data.Dataset):
             with open(blip_captions_json, "r") as f:
                 self.blip_captions_anns = json.load(f)
         self.captions_dict = defaultdict(list)
-        for ann in self.captions_anns['annotations']:
-            self.captions_dict[ann['image_id']].append(ann['caption'])
-        self.annotations_dict = {ann['file_name']: ann for ann in self.panoptic_anns['annotations']}
+        for ann in self.captions_anns["annotations"]:
+            self.captions_dict[ann["image_id"]].append(ann["caption"])
+        self.annotations_dict = {
+            ann["file_name"]: ann for ann in self.panoptic_anns["annotations"]
+        }
         categories = self.panoptic_anns["categories"]
-        cat_info = {cat['id']: {'name': cat['name'], 'isthing': cat['isthing']} for cat in categories}
+        cat_info = {
+            cat["id"]: {"name": cat["name"], "isthing": cat["isthing"]}
+            for cat in categories
+        }
         self.categories = categories
         self.cat_info = cat_info
 
@@ -278,7 +297,7 @@ class COCO(data.Dataset):
             self.images.append(_image)
 
             # Segmentation dir
-            _semseg = os.path.join(_semseg_dir, line + '.png')
+            _semseg = os.path.join(_semseg_dir, line + ".png")
             assert os.path.isfile(_semseg)
             self.semsegs.append(_semseg)
 
@@ -287,14 +306,18 @@ class COCO(data.Dataset):
         semsegs = []
         for image_path, semseg_path in zip(self.images, self.semsegs):
             base_name = os.path.basename(semseg_path)
-            seg_info = self.annotations_dict[base_name]['segments_info']
-            if len(seg_info) > 0 and not all([x['iscrowd'] == 1 for x in seg_info]):
+            seg_info = self.annotations_dict[base_name]["segments_info"]
+            if len(seg_info) > 0 and not all([x["iscrowd"] == 1 for x in seg_info]):
                 images.append(image_path)
                 semsegs.append(semseg_path)
-        print('filtered out {} images without annotations. ({} remaining)'.format(len(self.semsegs) - len(semsegs), len(semsegs)))
+        print(
+            "filtered out {} images without annotations. ({} remaining)".format(
+                len(self.semsegs) - len(semsegs), len(semsegs)
+            )
+        )
         self.images = images
         self.semsegs = semsegs
-        assert (len(self.images) == len(self.semsegs))
+        assert len(self.images) == len(self.semsegs)
 
         # Uncomment to overfit to one image
         if overfit:
@@ -302,15 +325,15 @@ class COCO(data.Dataset):
             self.images = self.images[:n_of]
             self.semsegs = self.semsegs[:n_of]
 
-        assert caption_type in ['none', 'caption', 'class_label', 'blip']
-        assert encoding_mode in ['color', 'random_color', 'bits', 'none']
+        assert caption_type in ["none", "caption", "class_label", "blip"]
+        assert encoding_mode in ["color", "random_color", "bits", "none"]
         self.encoding_mode = encoding_mode
         self.caption_type = caption_type
-        print('caption type: {}'.format(self.caption_type))
-        print('caption dropout: {}'.format(self.caption_dropout))
-        print('encoding mode: {}'.format(self.encoding_mode))
-        print('fill value: {}'.format(self.fill_value))
-        print('inpainting strength: {}'.format(self.inpainting_strength))
+        print("caption type: {}".format(self.caption_type))
+        print("caption dropout: {}".format(self.caption_dropout))
+        print("encoding mode: {}".format(self.encoding_mode))
+        print("fill value: {}".format(self.fill_value))
+        print("inpainting strength: {}".format(self.inpainting_strength))
         self.background_to_ignore = False
         self.ignore_to_background = False
         if self.training:
@@ -319,7 +342,7 @@ class COCO(data.Dataset):
             self.pixel_threshold = 0
 
         # Display stats
-        print('Number of dataset images: {:d}'.format(len(self.images)))
+        print("Number of dataset images: {:d}".format(len(self.images)))
 
     def _remap_labels_fn(self, labels, max_val=None, keep_background_fixed=True):
         # keep the original background class index
@@ -329,12 +352,14 @@ class COCO(data.Dataset):
         # remapping only works if additional background classes are ordered from 0 to N.
         max_val = max_val if max_val is not None else self.num_classes
         unique_values = [x for x in np.unique(labels) if x != self.ignore_label]
-        assert len(unique_values) < max_val, f"Number of unique values {len(unique_values)} is larger or equal than max_val {max_val}"  # noqa
+        assert (
+            len(unique_values) < max_val
+        ), f"Number of unique values {len(unique_values)} is larger or equal than max_val {max_val}"  # noqa
 
         # np.random.seed(1)
-        targets = np.random.choice(max_val - 1,
-                                   size=len(unique_values),
-                                   replace=False)  # sampling without replacement
+        targets = np.random.choice(
+            max_val - 1, size=len(unique_values), replace=False
+        )  # sampling without replacement
         targets = targets + 1
 
         # mapping dict
@@ -349,7 +374,9 @@ class COCO(data.Dataset):
         # sanity checks: make sure all target values are smaller than max_val and unique
         assert np.all(mapping_np[mapping_np != -1] < max_val)
         assert np.all(mapping_np[mapping_np != -1] >= 0)
-        assert len(np.unique(mapping_np[mapping_np != -1])) == len(mapping_np[mapping_np != -1])
+        assert len(np.unique(mapping_np[mapping_np != -1])) == len(
+            mapping_np[mapping_np != -1]
+        )
         assert len(np.unique(mapping_np[mapping_np != -1])) == len(unique_values)
 
         return remapped_labels, mapping
@@ -359,7 +386,11 @@ class COCO(data.Dataset):
         if cmap is None:
             cmap = color_map()
         seg_t = semseg.astype(np.uint8)
-        array_seg_t = np.full((seg_t.shape[0], seg_t.shape[1], cmap.shape[1]), self.ignore_label, dtype=cmap.dtype)
+        array_seg_t = np.full(
+            (seg_t.shape[0], seg_t.shape[1], cmap.shape[1]),
+            self.ignore_label,
+            dtype=cmap.dtype,
+        )
         for class_i in np.unique(seg_t):
             array_seg_t[seg_t == class_i] = cmap[class_i]
         return array_seg_t
@@ -367,7 +398,11 @@ class COCO(data.Dataset):
     def encode_semseg_random(self, semseg, cmap=None):
         seg_t = semseg.astype(np.uint8)
         color_palette = set()
-        array_seg_t = np.full((seg_t.shape[0], seg_t.shape[1], cmap.shape[1]), self.ignore_label, dtype=cmap.dtype)
+        array_seg_t = np.full(
+            (seg_t.shape[0], seg_t.shape[1], cmap.shape[1]),
+            self.ignore_label,
+            dtype=cmap.dtype,
+        )
         unique_classes = np.unique(seg_t)
         while len(color_palette) < len(unique_classes):
             color_palette.add(tuple(np.random.choice(range(256), size=3)))
@@ -380,17 +415,21 @@ class COCO(data.Dataset):
 
     def encode_bitmap(self, x: torch.Tensor, n: int = 7, fill_value: float = 0.5):
         ignore_mask = x == self.ignore_label
-        x = torch.bitwise_right_shift(x, torch.arange(n, device=x.device)[:, None, None])  # shift with n bits
-        x = torch.remainder(x, 2).float()                                                  # take modulo 2 to get 0 or 1
-        x[:, ignore_mask] = fill_value                                                     # set invalid pixels to 0.5
+        x = torch.bitwise_right_shift(
+            x, torch.arange(n, device=x.device)[:, None, None]
+        )  # shift with n bits
+        x = torch.remainder(x, 2).float()  # take modulo 2 to get 0 or 1
+        x[:, ignore_mask] = fill_value  # set invalid pixels to 0.5
         return x, ignore_mask
 
     def decode_bitmap(self, x: torch.Tensor, n: int = 7):
-        x = (x > 0.).float()                                          # output between -1 and 1
-        n = x.shape[0]                                                # number of channels = number of bits
-        x = x * 2 ** torch.arange(n, device=x.device)[:, None, None]  # get the value of each bit
-        x = torch.sum(x, dim=0)                                       # sum over bits (no keepdim!)
-        x = x.long()                                                  # cast to int64 (or long)
+        x = (x > 0.0).float()  # output between -1 and 1
+        n = x.shape[0]  # number of channels = number of bits
+        x = (
+            x * 2 ** torch.arange(n, device=x.device)[:, None, None]
+        )  # get the value of each bit
+        x = torch.sum(x, dim=0)  # sum over bits (no keepdim!)
+        x = x.long()  # cast to int64 (or long)
         return x
 
     def get_inpainting_mask(self, strength=0.5):
@@ -403,77 +442,91 @@ class COCO(data.Dataset):
         mapping = dict()
 
         # Load image
-        _img = self._load_img(index, mode='pil')
-        sample['image'] = _img
+        _img = self._load_img(index, mode="pil")
+        sample["image"] = _img
 
         # Load pixel-level annotations
-        _semseg, segments_info, captions_info, key_id = self._load_semseg(index, mode='array')
+        _semseg, segments_info, captions_info, key_id = self._load_semseg(
+            index, mode="array"
+        )
         unique_classes = np.unique(_semseg)
         unique_classes = unique_classes[unique_classes != self.ignore_label]
 
         # handle caption
-        if self.caption_type == 'caption':
-            sample['text'] = random.choice(captions_info) if self.training else captions_info[0]
-        elif self.caption_type == 'class_label':
-            category_names = [v['category_name'] for v in segments_info.values()]
-            sample['text'] = ', '.join(category_names)
-        elif self.caption_type == 'blip' and self.blip_captions_anns is not None:
-            sample['text'] = self.blip_captions_anns[key_id]
+        if self.caption_type == "caption":
+            sample["text"] = (
+                random.choice(captions_info) if self.training else captions_info[0]
+            )
+        elif self.caption_type == "class_label":
+            category_names = [v["category_name"] for v in segments_info.values()]
+            sample["text"] = ", ".join(category_names)
+        elif self.caption_type == "blip" and self.blip_captions_anns is not None:
+            sample["text"] = self.blip_captions_anns[key_id]
         else:
-            sample['text'] = ""
+            sample["text"] = ""
 
         # dropout caption
         if self.training and self.caption_dropout > random.random():
-            sample['text'] = ""
+            sample["text"] = ""
 
         # remap labels
         if self.remap_labels:
-            _semseg, mapping = self._remap_labels_fn(_semseg, max_val=self.num_classes, keep_background_fixed=True)
+            _semseg, mapping = self._remap_labels_fn(
+                _semseg, max_val=self.num_classes, keep_background_fixed=True
+            )
             segments_info = {mapping[key]: val for key, val in segments_info.items()}
             assert len(unique_classes) == len(segments_info)
 
         assert _semseg.max() < 256
-        sample['semseg'] = _semseg.astype(np.uint8)
-        sample['semseg'] = Image.fromarray(sample['semseg'])
+        sample["semseg"] = _semseg.astype(np.uint8)
+        sample["semseg"] = Image.fromarray(sample["semseg"])
 
         # mask with ones for valid pixels
-        sample['mask'] = np.ones_like(_semseg)
-        sample['mask'] = Image.fromarray(sample['mask'])
+        sample["mask"] = np.ones_like(_semseg)
+        sample["mask"] = Image.fromarray(sample["mask"])
 
         # encode semseg
-        if self.encoding_mode == 'random_color':
-            sample['image_semseg'] = self.encode_semseg_random(_semseg, cmap=self.cmap)
-            sample['image_semseg'] = Image.fromarray(sample['image_semseg'])
-        elif self.encoding_mode == 'color':
-            sample['image_semseg'] = self.encode_semseg(_semseg, cmap=self.cmap)
-            sample['image_semseg'] = Image.fromarray(sample['image_semseg'])
+        if self.encoding_mode == "random_color":
+            sample["image_semseg"] = self.encode_semseg_random(_semseg, cmap=self.cmap)
+            sample["image_semseg"] = Image.fromarray(sample["image_semseg"])
+        elif self.encoding_mode == "color":
+            sample["image_semseg"] = self.encode_semseg(_semseg, cmap=self.cmap)
+            sample["image_semseg"] = Image.fromarray(sample["image_semseg"])
 
         # meta data
-        sample['meta'] = {
-            'im_size': (_img.size[1], _img.size[0]),
-            'image_file': self.images[index],
+        sample["meta"] = {
+            "im_size": (_img.size[1], _img.size[0]),
+            "image_file": self.images[index],
             "image_id": int(os.path.basename(self.images[index]).split(".")[0]),
-            'segments_info': segments_info,
+            "segments_info": segments_info,
         }
 
         if self.transform is not None:
             sample = self.transform(sample)
 
         # after transforms
-        if self.encoding_mode == 'bits':
-            sample['image_semseg'], _ = self.encode_bitmap(sample['semseg'], n=7, fill_value=self.fill_value)
-        elif self.encoding_mode == 'none':
-            sample['image_semseg'] = sample['semseg'].unsqueeze(0).repeat(3, 1, 1).float() / self.num_classes
+        if self.encoding_mode == "bits":
+            sample["image_semseg"], _ = self.encode_bitmap(
+                sample["semseg"], n=7, fill_value=self.fill_value
+            )
+        elif self.encoding_mode == "none":
+            sample["image_semseg"] = (
+                sample["semseg"].unsqueeze(0).repeat(3, 1, 1).float() / self.num_classes
+            )
 
         # get tokens
         if self.tokenizer is not None:
-            sample['tokens'] = self.tokenizer(sample['text'],
-                                              padding='max_length',
-                                              max_length=77,
-                                              truncation=True,
-                                              return_tensors='pt').input_ids.squeeze(0)
+            sample["tokens"] = self.tokenizer(
+                sample["text"],
+                padding="max_length",
+                max_length=77,
+                truncation=True,
+                return_tensors="pt",
+            ).input_ids.squeeze(0)
 
-        sample['inpainting_mask'] = self.get_inpainting_mask(strength=self.inpainting_strength)
+        sample["inpainting_mask"] = self.get_inpainting_mask(
+            strength=self.inpainting_strength
+        )
 
         return sample
 
@@ -483,15 +536,17 @@ class COCO(data.Dataset):
     def __len__(self):
         return len(self.images)
 
-    def _load_img(self, index, mode='array'):
-        _img = Image.open(self.images[index]).convert('RGB')
-        if mode == 'pil':
+    def _load_img(self, index, mode="array"):
+        _img = Image.open(self.images[index]).convert("RGB")
+        if mode == "pil":
             return _img
         return np.array(_img)
 
-    def _load_semseg(self, index, mode='array'):
-        _semseg = np.array(Image.open(self.semsegs[index]).convert('RGB'))
-        _semseg = _semseg[:, :, 0] + 256 * _semseg[:, :, 1] + (256 ** 2) * _semseg[:, :, 2]
+    def _load_semseg(self, index, mode="array"):
+        _semseg = np.array(Image.open(self.semsegs[index]).convert("RGB"))
+        _semseg = (
+            _semseg[:, :, 0] + 256 * _semseg[:, :, 1] + (256**2) * _semseg[:, :, 2]
+        )
 
         # count pixels for each unique instance and set to ignore if below pixel threshold
         small_instances = set()
@@ -504,42 +559,51 @@ class COCO(data.Dataset):
                         small_instances.add(i)
 
         # load segments info
-        key = self.semsegs[index].split('/')[-1]
-        segments_info = self.annotations_dict[key]['segments_info']
+        key = self.semsegs[index].split("/")[-1]
+        segments_info = self.annotations_dict[key]["segments_info"]
         keep_segments_info = {}
         for seg in segments_info:
-            if seg['id'] in small_instances:
+            if seg["id"] in small_instances:
                 continue
-            if seg['iscrowd'] and self.training:
-                _semseg[_semseg == seg['id']] = self.ignore_label
+            if seg["iscrowd"] and self.training:
+                _semseg[_semseg == seg["id"]] = self.ignore_label
                 continue
 
-            assert seg['iscrowd'] == 0 or not self.training
-            keep_segments_info[seg['id']] = {'category_id': seg['category_id'],
-                                             'iscrowd': seg['iscrowd'],
-                                             'category_name': self.cat_info[seg['category_id']]['name'],
-                                             'isthing': self.cat_info[seg['category_id']]['isthing']
-                                             }
+            assert seg["iscrowd"] == 0 or not self.training
+            keep_segments_info[seg["id"]] = {
+                "category_id": seg["category_id"],
+                "iscrowd": seg["iscrowd"],
+                "category_name": self.cat_info[seg["category_id"]]["name"],
+                "isthing": self.cat_info[seg["category_id"]]["isthing"],
+            }
             # remap category ids to contiguous ids
-            curr_cat_id = keep_segments_info[seg['id']]['category_id']
+            curr_cat_id = keep_segments_info[seg["id"]]["category_id"]
             if curr_cat_id in self.meta_data["thing_dataset_id_to_contiguous_id"]:
-                keep_segments_info[seg['id']]['category_id'] = self.meta_data["thing_dataset_id_to_contiguous_id"][curr_cat_id]  # noqa
+                keep_segments_info[seg["id"]]["category_id"] = self.meta_data[
+                    "thing_dataset_id_to_contiguous_id"
+                ][curr_cat_id]  # noqa
             else:
-                keep_segments_info[seg['id']]['category_id'] = self.meta_data["stuff_dataset_id_to_contiguous_id"][curr_cat_id]  # noqa
-            assert keep_segments_info[seg['id']]['category_id'] < 133  # 133 is the number of classes in COCO panoptic
+                keep_segments_info[seg["id"]]["category_id"] = self.meta_data[
+                    "stuff_dataset_id_to_contiguous_id"
+                ][curr_cat_id]  # noqa
+            assert (
+                keep_segments_info[seg["id"]]["category_id"] < 133
+            )  # 133 is the number of classes in COCO panoptic
 
         # load captions
-        image_id = key.split('.')[0]
+        image_id = key.split(".")[0]
         captions_info = self.captions_dict[int(image_id)]
 
         # assert
         assert _semseg.max() > 0
-        assert len(keep_segments_info) == len([x for x in np.unique(_semseg) if x != self.ignore_label])
+        assert len(keep_segments_info) == len(
+            [x for x in np.unique(_semseg) if x != self.ignore_label]
+        )
 
-        if mode == 'pil':
+        if mode == "pil":
             return Image.fromarray(_semseg.astype(np.uint8))
 
-        return _semseg, keep_segments_info, captions_info, image_id + '.jpg'
+        return _semseg, keep_segments_info, captions_info, image_id + ".jpg"
 
     def get_metadata(self):
         meta = {}
@@ -580,7 +644,7 @@ class COCO(data.Dataset):
             # in order to use sem_seg evaluator
             stuff_dataset_id_to_contiguous_id[cat["id"]] = i
 
-            cat2name[cat['id']] = cat['name']
+            cat2name[cat["id"]] = cat["name"]
 
         meta["thing_dataset_id_to_contiguous_id"] = thing_dataset_id_to_contiguous_id
         meta["stuff_dataset_id_to_contiguous_id"] = stuff_dataset_id_to_contiguous_id
@@ -592,7 +656,7 @@ class COCO(data.Dataset):
         return meta
 
     def __str__(self):
-        return 'COCO(split=' + str(self.split) + ')'
+        return "COCO(split=" + str(self.split) + ")"
 
     def _validate_annotations_simple(self):
         from tqdm import tqdm
@@ -606,21 +670,23 @@ class COCO(data.Dataset):
         return
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     """ For purpose of debugging """
     import util.pil_transforms as pil_tr
     import torchvision.transforms as T
 
     size = 128
-    transforms = T.Compose([
-        pil_tr.RandomHorizontalFlip(),
-        pil_tr.CropResize((size, size), crop_mode=None),
-        pil_tr.ToTensor(),
-    ])
+    transforms = T.Compose(
+        [
+            pil_tr.RandomHorizontalFlip(),
+            pil_tr.CropResize((size, size), crop_mode=None),
+            pil_tr.ToTensor(),
+        ]
+    )
 
     dataset = COCO(
-        prefix='/home/ubuntu/datasets',
-        split='train',
+        prefix="/home/ubuntu/datasets",
+        split="train",
         transform=transforms,
         remap_labels=True,
     )

@@ -36,17 +36,25 @@ class PanopticEvaluatorAgnostic(DatasetEvaluator):
     It contains a synchronize call and has to be called from all workers.
     """
 
-    def __init__(self, output_dir: str = './output/predictions_panoptic/', meta: Optional[Dict] = None):
+    def __init__(
+        self,
+        output_dir: str = "./output/predictions_panoptic/",
+        meta: Optional[Dict] = None,
+    ):
         """
         Args:
             dataset_name: name of the dataset
             output_dir: output directory to save results for evaluation.
         """
         self._metadata = meta
-        self.thing_dataset_id_to_contiguous_id = self._metadata["thing_dataset_id_to_contiguous_id"]
-        self.stuff_dataset_id_to_contiguous_id = self._metadata["stuff_dataset_id_to_contiguous_id"]
-        self.panoptic_json = self._metadata['panoptic_json']
-        self.panoptic_root = self._metadata['panoptic_root']
+        self.thing_dataset_id_to_contiguous_id = self._metadata[
+            "thing_dataset_id_to_contiguous_id"
+        ]
+        self.stuff_dataset_id_to_contiguous_id = self._metadata[
+            "stuff_dataset_id_to_contiguous_id"
+        ]
+        self.panoptic_json = self._metadata["panoptic_json"]
+        self.panoptic_root = self._metadata["panoptic_root"]
         self.label_divisor = 1
         self._thing_contiguous_id_to_dataset_id = {
             v: k for k, v in self._metadata["thing_dataset_id_to_contiguous_id"].items()
@@ -67,7 +75,9 @@ class PanopticEvaluatorAgnostic(DatasetEvaluator):
                 for anno in json_data["annotations"]:
                     for seg in anno["segments_info"]:
                         seg["category_id"] = 1
-                json_data['categories'] = [{'id': 1, 'name': 'object', 'supercategory': 'object', 'isthing': 1}]
+                json_data["categories"] = [
+                    {"id": 1, "name": "object", "supercategory": "object", "isthing": 1}
+                ]
                 with PathManager.open(gt_json_agnostic, "w") as f:
                     f.write(json.dumps(json_data))
 
@@ -107,15 +117,17 @@ class PanopticEvaluatorAgnostic(DatasetEvaluator):
                 panoptic_img = panoptic_img.cpu().numpy()
 
             for seg_id in segments_info:
-                seg_id['category_id'] = 1
-                seg_id['isthing'] = True
+                seg_id["category_id"] = 1
+                seg_id["isthing"] = True
 
             file_name = os.path.basename(file_name)
             file_name_png = os.path.splitext(file_name)[0] + ".png"
             with io.BytesIO() as out:
                 Image.fromarray(id2rgb(panoptic_img)).save(out, format="PNG")
                 if not self.class_agnostic:
-                    segments_info = [self._convert_category_id(x) for x in segments_info]
+                    segments_info = [
+                        self._convert_category_id(x) for x in segments_info
+                    ]
                 self._predictions.append(
                     {
                         "image_id": image_id,
@@ -139,7 +151,11 @@ class PanopticEvaluatorAgnostic(DatasetEvaluator):
 
         with tempfile.TemporaryDirectory(prefix="panoptic_eval") as pred_dir:
             logger.info("Writing all panoptic predictions to {} ...".format(pred_dir))
-            print(colored('Writing all panoptic predictions to {}...'.format(pred_dir), 'blue'))
+            print(
+                colored(
+                    "Writing all panoptic predictions to {}...".format(pred_dir), "blue"
+                )
+            )
             for p in self._predictions:
                 with open(os.path.join(pred_dir, p["file_name"]), "wb") as f:
                     f.write(p.pop("png_string"))
@@ -175,13 +191,17 @@ class PanopticEvaluatorAgnostic(DatasetEvaluator):
 
         results = OrderedDict({"panoptic_seg": res})
 
-        precision = pq_stat_per_cat[1].tp / (pq_stat_per_cat[1].tp + pq_stat_per_cat[1].fp + 1e-8)
-        recall = pq_stat_per_cat[1].tp / (pq_stat_per_cat[1].tp + pq_stat_per_cat[1].fn + 1e-8)
-        print('')
-        print('precision: ', precision*100)
-        print('recall: ', recall*100)
-        print('found {} predictions'.format(num_preds))
-        print(colored(get_table(pq_res), 'yellow'))
+        precision = pq_stat_per_cat[1].tp / (
+            pq_stat_per_cat[1].tp + pq_stat_per_cat[1].fp + 1e-8
+        )
+        recall = pq_stat_per_cat[1].tp / (
+            pq_stat_per_cat[1].tp + pq_stat_per_cat[1].fn + 1e-8
+        )
+        print("")
+        print("precision: ", precision * 100)
+        print("recall: ", recall * 100)
+        print("found {} predictions".format(num_preds))
+        print(colored(get_table(pq_res), "yellow"))
         return results
 
 
@@ -193,39 +213,47 @@ def pq_compute(
 ):
     from panopticapi.evaluation import pq_compute_multi_core
 
-    with open(gt_json_file, 'r') as f:
+    with open(gt_json_file, "r") as f:
         gt_json = json.load(f)
-    with open(pred_json_file, 'r') as f:
+    with open(pred_json_file, "r") as f:
         pred_json = json.load(f)
 
     if gt_folder is None:
-        gt_folder = gt_json_file.replace('.json', '')
+        gt_folder = gt_json_file.replace(".json", "")
     if pred_folder is None:
-        pred_folder = pred_json_file.replace('.json', '')
-    categories = {el['id']: el for el in gt_json['categories']}
+        pred_folder = pred_json_file.replace(".json", "")
+    categories = {el["id"]: el for el in gt_json["categories"]}
 
     if not os.path.isdir(gt_folder):
-        raise Exception("Folder {} with ground truth segmentations doesn't exist".format(gt_folder))
+        raise Exception(
+            "Folder {} with ground truth segmentations doesn't exist".format(gt_folder)
+        )
     if not os.path.isdir(pred_folder):
-        raise Exception("Folder {} with predicted segmentations doesn't exist".format(pred_folder))
+        raise Exception(
+            "Folder {} with predicted segmentations doesn't exist".format(pred_folder)
+        )
 
-    pred_annotations = {el['image_id']: el for el in pred_json['annotations']}
+    pred_annotations = {el["image_id"]: el for el in pred_json["annotations"]}
     matched_annotations_list = []
-    for gt_ann in gt_json['annotations']:
-        image_id = gt_ann['image_id']
+    for gt_ann in gt_json["annotations"]:
+        image_id = gt_ann["image_id"]
         if image_id not in pred_annotations:
             # raise Exception('no prediction for the image with id: {}'.format(image_id))
             continue
         matched_annotations_list.append((gt_ann, pred_annotations[image_id]))
 
-    pq_stat = pq_compute_multi_core(matched_annotations_list, gt_folder, pred_folder, categories)
+    pq_stat = pq_compute_multi_core(
+        matched_annotations_list, gt_folder, pred_folder, categories
+    )
 
     metrics = [("All", None), ("Things", True)]
     results = {}
     for name, isthing in metrics:
-        results[name], per_class_results = pq_stat.pq_average(categories, isthing=isthing)
-        if name == 'All':
-            results['per_class'] = per_class_results
+        results[name], per_class_results = pq_stat.pq_average(
+            categories, isthing=isthing
+        )
+        if name == "All":
+            results["per_class"] = per_class_results
 
     return results, pq_stat.pq_per_cat, len(pred_annotations)
 
@@ -236,9 +264,18 @@ def get_table(pq_res: dict):
     for name in ["All", "Things", "Stuff"]:
         if name not in pq_res:
             continue
-        row = [name] + [pq_res[name][k] * 100 for k in ["pq", "sq", "rq"]] + [pq_res[name]["n"]]
+        row = (
+            [name]
+            + [pq_res[name][k] * 100 for k in ["pq", "sq", "rq"]]
+            + [pq_res[name]["n"]]
+        )
         data.append(row)
     table = tabulate(
-        data, headers=headers, tablefmt="pipe", floatfmt=".3f", stralign="center", numalign="center"
+        data,
+        headers=headers,
+        tablefmt="pipe",
+        floatfmt=".3f",
+        stralign="center",
+        numalign="center",
     )
     return table

@@ -14,7 +14,7 @@ python -W ignore tools/main_ldm.py \
     base.train_kwargs.gradient_checkpointing=True \
     base.train_kwargs.weight_dtype=float16 \
     base.train_kwargs.fp16=True \
-    base.vae_model_kwargs.pretrained_path='pretrained/ae.pt' \
+    base.vae_model_kwargs.pretrained_path='/datasets/pretrained/ldmseg_ae_v2.pt' \
     base.vae_model_kwargs.parametrization=gaussian \
     base.vae_model_kwargs.num_upscalers=2 \
     base.vae_model_kwargs.num_mid_blocks=0 \
@@ -29,8 +29,8 @@ python -W ignore tools/main_ldm.py \
     base.optimizer_kwargs.weight_decay=0.05 \
     base.train_kwargs.clip_grad=1.0 \
     base.transformation_kwargs.type=crop_resize_pil \
-    base.transformation_kwargs.size=512 \
-    base.transformation_kwargs.max_size=512 \
+    base.transformation_kwargs.size=128 \
+    base.transformation_kwargs.max_size=128 \
     "base.train_kwargs.freeze_layers=['time_embedding']" \
     base.eval_kwargs.mask_th=0.9 \
     base.eval_kwargs.overlap_th=0.9 \

@@ -9,6 +9,7 @@ import torch
 import torch.nn as nn
 from typing import Tuple, Optional, Union, Dict, Any, Iterable
 from ldmseg.utils import OutputDict
+
 try:
     from diffusers import UNet2DConditionModel
     from diffusers.training_utils import EMAModel
@@ -22,15 +23,14 @@ class UNetOutput(OutputDict):
 
 
 class UNet(UNet2DConditionModel):
-
-    def define_dropout(self, dropout: float = 0.0, mode: str = 'standard') -> None:
+    def define_dropout(self, dropout: float = 0.0, mode: str = "standard") -> None:
         if dropout <= 0.0:
             return
 
-        print(f'Adding dropout of {dropout} with mode {mode} ...')
-        if mode == 'standard':
+        print(f"Adding dropout of {dropout} with mode {mode} ...")
+        if mode == "standard":
             self.input_dropout = nn.Dropout(dropout)
-        elif mode == 'gaussian':
+        elif mode == "gaussian":
             self.input_dropout = GaussianDropout(dropout)
         else:
             raise NotImplementedError
@@ -39,30 +39,45 @@ class UNet(UNet2DConditionModel):
         assert self.encoder_hid_proj is None
         self.object_queries = nn.Embedding(in_channels, out_channels)
 
-    def define_separate_encoder(self, add_adaptor: bool = False, init_mode_adaptor: str = "random"):
+    def define_separate_encoder(
+        self, add_adaptor: bool = False, init_mode_adaptor: str = "random"
+    ):
         from copy import deepcopy
 
         # take a deepcopy of the first layers to avoid sharing weights
         self.conv_in_img = deepcopy(self.conv_in)
-        self.down_blocks_additional = nn.ModuleList([deepcopy(down_block) for down_block in self.down_blocks])
+        self.down_blocks_additional = nn.ModuleList(
+            [deepcopy(down_block) for down_block in self.down_blocks]
+        )
 
         if add_adaptor:
-            print(f'Adding adaptor layers with init mode {init_mode_adaptor} ...')
+            print(f"Adding adaptor layers with init mode {init_mode_adaptor} ...")
             # add a conv layer to adapt the number of channels
-            self.adaptor_layers = nn.ModuleList([
-                nn.Conv2d(out_channels, out_channels,
-                          kernel_size=3, stride=1, padding=1, bias=True)
-                for out_channels in self.config.block_out_channels])
+            self.adaptor_layers = nn.ModuleList(
+                [
+                    nn.Conv2d(
+                        out_channels,
+                        out_channels,
+                        kernel_size=3,
+                        stride=1,
+                        padding=1,
+                        bias=True,
+                    )
+                    for out_channels in self.config.block_out_channels
+                ]
+            )
 
             # init adaptor layers using init_mode_img
             for adaptor_layer in self.adaptor_layers:
-                if init_mode_adaptor == 'zero':
+                if init_mode_adaptor == "zero":
                     adaptor_layer.weight.data.zero_()
                     adaptor_layer.bias.data.zero_()
                 else:
                     pass
 
-    def define_upscaler(self, num_classes: int = 128, norm_num_groups: int = 32, dim: int = 256) -> None:
+    def define_upscaler(
+        self, num_classes: int = 128, norm_num_groups: int = 32, dim: int = 256
+    ) -> None:
         conv_out = self.conv_out
         in_channels = conv_out.in_channels
 
@@ -78,12 +93,15 @@ class UNet(UNet2DConditionModel):
         )
 
         self.conv_out = upscaler
-        print('Successfully added upscaler to UNet ...')
+        print("Successfully added upscaler to UNet ...")
 
     def remove_cross_attention(self):
         # down blocks
         for down_block in self.down_blocks:
-            if hasattr(down_block, "has_cross_attention") and down_block.has_cross_attention:
+            if (
+                hasattr(down_block, "has_cross_attention")
+                and down_block.has_cross_attention
+            ):
                 for attn_block in down_block.attentions:
                     for transf_block in attn_block.transformer_blocks:
                         transf_block.attn2 = None
@@ -98,7 +116,10 @@ class UNet(UNet2DConditionModel):
 
         # up blocks
         for up_block in self.up_blocks:
-            if hasattr(up_block, "has_cross_attention") and up_block.has_cross_attention:
+            if (
+                hasattr(up_block, "has_cross_attention")
+                and up_block.has_cross_attention
+            ):
                 for attn_block in up_block.attentions:
                     for transf_block in attn_block.transformer_blocks:
                         transf_block.attn2 = None
@@ -108,7 +129,7 @@ class UNet(UNet2DConditionModel):
         # remove prefix
         prefix = "module."
         if name.startswith(prefix):
-            name = name[len(prefix):]
+            name = name[len(prefix) :]
 
         # get factor
         factor = 1.0
@@ -118,7 +139,9 @@ class UNet(UNet2DConditionModel):
             factor = lr_decay_rate
         return factor
 
-    def modify_encoder_hidden_state_proj(self, in_channels: int, out_channels: int) -> None:
+    def modify_encoder_hidden_state_proj(
+        self, in_channels: int, out_channels: int
+    ) -> None:
         self.encoder_hid_proj = nn.Linear(in_channels, out_channels)
 
     def modify_encoder(
@@ -133,13 +156,21 @@ class UNet(UNet2DConditionModel):
         add_adaptor: bool = False,
         init_mode_adaptor: str = "random",
     ) -> None:
-
         assert in_channels in [4, 8], "in_channels must be 4 or 8"
-        assert separate_conv + separate_encoder <= 1, "separate_conv and separate_encoder cannot both be True"
+        assert (
+            separate_conv + separate_encoder <= 1
+        ), "separate_conv and separate_encoder cannot both be True"
 
         if separate_conv:
             # we will use a different conv for segmentation and image
-            self.conv_in_seg = nn.Conv2d(4, self.conv_in.out_channels, kernel_size=3, stride=1, padding=1, bias=True)
+            self.conv_in_seg = nn.Conv2d(
+                4,
+                self.conv_in.out_channels,
+                kernel_size=3,
+                stride=1,
+                padding=1,
+                bias=True,
+            )
 
             # handle seg part
             if init_mode_seg == "zero":
@@ -151,13 +182,19 @@ class UNet(UNet2DConditionModel):
                 self.conv_in_seg.weight.data.copy_(self.conv_in.weight.data)
                 self.conv_in_seg.bias.data.copy_(self.conv_in.bias.data)
             elif init_mode_seg == "mean":
-                self.conv_in_seg.weight.data.copy_(torch.mean(self.conv_in.weight.data, dim=1, keepdim=True).repeat(1, 4, 1, 1))  # noqa
+                self.conv_in_seg.weight.data.copy_(
+                    torch.mean(self.conv_in.weight.data, dim=1, keepdim=True).repeat(
+                        1, 4, 1, 1
+                    )
+                )  # noqa
                 self.conv_in_seg.bias.data.copy_(self.conv_in.bias.data)
             elif init_mode_seg == "div":
-                self.conv_in_seg.weight.data.copy_(self.conv_in.weight.data) / 2.
+                self.conv_in_seg.weight.data.copy_(self.conv_in.weight.data) / 2.0
                 self.conv_in_seg.bias.data.copy_(self.conv_in.bias.data)
             else:
-                raise NotImplementedError(f"init_mode seg {init_mode_seg} not implemented")
+                raise NotImplementedError(
+                    f"init_mode seg {init_mode_seg} not implemented"
+                )
 
             # handle image part
             if init_mode_image == "zero":
@@ -167,86 +204,131 @@ class UNet(UNet2DConditionModel):
                 self.conv_in.weight.data.copy_(self.conv_in.weight.data)
                 self.conv_in.bias.data.copy_(self.conv_in.bias.data)
             elif init_mode_image == "div":
-                self.conv_in.weight.data.copy_(self.conv_in.weight.data) / 2.
+                self.conv_in.weight.data.copy_(self.conv_in.weight.data) / 2.0
                 self.conv_in.bias.data.copy_(self.conv_in.bias.data)
             else:
-                raise NotImplementedError(f"init_mode seg {init_mode_image} not implemented")
+                raise NotImplementedError(
+                    f"init_mode seg {init_mode_image} not implemented"
+                )
 
         elif separate_encoder:
-            self.define_separate_encoder(add_adaptor=add_adaptor, init_mode_adaptor=init_mode_adaptor)
+            self.define_separate_encoder(
+                add_adaptor=add_adaptor, init_mode_adaptor=init_mode_adaptor
+            )
 
         elif in_channels == 8:
             # get out_channels, kernelsize, stride, padding, bias
-            out_channels, kernel_size = self.conv_in.out_channels, self.conv_in.kernel_size,
-            stride, padding, bias = self.conv_in.stride, self.conv_in.padding, self.conv_in.bias
-            self.new_conv = nn.Conv2d(in_channels+cond_channels, out_channels, kernel_size=kernel_size,
-                                      stride=stride, padding=padding, bias=bias is not None)
+            out_channels, kernel_size = (
+                self.conv_in.out_channels,
+                self.conv_in.kernel_size,
+            )
+            stride, padding, bias = (
+                self.conv_in.stride,
+                self.conv_in.padding,
+                self.conv_in.bias,
+            )
+            self.new_conv = nn.Conv2d(
+                in_channels + cond_channels,
+                out_channels,
+                kernel_size=kernel_size,
+                stride=stride,
+                padding=padding,
+                bias=bias is not None,
+            )
             # handle semseg part
             if init_mode_seg == "copy":
-                self.new_conv.weight.data[:, :4].copy_(self.conv_in.weight.data)  # semseg
+                self.new_conv.weight.data[:, :4].copy_(
+                    self.conv_in.weight.data
+                )  # semseg
             elif init_mode_seg == "div":
-                self.new_conv.weight.data[:, :4].copy_(self.conv_in.weight.data) / 2.  # semseg
+                self.new_conv.weight.data[:, :4].copy_(
+                    self.conv_in.weight.data
+                ) / 2.0  # semseg
             elif init_mode_seg == "mean":
-                self.new_conv.weight.data[:, :4].copy_(torch.mean(self.conv_in.weight.data, dim=1, keepdim=True).repeat(1, 4, 1, 1))  # noqa
+                self.new_conv.weight.data[:, :4].copy_(
+                    torch.mean(self.conv_in.weight.data, dim=1, keepdim=True).repeat(
+                        1, 4, 1, 1
+                    )
+                )  # noqa
             elif init_mode_seg == "zero":
                 self.new_conv.weight.data[:, :4].zero_()  # semseg
             elif init_mode_seg == "random":
                 pass
             else:
-                raise NotImplementedError(f"init_mode seg {init_mode_seg} not implemented")
+                raise NotImplementedError(
+                    f"init_mode seg {init_mode_seg} not implemented"
+                )
 
             # handle image part
             if init_mode_image == "copy":
                 self.new_conv.weight.data[:, 4:8].copy_(self.conv_in.weight.data)
             elif init_mode_image == "div":
-                self.new_conv.weight.data[:, 4:8].copy_(self.conv_in.weight.data) / 2.
+                self.new_conv.weight.data[:, 4:8].copy_(self.conv_in.weight.data) / 2.0
             elif init_mode_image == "mean":
-                self.new_conv.weight.data[:, 4:8].copy_(torch.mean(self.conv_in.weight.data, dim=1, keepdim=True).repeat(1, 4, 1, 1))  # noqa
+                self.new_conv.weight.data[:, 4:8].copy_(
+                    torch.mean(self.conv_in.weight.data, dim=1, keepdim=True).repeat(
+                        1, 4, 1, 1
+                    )
+                )  # noqa
             elif init_mode_image == "zero":
                 self.new_conv.weight.data[:, 4:8].zero_()  # semseg
             elif init_mode_image == "random":
                 pass
             else:
-                raise NotImplementedError(f"init_mode seg {init_mode_image} not implemented")
+                raise NotImplementedError(
+                    f"init_mode seg {init_mode_image} not implemented"
+                )
 
             # handle bias
             self.new_conv.bias.data.copy_(self.conv_in.bias.data)
 
             # assert statements
-            assert self.new_conv.weight.data.shape == torch.Size([320, 8 + cond_channels, 3, 3])
+            assert self.new_conv.weight.data.shape == torch.Size(
+                [320, 8 + cond_channels, 3, 3]
+            )
             if init_mode_seg == "copy":
-                assert torch.all(self.new_conv.weight.data[:, :4] == self.conv_in.weight.data)
+                assert torch.all(
+                    self.new_conv.weight.data[:, :4] == self.conv_in.weight.data
+                )
             if init_mode_image == "copy":
-                assert torch.all(self.new_conv.weight.data[:, 4:8] == self.conv_in.weight.data)
+                assert torch.all(
+                    self.new_conv.weight.data[:, 4:8] == self.conv_in.weight.data
+                )
 
             if cond_channels > 0:
                 if init_mode_cond == "zero":
                     self.new_conv.weight.data[:, 8:].zero_()
                 elif init_mode_image == "mean":
-                    self.new_conv.weight.data[:, 8:].copy_(torch.mean(self.conv_in.weight.data, dim=1, keepdim=True).repeat(1, 4, 1, 1))  # noqa
+                    self.new_conv.weight.data[:, 8:].copy_(
+                        torch.mean(
+                            self.conv_in.weight.data, dim=1, keepdim=True
+                        ).repeat(1, 4, 1, 1)
+                    )  # noqa
                 elif init_mode_cond == "random":
                     pass
                 else:
-                    raise NotImplementedError(f"init_mode cond {init_mode_cond} not implemented")
+                    raise NotImplementedError(
+                        f"init_mode cond {init_mode_cond} not implemented"
+                    )
 
             # replace first conv layer
             self.conv_in = self.new_conv
 
-    def freeze_layers(self, layers: Tuple[str] = ['norm', 'time_embedding']) -> None:
+    def freeze_layers(self, layers: Tuple[str] = ["norm", "time_embedding"]) -> None:
         for layer in layers:
-            if layer == 'norm':
+            if layer == "norm":
                 self.freeze_norm_layers()
-            elif layer == 'time_embedding':
+            elif layer == "time_embedding":
                 self.freeze_time_embedding()
-            elif layer == 'conv_in':
+            elif layer == "conv_in":
                 self.freeze_conv_in()
-            elif layer == 'down_blocks':
+            elif layer == "down_blocks":
                 self.freeze_down_blocks()
             else:
                 raise NotImplementedError(f"layer {layer} not implemented")
 
     def freeze_norm_layers(self):
-        print('Freezing norm layers ...')
+        print("Freezing norm layers ...")
         norm_module_types = (
             torch.nn.BatchNorm1d,
             torch.nn.BatchNorm2d,
@@ -264,17 +346,17 @@ class UNet(UNet2DConditionModel):
                 m.requires_grad_(False)
 
     def freeze_time_embedding(self):
-        print('Freezing time embedding ...')
+        print("Freezing time embedding ...")
         self.time_embedding.requires_grad_(False)
 
     def freeze_conv_in(self):
-        if hasattr(self, 'conv_in_img'):
-            print('Freezing conv_in layers ...')
+        if hasattr(self, "conv_in_img"):
+            print("Freezing conv_in layers ...")
             self.conv_in_img.requires_grad_(False)
 
     def freeze_down_blocks(self):
-        if hasattr(self, 'conv_in_img'):
-            print('Freezing down blocks ...')
+        if hasattr(self, "conv_in_img"):
+            print("Freezing down blocks ...")
             for down_block in self.down_blocks_additional:
                 down_block.requires_grad_(False)
 
@@ -306,7 +388,7 @@ class UNet(UNet2DConditionModel):
         t_emb = t_emb.to(dtype=self.dtype)
         emb = self.time_embedding(t_emb, timestep_cond)
 
-        if hasattr(self, 'down_blocks_additional'):
+        if hasattr(self, "down_blocks_additional"):
             if timestep_img is None:
                 timesteps_img = torch.zeros_like(timesteps)
             else:
@@ -319,20 +401,27 @@ class UNet(UNet2DConditionModel):
         if self.encoder_hid_proj is not None:
             encoder_hidden_states = self.encoder_hid_proj(encoder_hidden_states)
 
-        if hasattr(self, 'object_queries'):
-            encoder_hidden_states = self.object_queries.weight.unsqueeze(0).repeat(sample.shape[0], 1, 1)
+        if hasattr(self, "object_queries"):
+            encoder_hidden_states = self.object_queries.weight.unsqueeze(0).repeat(
+                sample.shape[0], 1, 1
+            )
 
-        if hasattr(self, 'input_dropout'):
+        if hasattr(self, "input_dropout"):
             sample = self.input_dropout(sample)
 
         # 3a. handle segmentation + image fusion and down blocks (image)
-        if hasattr(self, 'down_blocks_additional'):
+        if hasattr(self, "down_blocks_additional"):
             sample_seg, sample_img = sample.chunk(2, dim=1)
 
             sample_img = self.conv_in_img(sample_img)
             down_block_additional_residuals = (sample_img,)
-            for block_idx, downsample_block_img in enumerate(self.down_blocks_additional):
-                if hasattr(downsample_block_img, "has_cross_attention") and downsample_block_img.has_cross_attention:
+            for block_idx, downsample_block_img in enumerate(
+                self.down_blocks_additional
+            ):
+                if (
+                    hasattr(downsample_block_img, "has_cross_attention")
+                    and downsample_block_img.has_cross_attention
+                ):
                     sample_img, res_samples = downsample_block_img(
                         hidden_states=sample_img,
                         temb=emb_img,
@@ -341,15 +430,22 @@ class UNet(UNet2DConditionModel):
                         cross_attention_kwargs=cross_attention_kwargs,
                     )
                 else:
-                    sample_img, res_samples = downsample_block_img(hidden_states=sample_img, temb=emb_img)
+                    sample_img, res_samples = downsample_block_img(
+                        hidden_states=sample_img, temb=emb_img
+                    )
 
-                if hasattr(self, 'adaptor_layers'):
-                    res_samples = tuple([self.adaptor_layers[block_idx](int_feature) for int_feature in res_samples])
+                if hasattr(self, "adaptor_layers"):
+                    res_samples = tuple(
+                        [
+                            self.adaptor_layers[block_idx](int_feature)
+                            for int_feature in res_samples
+                        ]
+                    )
 
                 down_block_additional_residuals += res_samples
 
             sample = self.conv_in(sample_seg)
-        elif hasattr(self, 'conv_in_seg'):
+        elif hasattr(self, "conv_in_seg"):
             assert sample.shape[1] == 8, "sample should have 8 channels"
             sample_seg, sample_img = sample.chunk(2, dim=1)
             sample = self.conv_in_seg(sample_seg) + self.conv_in(sample_img)
@@ -359,7 +455,10 @@ class UNet(UNet2DConditionModel):
         # 3b. down blocks segmentation
         down_block_res_samples = (sample,)
         for downsample_block in self.down_blocks:
-            if hasattr(downsample_block, "has_cross_attention") and downsample_block.has_cross_attention:
+            if (
+                hasattr(downsample_block, "has_cross_attention")
+                and downsample_block.has_cross_attention
+            ):
                 sample, res_samples = downsample_block(
                     hidden_states=sample,
                     temb=emb,
@@ -379,7 +478,9 @@ class UNet(UNet2DConditionModel):
             for down_block_res_sample, down_block_additional_residual in zip(
                 down_block_res_samples, down_block_additional_residuals
             ):
-                down_block_res_sample = down_block_res_sample + down_block_additional_residual
+                down_block_res_sample = (
+                    down_block_res_sample + down_block_additional_residual
+                )
                 new_down_block_res_samples += (down_block_res_sample,)
 
             down_block_res_samples = new_down_block_res_samples
@@ -401,15 +502,20 @@ class UNet(UNet2DConditionModel):
         for i, upsample_block in enumerate(self.up_blocks):
             is_final_block = i == len(self.up_blocks) - 1
 
-            res_samples = down_block_res_samples[-len(upsample_block.resnets):]
-            down_block_res_samples = down_block_res_samples[: -len(upsample_block.resnets)]
+            res_samples = down_block_res_samples[-len(upsample_block.resnets) :]
+            down_block_res_samples = down_block_res_samples[
+                : -len(upsample_block.resnets)
+            ]
 
             # if we have not reached the final block and need to forward the
             # upsample size, we do it here
             if not is_final_block and forward_upsample_size:
                 upsample_size = down_block_res_samples[-1].shape[2:]
 
-            if hasattr(upsample_block, "has_cross_attention") and upsample_block.has_cross_attention:
+            if (
+                hasattr(upsample_block, "has_cross_attention")
+                and upsample_block.has_cross_attention
+            ):
                 sample = upsample_block(
                     hidden_states=sample,
                     temb=emb,
@@ -421,7 +527,10 @@ class UNet(UNet2DConditionModel):
                 )
             else:
                 sample = upsample_block(
-                    hidden_states=sample, temb=emb, res_hidden_states_tuple=res_samples, upsample_size=upsample_size
+                    hidden_states=sample,
+                    temb=emb,
+                    res_hidden_states_tuple=res_samples,
+                    upsample_size=upsample_size,
                 )
 
         # 7. post-process
@@ -441,7 +550,6 @@ class UNet(UNet2DConditionModel):
 # Overwrite step method in EMAmodel class to use CPU
 # around 2.5x slower than GPU version
 class EMAModelCPU(EMAModel):
-
     @torch.no_grad()
     def step(self, parameters: Iterable[torch.nn.Parameter]):
         parameters = list(parameters)
@@ -484,7 +592,7 @@ class GaussianDropout(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.training:
             mean = torch.ones_like(x)
-            std = (self.prob / (1.0 - self.prob))**0.5
+            std = (self.prob / (1.0 - self.prob)) ** 0.5
             eps = torch.normal(mean=mean, std=std)
             return x * eps
         else:

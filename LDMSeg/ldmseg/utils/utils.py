@@ -18,8 +18,11 @@ import torch.nn as nn
 import torch.distributed as dist
 
 from detectron2.utils.visualizer import (
-    Visualizer, _PanopticPrediction,
-    ColorMode, _OFF_WHITE, _create_text_labels
+    Visualizer,
+    _PanopticPrediction,
+    ColorMode,
+    _OFF_WHITE,
+    _create_text_labels,
 )
 
 
@@ -89,8 +92,7 @@ def cosine_scheduler(
     start_warmup_value: int = 0,
     warmup_iters: Optional[int] = None,
 ) -> np.ndarray:
-    """ Cosine scheduler with warmup.
-    """
+    """Cosine scheduler with warmup."""
 
     warmup_schedule = np.array([])
     if warmup_iters is None:
@@ -99,7 +101,9 @@ def cosine_scheduler(
         warmup_schedule = np.linspace(start_warmup_value, base_value, warmup_iters)
 
     iters = np.arange(epochs * niter_per_ep - warmup_iters)
-    schedule = final_value + 0.5 * (base_value - final_value) * (1 + np.cos(np.pi * iters / len(iters)))
+    schedule = final_value + 0.5 * (base_value - final_value) * (
+        1 + np.cos(np.pi * iters / len(iters))
+    )
 
     schedule = np.concatenate((warmup_schedule, schedule))
     assert len(schedule) == epochs * niter_per_ep
@@ -114,8 +118,7 @@ def warmup_scheduler(
     start_warmup_value: int = 0,
     warmup_iters: Optional[int] = None,
 ) -> np.ndarray:
-    """ Linear warmup scheduler.
-    """
+    """Linear warmup scheduler."""
 
     warmup_schedule = np.array([])
     if warmup_iters is None:
@@ -139,8 +142,7 @@ def step_scheduler(
     start_warmup_value: int = 0,
     warmup_iters: Optional[int] = None,
 ) -> np.ndarray:
-    """ Step scheduler with warmup.
-    """
+    """Step scheduler with warmup."""
     assert isinstance(decay_epochs, list), "decay_epochs must be a list"
 
     warmup_schedule = np.array([])
@@ -151,7 +153,7 @@ def step_scheduler(
 
     schedule = np.ones(epochs * niter_per_ep - warmup_iters) * base_value
     for decay_epoch in decay_epochs:
-        schedule[int(decay_epoch * niter_per_ep - warmup_iters):] *= decay_rate
+        schedule[int(decay_epoch * niter_per_ep - warmup_iters) :] *= decay_rate
     schedule = np.concatenate((warmup_schedule, schedule))
     assert len(schedule) == epochs * niter_per_ep
     return schedule
@@ -207,9 +209,9 @@ class Logger(object):
         if fpath is not None:
             if not os.path.exists(os.path.dirname(fpath)):
                 os.makedirs(os.path.dirname(fpath))
-                self.file = open(fpath, 'w')
+                self.file = open(fpath, "w")
             else:
-                self.file = open(fpath, 'a')
+                self.file = open(fpath, "a")
 
     def __del__(self):
         self.close()
@@ -239,50 +241,50 @@ class Logger(object):
 
 def color_map(N: int = 256, normalized: bool = False):
     def bitget(byteval, idx):
-        return ((byteval & (1 << idx)) != 0)
+        return (byteval & (1 << idx)) != 0
 
-    dtype = 'float32' if normalized else 'uint8'
+    dtype = "float32" if normalized else "uint8"
     cmap = np.zeros((N, 3), dtype=dtype)
     for i in range(N):
         r = g = b = 0
         c = i
         for j in range(8):
-            r = r | (bitget(c, 0) << 7-j)
-            g = g | (bitget(c, 1) << 7-j)
-            b = b | (bitget(c, 2) << 7-j)
+            r = r | (bitget(c, 0) << 7 - j)
+            g = g | (bitget(c, 1) << 7 - j)
+            b = b | (bitget(c, 2) << 7 - j)
             c = c >> 3
 
         cmap[i] = np.array([r, g, b])
 
-    cmap = cmap/255 if normalized else cmap
+    cmap = cmap / 255 if normalized else cmap
     return cmap
 
 
 def collate_fn(batch: dict):
     # TODO: make general
-    images = torch.stack([d['image'] for d in batch])
-    semseg = torch.stack([d['semseg'] for d in batch])
-    image_semseg = torch.stack([d['image_semseg'] for d in batch])
+    images = torch.stack([d["image"] for d in batch])
+    semseg = torch.stack([d["semseg"] for d in batch])
+    image_semseg = torch.stack([d["image_semseg"] for d in batch])
     tokens = mask = inpainting_mask = text = meta = None
-    if 'tokens' in batch[0]:
-        tokens = torch.stack([d['tokens'] for d in batch])
-    if 'mask' in batch[0]:
-        mask = torch.stack([d['mask'] for d in batch])
-    if 'inpainting_mask' in batch[0]:
-        inpainting_mask = torch.stack([d['inpainting_mask'] for d in batch])
-    if 'text' in batch[0]:
-        text = [d['text'] for d in batch]
-    if 'meta' in batch[0]:
-        meta = [d['meta'] for d in batch]
+    if "tokens" in batch[0]:
+        tokens = torch.stack([d["tokens"] for d in batch])
+    if "mask" in batch[0]:
+        mask = torch.stack([d["mask"] for d in batch])
+    if "inpainting_mask" in batch[0]:
+        inpainting_mask = torch.stack([d["inpainting_mask"] for d in batch])
+    if "text" in batch[0]:
+        text = [d["text"] for d in batch]
+    if "meta" in batch[0]:
+        meta = [d["meta"] for d in batch]
     return {
-        'image': images,
-        'semseg': semseg,
-        'meta': meta,
-        'text': text,
-        'tokens': tokens,
-        'mask': mask,
-        'inpainting_mask': inpainting_mask,
-        'image_semseg': image_semseg
+        "image": images,
+        "semseg": semseg,
+        "meta": meta,
+        "text": text,
+        "tokens": tokens,
+        "mask": mask,
+        "inpainting_mask": inpainting_mask,
+        "image_semseg": image_semseg,
     }
 
 
@@ -309,7 +311,9 @@ class MyVisualizer(Visualizer):
         for mask, sinfo in pred.semantic_masks():
             category_idx = sinfo["category_id"]
             try:
-                mask_color = [x / 255 for x in self.metadata["stuff_colors"][category_idx]]
+                mask_color = [
+                    x / 255 for x in self.metadata["stuff_colors"][category_idx]
+                ]
             except AttributeError:
                 mask_color = None
 
@@ -334,30 +338,45 @@ class MyVisualizer(Visualizer):
             scores = [x["score"] for x in sinfo]
         except KeyError:
             scores = None
-        class_names = self.metadata["thing_classes"] if not suppress_thing_labels else ["object"] * 2
+        class_names = (
+            self.metadata["thing_classes"]
+            if not suppress_thing_labels
+            else ["object"] * 2
+        )
         labels = _create_text_labels(
             category_ids, scores, class_names, [x.get("iscrowd", 0) for x in sinfo]
         )
 
         try:
             colors = [
-                self._jitter([x / 255 for x in self.metadata["thing_colors"][c]]) for c in category_ids
+                self._jitter([x / 255 for x in self.metadata["thing_colors"][c]])
+                for c in category_ids
             ]
         except AttributeError:
             colors = None
 
         if random_colors:
             colors = None
-        self.overlay_instances(masks=masks, labels=labels, assigned_colors=colors, alpha=alpha)
+        self.overlay_instances(
+            masks=masks, labels=labels, assigned_colors=colors, alpha=alpha
+        )
 
         return self.output
 
 
 def get_imagenet_stats():
     stats = {
-        'mean': torch.tensor([0.485, 0.456, 0.406], dtype=torch.float32).view(1, 3, 1, 1),
-        'std': torch.tensor([0.229, 0.224, 0.225], dtype=torch.float32).view(1, 3, 1, 1),
-        'mean_clip': torch.tensor([0.48145466, 0.4578275, 0.40821073], dtype=torch.float32).view(1, 3, 1, 1),
-        'std_clip': torch.tensor([0.26862954, 0.26130258, 0.27577711], dtype=torch.float32).view(1, 3, 1, 1),
+        "mean": torch.tensor([0.485, 0.456, 0.406], dtype=torch.float32).view(
+            1, 3, 1, 1
+        ),
+        "std": torch.tensor([0.229, 0.224, 0.225], dtype=torch.float32).view(
+            1, 3, 1, 1
+        ),
+        "mean_clip": torch.tensor(
+            [0.48145466, 0.4578275, 0.40821073], dtype=torch.float32
+        ).view(1, 3, 1, 1),
+        "std_clip": torch.tensor(
+            [0.26862954, 0.26130258, 0.27577711], dtype=torch.float32
+        ).view(1, 3, 1, 1),
     }
     return stats
