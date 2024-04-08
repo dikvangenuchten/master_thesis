@@ -28,7 +28,9 @@ def convert_data(sample):
     mask = np.zeros(img.size[::-1], dtype=np.uint8)
     for i, detection in enumerate(sample.ground_truth.detections, 1):
         labels.append(detection.label)
-        mask += detection.to_segmentation(frame_size=img.size, target=i).mask
+        mask += detection.to_segmentation(
+            frame_size=img.size, target=i
+        ).mask
 
     maskpath = os.path.join(dir_, f"{filename}-mask.png")
     mask_img = Image.fromarray(mask.swapaxes(1, 0))
@@ -62,7 +64,9 @@ def main(
     data = [convert_data(x) for x in tqdm(dataset)]
     dataset_dir = "/datasets/custom/"
     os.makedirs(dataset_dir, exist_ok=True)
-    with open(os.path.join(dataset_dir, f"{name}_{split}.json"), mode="w") as f:
+    with open(
+        os.path.join(dataset_dir, f"{name}_{split}.json"), mode="w"
+    ) as f:
         json.dump(data, f)
 
 

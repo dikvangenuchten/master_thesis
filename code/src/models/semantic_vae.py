@@ -2,6 +2,7 @@ from typing import List, Optional, Tuple
 import torch
 from torch import nn
 from torch.nn import functional as F
+from torch import distributions
 
 
 class ResBlock(nn.Module):
@@ -129,9 +130,12 @@ class SampleConvLayer(nn.Module):
         # Recommended value by Efficient-VDVAE
         self._softplus = nn.Softplus(beta=torch.log(torch.tensor(2.0)))
 
-    def forward(self, x):
+    def forward(self, x, distribution=True) -> distributions.Distribution:
         x = self._conv(x)
         mean, std = torch.chunk(x, chunks=2, dim=1)
+        std = self._softplus(std)
+        if distribution:
+            return distributions.Normal(mean, std)
         return mean, std
 
 
@@ -188,16 +192,21 @@ class DecoderBlock(nn.Module):
         x = self._unpool(x)
         # Prior net is a residual block
         residual = self._prior_net(x)
-        prior_stats = self._prior_layer(residual)
+        prior = self._prior_layer(residual)
 
         if x_skip is not None:
             # This is only the case if no skip connection is present
             # As this model is not for generating novel images/segmentations
             post = self._posterior_net(torch.cat((x, x_skip), dim=1))
-            posterior_stats = self._posterior_layer(post)
-            z = self._sample(*posterior_stats)
+            posterior: distributions.Distribution = self._posterior_layer(post)
+            dist = posterior
         else:
-            z = self._sample(*prior_stats)
+            dist = prior
+
+        if not self.training:
+            z = dist.mean()
+        else:
+            z = dist.sample()
 
         out = residual + z
 
@@ -217,6 +226,7 @@ class DecoderBlock(nn.Module):
             eps = torch.empty_like(mu).normal_(0.0, 1.0)
             return mu + std * eps
 
+
 class SemanticVAE(nn.Module):
     """Semantic VAE
 
@@ -233,7 +243,7 @@ class SemanticVAE(nn.Module):
         self,
         image_channels: int,
         label_channels: int,
-        layer_depths: List[int] | int,
+        layer_depths: List[int],
         reductions: List[int],
     ) -> None:
         super().__init__()

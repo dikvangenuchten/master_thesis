@@ -11,7 +11,9 @@ name = "panoptic"
 data_folder = "/datasets/coco/"
 test_data_folder = "test/data/coco/"
 
-with open(os.path.join(data_folder, f"annotations/{name}_val2017.json")) as f:
+with open(
+    os.path.join(data_folder, f"annotations/{name}_val2017.json")
+) as f:
     instances = json.load(f)
 
 tiny_instances = {}
@@ -28,7 +30,9 @@ tiny_instances["images"] = [
 ]
 tiny_instances["annotations"] = [
     ann
-    for ann in tqdm(instances["annotations"], desc="Filtering annotations")
+    for ann in tqdm(
+        instances["annotations"], desc="Filtering annotations"
+    )
     if ann["image_id"] in keep_image_ids
 ]
 
@@ -49,16 +53,25 @@ if name == "panoptic":
         ),
         exist_ok=True,
     )
-    for img in tqdm(tiny_instances["annotations"], desc="Copying masks"):
+    for img in tqdm(
+        tiny_instances["annotations"], desc="Copying masks"
+    ):
         shutil.copy(
             os.path.join(
-                data_folder, "annotations", f"{name}_val2017", img["file_name"]
+                data_folder,
+                "annotations",
+                f"{name}_val2017",
+                img["file_name"],
             ),
             os.path.join(
-                test_data_folder, "annotations", f"{name}_val2017", img["file_name"]
+                test_data_folder,
+                "annotations",
+                f"{name}_val2017",
+                img["file_name"],
             ),
         )
 with open(
-    os.path.join(test_data_folder, f"annotations/{name}_val2017.json"), mode="w"
+    os.path.join(test_data_folder, f"annotations/{name}_val2017.json"),
+    mode="w",
 ) as f:
     json.dump(tiny_instances, f)
