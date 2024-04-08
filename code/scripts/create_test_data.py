@@ -1,5 +1,4 @@
-"""Copy a very small portion of the COCO dataset for use in pipeline testing
-"""
+"""Copy a very small portion of the COCO dataset for use in pipeline testing"""
 
 import json
 import os

@@ -130,7 +130,9 @@ class SampleConvLayer(nn.Module):
         # Recommended value by Efficient-VDVAE
         self._softplus = nn.Softplus(beta=torch.log(torch.tensor(2.0)))
 
-    def forward(self, x, distribution=True) -> distributions.Distribution:
+    def forward(
+        self, x, distribution=True
+    ) -> distributions.Distribution:
         x = self._conv(x)
         mean, std = torch.chunk(x, chunks=2, dim=1)
         std = self._softplus(std)
@@ -198,7 +200,9 @@ class DecoderBlock(nn.Module):
             # This is only the case if no skip connection is present
             # As this model is not for generating novel images/segmentations
             post = self._posterior_net(torch.cat((x, x_skip), dim=1))
-            posterior: distributions.Distribution = self._posterior_layer(post)
+            posterior: distributions.Distribution = (
+                self._posterior_layer(post)
+            )
             dist = posterior
         else:
             dist = prior

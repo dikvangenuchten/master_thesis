@@ -1,6 +1,6 @@
 """Determinestic Uncertainty Quantification (DUQ)
 
-This is a head based on DUQ [1], adapted to work 
+This is a head based on DUQ [1], adapted to work
 as a convolutional head.
 
 [1] Van Amersfoort, J., Smith, L., Teh, Y. W., & Gal, Y. (2020, November).

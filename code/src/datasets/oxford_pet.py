@@ -3,15 +3,15 @@
 Modified for compatibility with this repo.
  - Update for PIL>=10.0.0
  - Update for pytorch transforms_v2
- 
+
 Dataset README
 ```
 OXFORD-IIIT PET Dataset
 -----------------------
 Omkar M Parkhi, Andrea Vedaldi, Andrew Zisserman and C. V. Jawahar
 
-We have created a 37 category pet dataset with roughly 200 images for each class. 
-The images have a large variations in scale, pose and lighting. All images have an 
+We have created a 37 category pet dataset with roughly 200 images for each class.
+The images have a large variations in scale, pose and lighting. All images have an
 associated ground truth annotation of breed, head ROI, and pixel
 level trimap segmentation.
 
@@ -43,14 +43,14 @@ Omkar Parkhi: omkar@robots.ox.ac.uk
 References:
 ----------
 [1] O. M. Parkhi, A. Vedaldi, A. Zisserman, C. V. Jawahar
-   Cats and Dogs  
+   Cats and Dogs
    IEEE Conference on Computer Vision and Pattern Recognition, 2012
 
 Note:
 ----
-Dataset is made available for research purposes only. Use of these images must respect 
+Dataset is made available for research purposes only. Use of these images must respect
 the corresponding terms of use of original websites from which they are taken.
-See [1] for list of websites.  
+See [1] for list of websites.
 ```
 
 """

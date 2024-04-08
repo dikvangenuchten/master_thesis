@@ -3,6 +3,7 @@
 Taking a feature extractor `f(x)->h` (Usually the encoder of a model)
 This converts the (x, y) pairs into (h, y) pairs.
 """
+
 import os
 
 from diffusers import AutoencoderKL
