@@ -1,4 +1,5 @@
 import torch
+
 from models.semantic_vae import SemanticVAE
 from datasets.coco import CoCoDataset
 import losses
