@@ -27,6 +27,6 @@ class KLDivergence(nn.Module):
         priors = model_out["priors"]
 
         for posterior, prior in zip(posteriors, priors):
-            loss = nn.functional.kl_div()
+            _loss = nn.functional.kl_div()
             p_mean, p_std = posterior.chunk(2, dim=1)
             q_mean, q_std = prior.chunk(2, dim=1)
