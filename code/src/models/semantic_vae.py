@@ -199,7 +199,7 @@ class DecoderBlock(nn.Module):
         input: Dict[str, torch.Tensor] | torch.Tensor,
         x_skip: torch.Tensor = None,
     ) -> torch.Any:
-        if isinstance(input, torch.tensor):
+        if isinstance(input, torch.Tensor):
             return super().__call__({"out": input}, x_skip)
         return super().__call__(input, x_skip)
 
