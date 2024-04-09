@@ -1,3 +1,5 @@
+from itertools import zip_longest
+
 from typing import Dict, List, Optional, Tuple
 import torch
 from torch import nn
@@ -28,7 +30,7 @@ class ResBlock(nn.Module):
             out_channels,
             kernel_size=(3, 3),
             stride=1,
-            padding="same",
+            padding=1,
         )
         self._bn2 = nn.BatchNorm2d(out_channels)
         self._downsample = downsample
@@ -54,7 +56,9 @@ class ResBlock(nn.Module):
         cls, in_channels: int, out_channels: int, downsample_factor: int
     ):
         """Create a block based on the required dimensions + strides"""
-
+        assert (
+            downsample_factor % 2 == 0 or downsample_factor == 1
+        ), f"`downsample_factor` must be divisble by 2 or equal to 1, but is {downsample_factor}"
         # Using conv is more flexible then using pooling and (theoratically) can become a AvgPool
         downsample = nn.Conv2d(
             in_channels,
@@ -78,9 +82,9 @@ class EncoderBlock(nn.Module):
         self, channels: List[int], downsample_factor: int = 2
     ) -> None:
         super().__init__()
-        self.layers = []
+        layers = []
         for i in range(len(channels) - 1):
-            self.layers.append(
+            layers.append(
                 ResBlock.make_block(
                     in_channels=channels[i],
                     out_channels=channels[i + 1],
@@ -90,6 +94,7 @@ class EncoderBlock(nn.Module):
                     else 1,
                 )
             )
+        self.layers = nn.ModuleList(layers)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         for layer in self.layers:
@@ -271,36 +276,42 @@ class SemanticVAE(nn.Module):
         super().__init__()
 
         image_layers = [image_channels, *layer_depths]
-        self._image_encoder_layers = [
-            EncoderBlock(
-                [image_layers[i], image_layers[i + 1]],
-                reductions[i],
-            )
-            for i in range(len(image_layers) - 1)
-        ]
+        self._image_encoder_layers = nn.ModuleList(
+            [
+                EncoderBlock(
+                    [image_layers[i], image_layers[i + 1]],
+                    reductions[i],
+                )
+                for i in range(len(image_layers) - 1)
+            ]
+        )
 
-        self._image_decoder_layers = [
-            DecoderBlock(
-                in_channels=image_layers[-i - 1],
-                skip_channels=image_layers[-i - 2],
-                latent_channels=image_layers[-i - 2],
-                out_channels=image_layers[-i - 2],
-                expansion=reductions[-i],
-            )
-            for i in range(len(image_layers) - 1)
-        ]
+        self._image_decoder_layers = nn.ModuleList(
+            [
+                DecoderBlock(
+                    in_channels=image_layers[-i - 1],
+                    skip_channels=image_layers[-i - 2],
+                    latent_channels=image_layers[-i - 2],
+                    out_channels=image_layers[-i - 2],
+                    expansion=reductions[-i],
+                )
+                for i in range(len(image_layers) - 1)
+            ]
+        )
 
         label_layers = [label_channels, *layer_depths]
-        self._label_decoder_layers = [
-            DecoderBlock(
-                in_channels=label_layers[-i - 1],
-                skip_channels=label_layers[-i - 2],
-                latent_channels=label_layers[-i - 2],
-                out_channels=label_layers[-i - 2],
-                expansion=reductions[-i],
-            )
-            for i in range(len(label_layers) - 1)
-        ]
+        self._label_decoder_layers = nn.ModuleList(
+            [
+                DecoderBlock(
+                    in_channels=label_layers[-i - 1],
+                    skip_channels=label_layers[-i - 2],
+                    latent_channels=label_layers[-i - 2],
+                    out_channels=label_layers[-i - 2],
+                    expansion=reductions[-i],
+                )
+                for i in range(len(label_layers) - 1)
+            ]
+        )
 
     @classmethod
     def default(
@@ -315,30 +326,59 @@ class SemanticVAE(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x_skips = []
-        h = x
-        for layer in self._image_encoder_layers:
-            h = layer(h)
-            x_skips.append(h)
-
-        latent_space = h
+        latent_space, x_skips = self.encode_image(x)
 
         for layer, x_skip in zip(
             self._label_decoder_layers, reversed(x_skips)
         ):
             latent_space = layer(latent_space, x_skip)
 
-    def encode_image(self, x: torch.Tensor) -> torch.Tensor:
-        return self._image_encoder(x)
+    def encode_image(
+        self, x: torch.Tensor
+    ) -> Tuple[torch.Tensor, List[torch.Tensor]]:
+        """Encode the image to the latent space
+
+        Args:
+            x (torch.Tensor): The image to be encoded
+
+        Returns:
+            Tuple[torch.Tensor, List[torch.Tensor]]: Tuple containing:
+                latent_space (torch.Tensor): The 'deepest' latent space
+                latent_spaces (List[torch.Tensor]): All latent spaces
+        """
+        x_skips = []
+        h = x
+        for layer in self._image_encoder_layers:
+            h = layer(h)
+            x_skips.append(h)
+        return h, x_skips
 
     def encode_label(self, x: torch.Tensor) -> torch.Tensor:
         raise NotImplementedError
 
-    def decode_image(self, z: torch.Tensor) -> torch.Tensor:
-        return self._image_decoder(z)
+    def decode_image(
+        self,
+        z: torch.Tensor,
+        x_skip: Optional[List[torch.Tensor]] = None,
+    ) -> torch.Tensor:
+        x_skip = [] if x_skip is None else x_skip
+        for layer, x_skip in zip_longest(
+            self._image_decoder_layers, x_skip
+        ):
+            z = layer(z, x_skip)
+        return z
 
-    def decode_label(self, z: torch.Tensor) -> torch.Tensor:
-        return self._label_decoder(z)
+    def decode_label(
+        self,
+        z: torch.Tensor,
+        x_skip: Optional[List[torch.Tensor]] = None,
+    ) -> torch.Tensor:
+        x_skip = [] if x_skip is None else x_skip
+        for layer, x_skip in zip_longest(
+            self._label_decoder_layers, x_skip
+        ):
+            z = layer(z, x_skip)
+        return z
 
     def inference(self, x: torch.Tensor) -> torch.Tensor:
         z = self.encode_image(x)

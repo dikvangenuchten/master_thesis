@@ -3,8 +3,10 @@ from typing import Callable, Literal, Dict, Optional
 import torch
 import torchvision
 from torchvision.tv_tensors import Image, Mask
+
 try:
     import fiftyone
+
     fiftyone.config.do_not_track = True
 except ModuleNotFoundError:
     fiftyone = None
@@ -26,7 +28,9 @@ class FiftyOneDataset(torch.utils.data.Dataset):
         max_samples: Optional[int] = 1000,
     ):
         if fiftyone is None:
-            raise RuntimeError("fiftyone could not be imported. Make sure you have installed it!")
+            raise RuntimeError(
+                "fiftyone could not be imported. Make sure you have installed it!"
+            )
         fiftyone.config.dataset_zoo_dir = "/datasets/fiftyone/"
         fiftyone.config.default_dataset_dir = "/datasets/fiftyone/"
 

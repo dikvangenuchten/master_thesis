@@ -107,19 +107,26 @@ def test_decoder_make(
     expected_out_shape = (batch_size, out_c, out_height, out_width)
 
     # Check if it works without the skip layer
-    out = block(input)
-    assert expected_out_shape == out.shape
+    out = block(input)["out"]
+    assert (
+        expected_out_shape == out.shape
+    ), "Shape is incorrect for normal input"
 
     # Check if it works with the skip layer
     input_skip = torch.rand((batch_size, skip_c, out_height, out_width))
-    out = block(input, input_skip)
-    assert expected_out_shape == out.shape
+    out = block(input, input_skip)["out"]
+    assert (
+        expected_out_shape == out.shape
+    ), "Shape is incorrect for input with skip connections"
 
 
 @pytest.mark.parametrize(
     "channels,reductions",
     [
         ([4, 16], [2, 2]),
+        ([4, 16], [4, 2]),
+        ([4, 16], [16, 2]),
+        ([4, 16], [8, 2]),
         ([4, 16, 32], [2, 2, 2]),
         ([4, 16, 64], [2, 2, 2]),
     ],
@@ -138,7 +145,7 @@ def test_semantic_vae_inference_shapes(
         reductions,
     )
 
-    z = model.encode_image(test_image_batch)
+    z = model.encode_image(test_image_batch)[0]
 
     expected_latent_shape = torch.Size(
         [
@@ -152,13 +159,13 @@ def test_semantic_vae_inference_shapes(
         z.shape == expected_latent_shape
     ), f"Latent shape is not equal to expected: {z.shape} != {expected_latent_shape}"
 
-    decoded = model.decode_image(z)
+    decoded = model.decode_image(z)["out"]
 
     assert (
         test_image_batch.shape == decoded.shape
     ), f"Shape of the decoded image is not equal. expected: {test_image_batch.shape} != {decoded.shape} :actual"
 
-    segmentation = model.decode_label(z)
+    segmentation = model.decode_label(z)["out"]
 
     expected_segmentation_shape = torch.Size([b, num_classes, h, w])
     assert (

@@ -40,7 +40,7 @@ class CoCoDataset(torch.utils.data.Dataset):
 
         assert (
             len(unsuported_outs) == 0
-        ), f"The following outputs are not supported: {unsuported_outs}"
+        ), f"The following outputs are not supported: {unsuported_outs} not in {get_args(OUTPUT_TYPES)}"
 
         self.output_structure = output_structure
 

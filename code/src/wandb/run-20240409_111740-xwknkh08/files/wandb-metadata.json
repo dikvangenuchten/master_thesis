@@ -1,0 +1,68 @@
+{
+    "os": "Linux-5.15.0-101-generic-x86_64-with-glibc2.35",
+    "python": "3.10.12",
+    "heartbeatAt": "2024-04-09T11:17:40.808715",
+    "startedAt": "2024-04-09T11:17:40.041802",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/workspaces/master_thesis/code/scripts/pretrain_vae.py",
+    "codePathLocal": null,
+    "codePath": "code/scripts/pretrain_vae.py",
+    "git": {
+        "remote": "git@github.com:Generative-AI-TUe/msc-project-1297333.git",
+        "commit": "6f0e1d7d010872fc738c35f4ee87b17813d4f748"
+    },
+    "email": "H.j.m.v.genuchten@student.tue.nl",
+    "root": "/workspaces/master_thesis",
+    "host": "72f462b7f3c2",
+    "username": "dev-user",
+    "executable": "/bin/python3",
+    "cpu_count": 4,
+    "cpu_count_logical": 4,
+    "cpu_freq": {
+        "current": 3631.25775,
+        "min": 800.0,
+        "max": 3900.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 3621.793,
+            "min": 800.0,
+            "max": 3900.0
+        },
+        {
+            "current": 3300.0,
+            "min": 800.0,
+            "max": 3900.0
+        },
+        {
+            "current": 3672.678,
+            "min": 800.0,
+            "max": 3900.0
+        },
+        {
+            "current": 3606.455,
+            "min": 800.0,
+            "max": 3900.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 914.3504486083984,
+            "used": 384.6673393249512
+        }
+    },
+    "gpu": "NVIDIA GeForce GTX 1070",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce GTX 1070",
+            "memory_total": 8589934592
+        }
+    ],
+    "memory": {
+        "total": 15.570594787597656
+    }
+}
