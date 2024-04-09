@@ -1,8 +1,10 @@
 import torch
 
+import utils # noqa
+
+import losses
 from models.semantic_vae import SemanticVAE
 from datasets.coco import CoCoDataset
-import losses
 from trainer import Trainer
 
 
@@ -47,6 +49,6 @@ if __name__ == "__main__":
         "val", output_structure={"input": "img", "target": "img"}
     )
 
-    model = SemanticVAE(3, None, [8, 16, 64], [2, 3, 3])
+    model = SemanticVAE(3, 3, [8, 16, 64], [2, 3, 3])
 
     train(model, train_dataset, val_dataset)
