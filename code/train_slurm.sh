@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name=master-thesis-dik
-#SBATCH --output=~/masther-thesis_%j.txt
+#SBATCH --output=results/masther-thesis_%j.txt
 #SBATCH --partition=mcs.gpu.q
 #SBATCH --time=16:00:00
 #SBATCH --nodes=1

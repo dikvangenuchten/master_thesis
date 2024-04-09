@@ -483,3 +483,6 @@ TSWLatexianTemp*
 
 # Test visualization
 */dbg/*
+
+# Result folder
+*/results/*
