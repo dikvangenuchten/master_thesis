@@ -479,11 +479,16 @@ TSWLatexianTemp*
 *.pdf
 
 # WandB local log folder
-*/wandb/*
 wandb
 
 # Test visualization
-*/dbg/*
+dbg
+tmp
 
 # Result folder
-*/results/*
+results
+
+# Not needed in tracking
+poster
+planning
+notes
