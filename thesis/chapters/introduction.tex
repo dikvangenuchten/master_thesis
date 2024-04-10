@@ -1,10 +1,29 @@
 \chapter{Introduction}\label{chapter:introduction}
 
+\subsection*{Mobile Robotics}
+Explain the context of the thesis, Mobile robotics. Reference and explain (high level) semantic slam.
+Here I will explain the main problems: Novel environments and Real Time (latency, ram and flops) requirement (+ limited computational power although this is more a flops vs accuracy trade-off).
+
+Introduce the problem of the costly labeling process, especially in-distribution data as driving the robot manually is hard (bring robot, drive around manually), whereas walking around with a (similar) camera is easier. Reason to have foundational models, however the currently used foundational models are often stil trained on labeled data. (Or are based on transformers and require the same power to train as an average american household need a year (DINOv2))
+
+\subsection*{Uncertainty Quantification}
+Why do we want it?
+- It allows the model to show when it is unfamiliar with a situation and is incapable of providing robust predictions. This inturn can be used to ensure that the robot takes proper precautions as to not endanger its environment or itself.
+- It allows for a smarter way of labeling new data. Saving a (hd) stream, takes a lot of bandwith, storage and is not effective. There exist various active learning strategies that can select the subset of images which should result in the most improvement.
+
+
+\subsection*{VAE}
+Explain why we chose for a VAE:
+- Due to its probabilstic formulation can easily be used for bootstrapping
+- 
+
+
+\section*{OLD PARAGRAPH}
 Deep learning models require a lot of (labeled) data, and are often computationally intensive. Although data is easily acquirable, the labeling process is labor intensive and thus expensive. Thus if the unlabeled data can be used to prime a model, it will require less labeled data to finetune on the specific task required. In the context of mobile robotics it is furthermore important to have a low computational cost for inference, such that the inference can happen on the edge. Finally, it is important that the robotic devices can handle unexpected situations safely. The first step towards that is recognizing model failures. When the uncertainty of our model can be correctly estimated, it can be used as a proxy for unknown situations, which then can be used to take precautions, such as a preemptive emergency stop.
 
 This thesis will investigate if VAEs are a suitable solution for semantic segmentation in mobile robotics. The following research questions are defined to investigate if this is the case.
 
-\paragraph*{Does bootstrapping give an accurate estimation of the error compared to state of the art solutions?} One of the main benefits of VAEs is that, by using batched inference, bootstrapping can be efficiently applied. Furthermore, bootstrapping has been proven to be useful for uncertainty quantification by several previous works \cite{chen2018use,kohl2018probabilistic,edupuganti2021uq_mri}. To measure this quantitavely the Expected Callibration Error, as proposed by ..., will be used. Furt,hermore it should not reduce the accuracy of the segmenation significantly.
+\paragraph*{Does bootstrapping give an accurate estimation of the error compared to state of the art solutions?} One of the main benefits of VAEs is that, by using batched inference, bootstrapping can be efficiently applied. Furthermore, bootstrapping has been proven to be useful for uncertainty quantification by several previous works \cite{chen2018use,kohl2018probabilistic,edupuganti2021uq_mri}. To measure this quantitavely the Expected Callibration Error, as proposed by ..., will be used. Furthermore, it should not reduce the accuracy of the segmenation significantly.
 
 \paragraph*{What is the computational efficientcy of VAEs?} Due to the limited available computing power on mobile robotics it is important to measure the computational efficiency of the proposed model during inference. However, due to constant advancements in (mobile) hardware [\#Cite NVIDIA?], this is not a stationary goal. Furthermore, it is important to compare this with current State of the Art (SOTA) models with comparable computational efficiency.
 
@@ -17,3 +36,32 @@ The labeling of data by humans is very costly, and often the bottleneck of impro
     \item Unlabeled data from the same data distribution (Simulated by taking the entire dataset for pretraining and a subset for finetuning). The goal is to achieve the same accuracy compared
     \item Unlabeled data from a different data distribution (Simulated by taking a different dataset for the pretraining)
 \end{itemize}
+
+
+Mobile Robotics (Semantic SLAM):
+- Comes into contact with novel environments
+UQ is required
+- Real-time (No time for Human in the loop)
+
+
+Constraints/subproblems
+- Limited computational power
+Accuracy/Flops trade-off
+- Data labeling is costly, especially if a sensor breaks and is not produced anymore -> new data distribution
+Can we use pretraining of VAE?
+
+Personal Constraints
+- VAE as foundation model
+Why:
+- Unsupervised pretraining
+- Allows bootstrapping
+- Can do semantic segmentation
+
+Benefits of UQ
+- Smarter labeling/sampling
+
+Not really introduction material
+Metrics:
+Quality: e.g. accuracy, iou, \dots
+UQ metrics: e.g. ECE,
+Computational: e.g. latency, memory, Flops
