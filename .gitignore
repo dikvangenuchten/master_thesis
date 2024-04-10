@@ -480,6 +480,7 @@ TSWLatexianTemp*
 
 # WandB local log folder
 */wandb/*
+wandb
 
 # Test visualization
 */dbg/*

@@ -35,3 +35,12 @@ def bs_model():
 @pytest.fixture(autouse=True)
 def set_wandb_to_offline():
     os.environ["WANDB_MODE"] = "offline"
+
+
+@pytest.fixture()
+def device():
+    import torch
+
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    return torch.device("cpu")

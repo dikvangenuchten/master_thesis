@@ -8,98 +8,167 @@ from torch import distributions
 
 
 class ResBlock(nn.Module):
+    """Residual Convolutional Block
+
+    HParams:
+        inC: The number of input channels
+        outC: The number of output channels
+
+    Input:
+        in Tensor[B, inC, H, W]
+
+    Output:
+        out Tensor[B, outC, H, W]
+
+    """
+
     def __init__(
         self,
         in_channels: int,
         out_channels: int,
-        stride: int,
-        downsample: nn.Module,
-        activation: nn.Module = F.relu,
+        bottleneck_ratio: float = 1.0,
+        activation: nn.Module = F.silu,
     ) -> None:
         super().__init__()
-        self._conv1 = nn.Conv2d(
-            in_channels,
-            out_channels,
-            kernel_size=(3, 3),
-            stride=stride,
-            padding=1,
-        )
-        self._bn1 = nn.BatchNorm2d(out_channels)
-        self._conv2 = nn.Conv2d(
-            out_channels,
-            out_channels,
-            kernel_size=(3, 3),
-            stride=1,
-            padding=1,
-        )
-        self._bn2 = nn.BatchNorm2d(out_channels)
-        self._downsample = downsample
+
+        bottle_filters = max(int(in_channels * bottleneck_ratio), 1)
+        self._residual = in_channels == out_channels
         self._activation = activation
 
-    def forward(self, x) -> torch.Tensor:
-        identity = self._downsample(x)
-
-        out = self._conv1(x)
-        out = self._bn1(out)
-        out = self._activation(out)
-
-        out = self._conv2(out)
-        out = self._bn2(out)
-        out = self._activation(out)
-
-        out = out + identity
-
-        return self._activation(out)
-
-    @classmethod
-    def make_block(
-        cls, in_channels: int, out_channels: int, downsample_factor: int
-    ):
-        """Create a block based on the required dimensions + strides"""
-        assert (
-            downsample_factor % 2 == 0 or downsample_factor == 1
-        ), f"`downsample_factor` must be divisble by 2 or equal to 1, but is {downsample_factor}"
-        # Using conv is more flexible then using pooling and (theoratically) can become a AvgPool
-        downsample = nn.Conv2d(
-            in_channels,
-            out_channels,
-            kernel_size=(downsample_factor, downsample_factor),
-            stride=downsample_factor,
+        self._layers = nn.ModuleList(
+            [
+                # in_filters, out_filters, kernel, stride
+                nn.Conv2d(in_channels, bottle_filters, 1, 1),
+                nn.Conv2d(
+                    bottle_filters, bottle_filters, 3, 1, padding="same"
+                ),
+                nn.Conv2d(
+                    bottle_filters, bottle_filters, 3, 1, padding="same"
+                ),
+                nn.Conv2d(bottle_filters, out_channels, 1, 1),
+            ]
         )
 
-        return cls(
+    def forward(self, x) -> torch.Tensor:
+        identity = x
+        for layer in self._layers:
+            x = layer(x)
+            x = self._activation(x)
+        if self._residual:
+            return x + identity
+        return x
+
+
+class DownSampleBlock(nn.Module):
+    """Downsamples the input
+
+    HParams:
+        inC (int): The number of input channels
+        outC (int): The number of output channels
+        df (int): The downsample factor
+
+    Input:
+        x Tensor[B, inC, W, H]
+
+    Output:
+        x Tensor[B, outC, W/df, H/df]
+
+    """
+
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        downsample_factor: int,
+    ) -> None:
+        super().__init__()
+        self._conv = nn.Conv2d(
             in_channels=in_channels,
             out_channels=out_channels,
+            kernel_size=downsample_factor,
             stride=downsample_factor,
-            downsample=downsample,
         )
+        self._activation = nn.LeakyReLU(0.1)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self._conv(x)
+        return self._activation(x)
 
 
 class EncoderBlock(nn.Module):
-    """The initial encoder block is based on the Efficient-VDVAE paper"""
+    """The initial encoder block is based on the Efficient-VDVAE paper
+
+    It consist of a ResBlock and a downsample block
+
+        |
+        | [B, C_in, W, H]
+        v
+    ---------
+    | ResBl |
+    ---------
+        | [B, C_skip, W, H]
+        L-> Skip connection
+        v
+    ---------
+    | DownS |
+    ---------
+        | [B, C_out, W/d, H/d]
+        v
+        out
+    """
+
+    @classmethod
+    def make_block(
+        cls,
+        in_channels: int,
+        out_channels: int,
+        bottleneck_ratio: float,
+        downsample_factor: int,
+    ):
+        return cls(
+            in_channels,
+            out_channels,
+            out_channels,
+            bottleneck_ratio,
+            downsample_factor,
+        )
 
     def __init__(
-        self, channels: List[int], downsample_factor: int = 2
+        self,
+        in_channels: int,
+        skip_channels: int,
+        out_channels: int,
+        bottleneck_ratio: float,
+        downsample_factor: int,
     ) -> None:
         super().__init__()
-        layers = []
-        for i in range(len(channels) - 1):
-            layers.append(
-                ResBlock.make_block(
-                    in_channels=channels[i],
-                    out_channels=channels[i + 1],
-                    # Only downsample the last layer
-                    downsample_factor=downsample_factor
-                    if i == (len(channels) - 2)
-                    else 1,
-                )
-            )
-        self.layers = nn.ModuleList(layers)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        for layer in self.layers:
-            x = layer(x)
-        return x
+        self._resblock = ResBlock(
+            in_channels=in_channels,
+            out_channels=in_channels,
+            bottleneck_ratio=bottleneck_ratio,
+        )
+
+        self._skip_projection = nn.Conv2d(
+            in_channels=in_channels,
+            out_channels=skip_channels,
+            kernel_size=1,
+            stride=1,
+        )
+
+        self._downblock = DownSampleBlock(
+            in_channels=in_channels,
+            out_channels=out_channels,
+            downsample_factor=downsample_factor,
+        )
+
+    def forward(
+        self, x: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        x = self._resblock(x)
+        skip = self._skip_projection(x)
+        out = self._downblock(x)
+        return out, skip
 
 
 class UnpoolLayer(nn.Module):
@@ -153,20 +222,38 @@ class SampleConvLayer(nn.Module):
 
 
 class DecoderBlock(nn.Module):
+    """DecoderBlock in the VAE
+
+    HParams:
+        inC: The amount of input channels
+        latC: The amount of input channels of the skip connection
+        outC: The amount of output channels
+        expansion: The upscaling of the input
+
+        latC: The amount of internal latent channels
+
+    Inputs:
+        x ([B, inC, H, W]):
+        x_skip (B, skipC, H * expansion, W * expansion):
+
+    Output: Tensor[B, outC, H * expansion, W * expansion]
+    """
+
     @classmethod
     def make_block(
         cls,
         in_channels: int,
         skip_channels: int,
-        latent_channels: int,
         out_channels: int,
+        bottleneck_ratio: float,
         expansion: int,
     ) -> "DecoderBlock":
         return cls(
             in_channels=in_channels,
             skip_channels=skip_channels,
-            latent_channels=latent_channels,
+            latent_channels=32,  # Always 32 in Efficient VDVAE
             out_channels=out_channels,
+            bottleneck_ratio=bottleneck_ratio,
             expansion=expansion,
         )
 
@@ -176,27 +263,37 @@ class DecoderBlock(nn.Module):
         skip_channels: int,
         latent_channels: int,
         out_channels: int,
+        bottleneck_ratio: float,
         expansion: int,
     ) -> None:
         super().__init__()
+        self._params = {
+            "in_channels": in_channels,
+            "skip_channels": skip_channels,
+            "latent_channels": latent_channels,
+            "out_channels": out_channels,
+            "bottleneck_ratio": bottleneck_ratio,
+            "expansion": expansion,
+        }
         self._unpool = UnpoolLayer(
             in_channels, latent_channels, expansion
         )
 
-        self._prior_net = ResBlock.make_block(
-            latent_channels, latent_channels, downsample_factor=1
+        self._prior_net = ResBlock(
+            in_channels=latent_channels, out_channels=latent_channels
         )
         self._prior_layer = SampleConvLayer(latent_channels)
 
-        self._posterior_net = ResBlock.make_block(
-            latent_channels + skip_channels,
-            latent_channels,
-            downsample_factor=1,
+        self._posterior_net = ResBlock(
+            in_channels=latent_channels + skip_channels,
+            out_channels=latent_channels,
         )
         self._posterior_layer = SampleConvLayer(latent_channels)
 
-        self._out_resblock = ResBlock.make_block(
-            latent_channels, out_channels, downsample_factor=1
+        self._out_resblock = ResBlock(
+            in_channels=latent_channels,
+            out_channels=out_channels,
+            bottleneck_ratio=bottleneck_ratio,
         )
 
     def __call__(
@@ -228,7 +325,7 @@ class DecoderBlock(nn.Module):
             dist = prior
 
         if not self.training:
-            z = dist.mean
+            z = dist.scale
         else:
             z = dist.sample()
 
@@ -272,15 +369,18 @@ class SemanticVAE(nn.Module):
         label_channels: int,
         layer_depths: List[int],
         reductions: List[int],
+        bottlenecks: List[float],
     ) -> None:
         super().__init__()
 
         image_layers = [image_channels, *layer_depths]
         self._image_encoder_layers = nn.ModuleList(
             [
-                EncoderBlock(
-                    [image_layers[i], image_layers[i + 1]],
-                    reductions[i],
+                EncoderBlock.make_block(
+                    in_channels=image_layers[i],
+                    out_channels=image_layers[i + 1],
+                    bottleneck_ratio=bottlenecks[i],
+                    downsample_factor=reductions[i],
                 )
                 for i in range(len(image_layers) - 1)
             ]
@@ -288,12 +388,12 @@ class SemanticVAE(nn.Module):
 
         self._image_decoder_layers = nn.ModuleList(
             [
-                DecoderBlock(
+                DecoderBlock.make_block(
                     in_channels=image_layers[-i - 1],
-                    skip_channels=image_layers[-i - 2],
-                    latent_channels=image_layers[-i - 2],
+                    skip_channels=image_layers[-i - 1],
                     out_channels=image_layers[-i - 2],
-                    expansion=reductions[-i],
+                    bottleneck_ratio=bottlenecks[-1 - i],
+                    expansion=reductions[-i - 1],
                 )
                 for i in range(len(image_layers) - 1)
             ]
@@ -302,12 +402,12 @@ class SemanticVAE(nn.Module):
         label_layers = [label_channels, *layer_depths]
         self._label_decoder_layers = nn.ModuleList(
             [
-                DecoderBlock(
+                DecoderBlock.make_block(
                     in_channels=label_layers[-i - 1],
-                    skip_channels=label_layers[-i - 2],
-                    latent_channels=label_layers[-i - 2],
+                    skip_channels=label_layers[-i - 1],
                     out_channels=label_layers[-i - 2],
-                    expansion=reductions[-i],
+                    bottleneck_ratio=bottlenecks[-1 - i],
+                    expansion=reductions[-i - 1],
                 )
                 for i in range(len(label_layers) - 1)
             ]
@@ -327,11 +427,8 @@ class SemanticVAE(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         latent_space, x_skips = self.encode_image(x)
-
-        for layer, x_skip in zip(
-            self._label_decoder_layers, reversed(x_skips)
-        ):
-            latent_space = layer(latent_space, x_skip)
+        mask = self.decode_label(latent_space, x_skips)
+        return mask
 
     def encode_image(
         self, x: torch.Tensor
@@ -346,12 +443,12 @@ class SemanticVAE(nn.Module):
                 latent_space (torch.Tensor): The 'deepest' latent space
                 latent_spaces (List[torch.Tensor]): All latent spaces
         """
-        x_skips = []
+        skips = []
         h = x
         for layer in self._image_encoder_layers:
-            h = layer(h)
-            x_skips.append(h)
-        return h, x_skips
+            h, skip = layer(h)
+            skips.append(skip)
+        return h, skips
 
     def encode_label(self, x: torch.Tensor) -> torch.Tensor:
         raise NotImplementedError
@@ -363,7 +460,7 @@ class SemanticVAE(nn.Module):
     ) -> torch.Tensor:
         x_skip = [] if x_skip is None else x_skip
         for layer, x_skip in zip_longest(
-            self._image_decoder_layers, x_skip
+            self._image_decoder_layers, reversed(x_skip)
         ):
             z = layer(z, x_skip)
         return z
@@ -374,10 +471,10 @@ class SemanticVAE(nn.Module):
         x_skip: Optional[List[torch.Tensor]] = None,
     ) -> torch.Tensor:
         x_skip = [] if x_skip is None else x_skip
-        for layer, x_skip in zip_longest(
-            self._label_decoder_layers, x_skip
+        for layer, x_skip_ in zip_longest(
+            self._label_decoder_layers, reversed(x_skip)
         ):
-            z = layer(z, x_skip)
+            z = layer(z, x_skip_)
         return z
 
     def inference(self, x: torch.Tensor) -> torch.Tensor:

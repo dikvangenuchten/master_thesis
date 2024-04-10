@@ -1,6 +1,8 @@
 import torch
+from torch.utils.data import DataLoader
+from torchvision.transforms import v2 as transforms
 
-import utils # noqa
+import utils  # noqa
 
 import losses
 from models.semantic_vae import SemanticVAE
@@ -14,6 +16,7 @@ def train(
     val_dataset: CoCoDataset,
 ):
     optimizer = torch.optim.Adamax(
+        model.parameters(),
         # Taken from Efficient_VDVAE
         lr=1e-3,
         betas=(0.9, 0.999),
@@ -27,12 +30,12 @@ def train(
     loss_fn = losses.KLDivergence()
 
     trainer = Trainer(
-        train_dataset,
+        DataLoader(train_dataset, batch_size=64),
         model,
         loss_fn=loss_fn,
         optimizer=optimizer,
         scheduler=schedule,
-        eval_dataloader=val_dataset,
+        eval_dataloader=DataLoader(val_dataset, batch_size=64),
         config={},  # TODO ensure all values are hparams
         train_metrics=[],
         eval_metrics=[],
@@ -42,13 +45,29 @@ def train(
 
 
 if __name__ == "__main__":
-    train_dataset = CoCoDataset(
-        "train", output_structure={"input": "img", "target": "img"}
-    )
-    val_dataset = CoCoDataset(
-        "val", output_structure={"input": "img", "target": "img"}
+    image_net_transforms = [
+        # Rescale to [0, 1], then normalize using mean and std of ImageNet1K DS
+        transforms.ToDtype(torch.float32, scale=True),
+        transforms.Normalize(
+            mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+        ),
+    ]
+
+    data_transforms = transforms.Compose(
+        [transforms.Resize((64, 64)), *image_net_transforms]
     )
 
-    model = SemanticVAE(3, 3, [8, 16, 64], [2, 3, 3])
+    train_dataset = CoCoDataset(
+        "train",
+        transform=data_transforms,
+        output_structure={"input": "img", "target": "semantic_mask"},
+    )
+    val_dataset = CoCoDataset(
+        "val",
+        transform=data_transforms,
+        output_structure={"input": "img", "target": "semantic_mask"},
+    )
+
+    model = SemanticVAE(3, 3, [8, 16, 64], [2, 2, 2])
 
     train(model, train_dataset, val_dataset)
