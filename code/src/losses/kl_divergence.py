@@ -20,13 +20,14 @@ class KLDivergence(nn.Module):
 
     def forward(
         self,
-        batch: Dict[str, torch.Tensor],
         model_out: Dict[str, torch.Tensor],
+        batch: Dict[str, torch.Tensor],
     ) -> torch.Tensor:
         posteriors = model_out["posteriors"]
         priors = model_out["priors"]
 
+        loss = 0
         for posterior, prior in zip(posteriors, priors):
-            _loss = nn.functional.kl_div()
-            p_mean, p_std = posterior.chunk(2, dim=1)
-            q_mean, q_std = prior.chunk(2, dim=1)
+            _loss = torch.distributions.kl_divergence(prior, posterior)
+            loss += _loss.mean()
+        return loss

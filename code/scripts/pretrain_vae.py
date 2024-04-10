@@ -68,6 +68,12 @@ if __name__ == "__main__":
         output_structure={"input": "img", "target": "semantic_mask"},
     )
 
-    model = SemanticVAE(3, 3, [8, 16, 64], [2, 2, 2])
+    model = SemanticVAE(
+        3,
+        len(train_dataset.class_map),
+        [8, 16, 64],
+        [2, 2, 2],
+        [1.0, 0.5, 0.5]
+    )
 
     train(model, train_dataset, val_dataset)

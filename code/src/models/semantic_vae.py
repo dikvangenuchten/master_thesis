@@ -1,3 +1,4 @@
+from collections import defaultdict
 from itertools import zip_longest
 
 from typing import Dict, List, Optional, Tuple
@@ -314,6 +315,9 @@ class DecoderBlock(nn.Module):
         # Prior net is a residual block
         residual = self._prior_net(x)
         prior = self._prior_layer(residual)
+        out = {
+            "priors": [*input.get("priors", []), prior],
+        }
 
         if x_skip is not None:
             # This is only the case if no skip connection is present
@@ -321,6 +325,7 @@ class DecoderBlock(nn.Module):
             post = self._posterior_net(torch.cat((x, x_skip), dim=1))
             posterior = self._posterior_layer(post)
             dist = posterior
+            out["posteriors"] = [*input.get("posteriors", []), posterior]
         else:
             dist = prior
 
@@ -329,12 +334,9 @@ class DecoderBlock(nn.Module):
         else:
             z = dist.sample()
 
-        out = residual + z
+        out["out"] = self._out_resblock(residual + z)
 
-        return {
-            "out": self._out_resblock(out),
-            "priors": [*input.get("priors", []), prior],
-        }
+        return out
 
     def posterior(
         self, x: torch.Tensor, x_skip: torch.Tensor
