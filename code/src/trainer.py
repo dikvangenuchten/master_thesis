@@ -113,7 +113,9 @@ class Trainer:
 
         # Save based on start time of run
         self._ckpt_dir = os.path.join(
-            "ckpts", datetime.datetime.now().strftime("%Y/%m/%d-%H:%M")
+            "/datasets",
+            "ckpts",
+            datetime.datetime.now().strftime("%Y/%m/%d-%H:%M"),
         )
 
     @property
@@ -201,18 +203,18 @@ class Trainer:
     def save(self, dir) -> None:
         os.makedirs(dir, exist_ok=True)
 
-        torch.save(
-            self.train_dataloader,
-            os.path.join(dir, "train_dataloader.pt"),
-        )
+        # torch.save(
+        #     self.train_dataloader,
+        #     os.path.join(dir, "train_dataloader.pt"),
+        # )
         torch.save(self.model, os.path.join(dir, "model.pt"))
         torch.save(self.loss_fn, os.path.join(dir, "loss_fn.pt"))
-        torch.save(self.optimizer, os.path.join(dir, "optimizer.pt"))
-        torch.save(self.scheduler, os.path.join(dir, "scheduler.pt"))
-        torch.save(
-            self.eval_dataloader,
-            os.path.join(dir, "eval_dataloader.pt"),
-        )
+        # torch.save(self.optimizer, os.path.join(dir, "optimizer.pt"))
+        # torch.save(self.scheduler, os.path.join(dir, "scheduler.pt"))
+        # torch.save(
+        # self.eval_dataloader,
+        # os.path.join(dir, "eval_dataloader.pt"),
+        # )
         torch.save(
             self.train_metrics, os.path.join(dir, "train_metrics.pt")
         )
