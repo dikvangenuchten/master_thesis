@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Callable, Dict, Optional, Literal, get_args
+from typing import Callable, Dict, List, Optional, Literal, get_args
 from functools import cache
 
 import torch
@@ -10,6 +10,7 @@ from diffusers.models.autoencoders.vae import (
 from PIL import Image as PImage
 from torchvision.tv_tensors import Image, Mask
 from pycocotools.coco import COCO
+import tqdm
 
 from datasets import LatentTensor
 
@@ -74,12 +75,40 @@ class CoCoDataset(torch.utils.data.Dataset):
         self._latents = latents
         self._sample = sample
 
+        frequencies = [0] * (max(self._cat_id_to_semantic.values()) + 1)
+        for annotation in tqdm.tqdm(self._panoptic_anns["annotations"]):
+            for segment in annotation["segments_info"]:
+                id = self._cat_id_to_semantic[segment["category_id"]]
+                frequencies[id] += segment["area"]
+        self._frequencies = frequencies
+        self._weights = None
+
     def __len__(self) -> int:
         return len(self._panoptic_anns["annotations"])
 
     @property
     def class_map(self) -> dict:
         return self._class_map
+
+    @property
+    def class_weights(self) -> List[float]:
+        if self._weights is None:
+            frequencies = [0] * (
+                max(self._cat_id_to_semantic.values()) + 1
+            )
+            for annotation in tqdm.tqdm(
+                self._panoptic_anns["annotations"]
+            ):
+                for segment in annotation["segments_info"]:
+                    id = self._cat_id_to_semantic[
+                        segment["category_id"]
+                    ]
+                    frequencies[id] += segment["area"]
+            self._weights = [
+                sum(frequencies) / (freq * len(frequencies))
+                for freq in frequencies
+            ]
+        return self._weights
 
     @cache
     def _load_latent(self, idx: int) -> torch.Tensor:
