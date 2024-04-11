@@ -75,14 +75,6 @@ class CoCoDataset(torch.utils.data.Dataset):
         self._latents = latents
         self._sample = sample
 
-        frequencies = [0] * (max(self._cat_id_to_semantic.values()) + 1)
-        for annotation in tqdm.tqdm(self._panoptic_anns["annotations"]):
-            for segment in annotation["segments_info"]:
-                id = self._cat_id_to_semantic[segment["category_id"]]
-                frequencies[id] += segment["area"]
-        self._frequencies = frequencies
-        self._weights = None
-
     def __len__(self) -> int:
         return len(self._panoptic_anns["annotations"])
 
