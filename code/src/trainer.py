@@ -144,8 +144,7 @@ class Trainer:
         input.requires_grad_(True)
         model_out = self.model(input)
         # Calculate Loss
-        target = batch["target"]
-        loss = self.loss_fn(model_out, target)
+        loss = self.loss_fn(model_out, batch)
         # Backward
         self._accelerator.backward(loss)
         self.optimizer.step()
@@ -157,7 +156,7 @@ class Trainer:
     def eval_step(self, batch: Dict[str, torch.Tensor]) -> torch.Tensor:
         self.model.eval()
         model_out = self.model(batch["input"])
-        loss = self.loss_fn(model_out, batch["target"])
+        loss = self.loss_fn(model_out, batch)
         step_data = StepData(batch, model_out, loss)
         [metric.update(step_data) for metric in self.eval_metrics]
         return loss.detach()

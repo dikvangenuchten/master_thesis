@@ -44,6 +44,7 @@ def test_trainer_eval_epoch(test_image_batch, trainer):
     post = trainer.model(input)
     assert (pre == post).all(), "Evaluation should not modify model"
 
+
 @pytest.mark.xfail(reason="Saving the dataloader breaks somehow.")
 def test_save_load(
     trainer: Trainer,

@@ -325,7 +325,10 @@ class DecoderBlock(nn.Module):
             post = self._posterior_net(torch.cat((x, x_skip), dim=1))
             posterior = self._posterior_layer(post)
             dist = posterior
-            out["posteriors"] = [*input.get("posteriors", []), posterior]
+            out["posteriors"] = [
+                *input.get("posteriors", []),
+                posterior,
+            ]
         else:
             dist = prior
 
