@@ -74,6 +74,7 @@ class CoCoDataset(torch.utils.data.Dataset):
         self.ignore_index = len(self.class_map)
         self._latents = latents
         self._sample = sample
+        self._weights = None
 
     def __len__(self) -> int:
         return len(self._panoptic_anns["annotations"])
@@ -155,7 +156,7 @@ class CoCoDataset(torch.utils.data.Dataset):
 
         # Set unlabeled values
         sem_mask[mask.sum(0) == 0] = len(self.class_map)
-        return Mask(sem_mask.unsqueeze(0))
+        return Mask(sem_mask)
 
         ins_mask = torch.zeros_like(instance_mask, dtype=torch.long)
         for new_id, old_id in enumerate(instance_mask.unique()):
