@@ -1,3 +1,4 @@
+import os
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
@@ -33,7 +34,7 @@ def train(
     # TODO: Create a weighted loss combiner
     loss_fn = losses.SummedLoss(
         losses=[
-            losses.WeightedLoss(losses.KLDivergence(), 0.1),
+            # losses.WeightedLoss(losses.KLDivergence(), 0.1),
             losses.WeightedLoss(
                 losses.WrappedLoss(
                     nn.CrossEntropyLoss(
@@ -49,12 +50,12 @@ def train(
     )
 
     trainer = Trainer(
-        DataLoader(train_dataset, batch_size=64),
+        DataLoader(train_dataset, batch_size=256),
         model,
         loss_fn=loss_fn,
         optimizer=optimizer,
         scheduler=schedule,
-        eval_dataloader=DataLoader(val_dataset, batch_size=64),
+        eval_dataloader=DataLoader(val_dataset, batch_size=256),
         config={},  # TODO ensure all values are hparams
         train_metrics=[],
         eval_metrics=[],
@@ -64,6 +65,8 @@ def train(
 
 
 if __name__ == "__main__":
+    dataset_root = "/home/mcs001/20182591/data/"
+    
     image_net_transforms = [
         # Rescale to [0, 1], then normalize using mean and std of ImageNet1K DS
         transforms.ToDtype(torch.float32, scale=True),
@@ -73,25 +76,27 @@ if __name__ == "__main__":
     ]
 
     data_transforms = transforms.Compose(
-        [transforms.Resize((64, 64)), *image_net_transforms]
+        [transforms.Resize((128, 128)), *image_net_transforms]
     )
 
     train_dataset = datasets.CoCoDataset(
         "train",
         transform=data_transforms,
         output_structure={"input": "img", "target": "semantic_mask"},
+        base_path=os.path.join(dataset_root, "coco")
     )
     val_dataset = datasets.CoCoDataset(
         "val",
         transform=data_transforms,
         output_structure={"input": "img", "target": "semantic_mask"},
+        base_path=os.path.join(dataset_root, "coco")
     )
 
     model = SemanticVAE(
         3,
         len(train_dataset.class_map),
-        [64, 64, 128, 128, 128, 512, 512],
-        [2, 1, 2, 1, 2, 1, 1],
+        [32, 32, 64, 64, 128, 256, 512],
+        [2, 2, 2, 1, 2, 1, 2],
         [1.0, 0.5, 0.5, 0.5, 0.5, 0.5, 1.0],
     )
 

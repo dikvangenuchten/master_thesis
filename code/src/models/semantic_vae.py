@@ -35,6 +35,7 @@ class ResBlock(nn.Module):
         bottle_filters = max(int(in_channels * bottleneck_ratio), 1)
         self._residual = in_channels == out_channels
         self._activation = activation
+        self._bn = nn.BatchNorm2d(in_channels)
 
         self._layers = nn.ModuleList(
             [
@@ -51,10 +52,11 @@ class ResBlock(nn.Module):
         )
 
     def forward(self, x) -> torch.Tensor:
+        x = self._bn(x)
         identity = x
         for layer in self._layers:
-            x = layer(x)
             x = self._activation(x)
+            x = layer(x)
         if self._residual:
             return x + identity
         return x
@@ -340,7 +342,8 @@ class DecoderBlock(nn.Module):
         if not self.training:
             z = dist.scale
         else:
-            z = dist.sample()
+            # z = dist.sample()
+            z = dist.scale
 
         z_proj = self._z_projection(z)
         out["out"] = self._out_resblock(residual + z_proj)
