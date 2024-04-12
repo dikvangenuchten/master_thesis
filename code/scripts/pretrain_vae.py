@@ -1,4 +1,5 @@
 import torch
+from torch import nn
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2 as transforms
 
@@ -6,14 +7,14 @@ import utils  # noqa
 
 import losses
 from models.semantic_vae import SemanticVAE
-from datasets.coco import CoCoDataset
+import datasets
 from trainer import Trainer
 
 
 def train(
     model: SemanticVAE,
-    train_dataset: CoCoDataset,
-    val_dataset: CoCoDataset,
+    train_dataset: datasets.CoCoDataset,
+    val_dataset: datasets.CoCoDataset,
 ):
     optimizer = torch.optim.Adamax(
         model.parameters(),
@@ -27,7 +28,24 @@ def train(
         optimizer=optimizer, T_max=750000, eta_min=2e-4
     )
 
-    loss_fn = losses.KLDivergence()
+    # TODO: Add the semantic loss
+    # TODO: Create a weighted loss combiner
+    loss_fn = losses.SummedLoss(
+        losses=[
+            losses.WeightedLoss(losses.KLDivergence(), 0.1),
+            losses.WeightedLoss(
+                losses.WrappedLoss(
+                    nn.CrossEntropyLoss(
+                        weight=torch.tensor(
+                            train_dataset.class_weights, device="cuda"
+                        ),
+                        ignore_index=133,
+                    )
+                ),
+                1,
+            ),
+        ]
+    )
 
     trainer = Trainer(
         DataLoader(train_dataset, batch_size=64),
@@ -57,12 +75,12 @@ if __name__ == "__main__":
         [transforms.Resize((64, 64)), *image_net_transforms]
     )
 
-    train_dataset = CoCoDataset(
+    train_dataset = datasets.CoCoDataset(
         "train",
         transform=data_transforms,
         output_structure={"input": "img", "target": "semantic_mask"},
     )
-    val_dataset = CoCoDataset(
+    val_dataset = datasets.CoCoDataset(
         "val",
         transform=data_transforms,
         output_structure={"input": "img", "target": "semantic_mask"},
@@ -71,9 +89,9 @@ if __name__ == "__main__":
     model = SemanticVAE(
         3,
         len(train_dataset.class_map),
-        [8, 16, 64],
-        [2, 2, 2],
-        [1.0, 0.5, 0.5]
+        [8, 16, 32, 64, 128, 512, 512],
+        [2, 1, 2, 1, 2, 1, 1],
+        [1.0, 0.5, 0.5, 0.5, 0.5, 0.5, 1.0],
     )
 
     train(model, train_dataset, val_dataset)
