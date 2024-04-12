@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2 as transforms
+from torchinfo import summary
 
 import utils  # noqa
 
@@ -89,9 +90,10 @@ if __name__ == "__main__":
     model = SemanticVAE(
         3,
         len(train_dataset.class_map),
-        [8, 16, 32, 64, 128, 512, 512],
+        [64, 64, 128, 128, 128, 512, 512],
         [2, 1, 2, 1, 2, 1, 1],
         [1.0, 0.5, 0.5, 0.5, 0.5, 0.5, 1.0],
     )
 
+    summary(model.to("cuda"), (1, 3, 256, 256))
     train(model, train_dataset, val_dataset)

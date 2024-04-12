@@ -277,22 +277,27 @@ class DecoderBlock(nn.Module):
             "expansion": expansion,
         }
         self._unpool = UnpoolLayer(
-            in_channels, latent_channels, expansion
+            in_channels, skip_channels, expansion
         )
 
         self._prior_net = ResBlock(
-            in_channels=latent_channels, out_channels=latent_channels
+            in_channels=skip_channels, out_channels=skip_channels
         )
-        self._prior_layer = SampleConvLayer(latent_channels)
+        self._prior_layer = SampleConvLayer(skip_channels, latent_channels)
 
         self._posterior_net = ResBlock(
-            in_channels=latent_channels + skip_channels,
-            out_channels=latent_channels,
+            in_channels=skip_channels + skip_channels,
+            out_channels=skip_channels,
         )
-        self._posterior_layer = SampleConvLayer(latent_channels)
+        self._posterior_layer = SampleConvLayer(skip_channels, latent_channels)
+        
+        self._z_projection = nn.Sequential(
+            nn.Conv2d(latent_channels, skip_channels, 1, 1),
+            nn.SiLU()
+        )
 
         self._out_resblock = ResBlock(
-            in_channels=latent_channels,
+            in_channels=skip_channels,
             out_channels=out_channels,
             bottleneck_ratio=bottleneck_ratio,
         )
@@ -337,7 +342,8 @@ class DecoderBlock(nn.Module):
         else:
             z = dist.sample()
 
-        out["out"] = self._out_resblock(residual + z)
+        z_proj = self._z_projection(z)
+        out["out"] = self._out_resblock(residual + z_proj)
 
         return out
 
