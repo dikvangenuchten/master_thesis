@@ -8,7 +8,8 @@ try:
     import fiftyone
 
     fiftyone.config.do_not_track = True
-except ModuleNotFoundError:
+except Exception as e:
+    print(f"Could not load fiftyone ({e})")
     fiftyone = None
 import tqdm
 
