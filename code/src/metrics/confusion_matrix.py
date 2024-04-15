@@ -51,12 +51,12 @@ class ConfusionMetrics(BaseMetric):
 
     def update(self, step_data: StepData):
         y_true = step_data.batch["target"]
-        y_pred = step_data.model_out.out
+        y_pred = step_data.model_out["out"]
         if y_true.shape != y_pred.shape:
             mask = y_true != self.ignore_index
-            y_true = mask * F.one_hot(
+            y_true = mask.unsqueeze(1) * F.one_hot(
                 mask * y_true, num_classes=self.num_classes
-            ).permute(0, -1, 1, 2).squeeze(-1)
+            ).permute(0, -1, 1, 2)
         self._confusion_matrix.to(device=y_pred.device)
         self._confusion_matrix.update(y_pred, y_true)
 
