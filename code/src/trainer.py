@@ -214,12 +214,12 @@ class Trainer:
         # self.eval_dataloader,
         # os.path.join(dir, "eval_dataloader.pt"),
         # )
-        torch.save(
-            self.train_metrics, os.path.join(dir, "train_metrics.pt")
-        )
-        torch.save(
-            self.eval_metrics, os.path.join(dir, "eval_metrics.pt")
-        )
+        # torch.save(
+        #     self.train_metrics, os.path.join(dir, "train_metrics.pt")
+        # )
+        # torch.save(
+        #     self.eval_metrics, os.path.join(dir, "eval_metrics.pt")
+        # )
         self._accelerator.save_state(dir)
 
     @classmethod
