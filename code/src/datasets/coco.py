@@ -1,6 +1,14 @@
 import json
 import os
-from typing import Callable, Dict, List, Optional, Literal, get_args
+from typing import (
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Literal,
+    Tuple,
+    get_args,
+)
 from functools import cache
 
 import torch
@@ -32,7 +40,9 @@ class CoCoDataset(torch.utils.data.Dataset):
         latents: bool = False,
         sample: bool = True,
         num_classes: Optional[int] = None,
+        length: Optional[int] = None,
     ):
+        self._length = length
         unsuported_outs = {
             k: v
             for k, v in output_structure.items()
@@ -77,7 +87,11 @@ class CoCoDataset(torch.utils.data.Dataset):
         self._weights = None
 
     def __len__(self) -> int:
-        return len(self._panoptic_anns["annotations"])
+        if self._length is None:
+            return len(self._panoptic_anns["annotations"])
+        return min(
+            self._length, len(self._panoptic_anns["annotations"])
+        )
 
     @property
     def class_map(self) -> dict:
