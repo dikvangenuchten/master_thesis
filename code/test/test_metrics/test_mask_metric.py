@@ -20,6 +20,8 @@ def test_mask_metric(dataset):
     perfect_out = torch.nn.functional.one_hot(batch["target"])[
         ..., :133
     ]
+    # Model output shape is [B, C, H, W]
+    perfect_out = perfect_out.permute(0, 3, 1, 2)
 
     model_prediction = {"out": perfect_out}
     step_data = StepData(

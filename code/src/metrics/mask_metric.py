@@ -46,8 +46,8 @@ class MaskMetric(BaseMetric):
     def compute(self) -> Tensor:
         images = []
         imgs, gt_masks, pr_masks = self._first_batch
-        pr_masks_val = pr_masks.argmax(-1)
-        pr_masks_scr = pr_masks.max(-1)
+        pr_masks_val = pr_masks.argmax(1)
+        pr_masks_scr = pr_masks.max(1)
         pr_masks_val[pr_masks_scr < self._threshold] = len(
             self.class_labels
         )
