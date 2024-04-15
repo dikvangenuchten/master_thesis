@@ -37,6 +37,41 @@ def set_wandb_to_offline():
     os.environ["WANDB_MODE"] = "offline"
 
 
+@pytest.fixture(scope="session")
+def dataset(test_image):
+    import torch
+    from torchvision.transforms import v2 as transforms
+    from datasets import CoCoDataset
+
+    image_net_transforms = [
+        # Rescale to [0, 1], then normalize using mean and std of ImageNet1K DS
+        transforms.ToDtype(torch.float32, scale=True),
+        transforms.Normalize(
+            mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+        ),
+    ]
+
+    data_transforms = transforms.Compose(
+        [transforms.Resize((64, 64)), *image_net_transforms]
+    )
+
+    ds = CoCoDataset(
+        split="val",
+        output_structure={"input": "img", "target": "semantic_mask"},
+        base_path="test/data/coco",
+        transform=data_transforms,
+    )
+
+    return ds
+
+
+@pytest.fixture(scope="session")
+def dataloader(dataset):
+    from torch.utils.data.dataloader import DataLoader
+
+    return DataLoader(dataset, batch_size=4)
+
+
 @pytest.fixture()
 def device():
     import torch
