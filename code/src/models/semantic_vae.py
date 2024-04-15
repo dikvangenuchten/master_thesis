@@ -285,17 +285,20 @@ class DecoderBlock(nn.Module):
         self._prior_net = ResBlock(
             in_channels=skip_channels, out_channels=skip_channels
         )
-        self._prior_layer = SampleConvLayer(skip_channels, latent_channels)
+        self._prior_layer = SampleConvLayer(
+            skip_channels, latent_channels
+        )
 
         self._posterior_net = ResBlock(
             in_channels=skip_channels + skip_channels,
             out_channels=skip_channels,
         )
-        self._posterior_layer = SampleConvLayer(skip_channels, latent_channels)
-        
+        self._posterior_layer = SampleConvLayer(
+            skip_channels, latent_channels
+        )
+
         self._z_projection = nn.Sequential(
-            nn.Conv2d(latent_channels, skip_channels, 1, 1),
-            nn.SiLU()
+            nn.Conv2d(latent_channels, skip_channels, 1, 1), nn.SiLU()
         )
 
         self._out_resblock = ResBlock(
@@ -342,8 +345,8 @@ class DecoderBlock(nn.Module):
         if not self.training:
             z = dist.scale
         else:
-            # z = dist.sample()
-            z = dist.scale
+            z = dist.rsample()
+            # z = dist.scale
 
         z_proj = self._z_projection(z)
         out["out"] = self._out_resblock(residual + z_proj)

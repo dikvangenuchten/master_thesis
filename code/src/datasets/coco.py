@@ -112,7 +112,7 @@ class CoCoDataset(torch.utils.data.Dataset):
             dist = DiagonalGaussianDistribution(
                 parameters=parameters.unsqueeze(0)
             )
-            return LatentTensor(dist.sample().squeeze(0))
+            return LatentTensor(dist.rsample().squeeze(0))
         else:
             mean, _logvar = parameters.chunk(parameters, 2, dim=0)
             return LatentTensor(mean)
