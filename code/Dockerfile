@@ -14,6 +14,10 @@ COPY requirements-dev.tx[t] .
 # Create the file if it not exists, then install using pip
 RUN touch requirements-dev.txt && pip install -r requirements-dev.txt
 
+# Apply patches
+COPY patches patches
+RUN cp patches/layer_info.py /usr/local/lib/python3.10/dist-packages/torchinfo/layer_info.py
+
 # Create the user
 RUN groupadd --gid $USER_GID $USERNAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
