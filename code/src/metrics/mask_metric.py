@@ -16,18 +16,15 @@ class MaskMetric(BaseMetric):
         self._first_batch = None
         self._limit = limit
         self.class_labels = class_labels
-        self._image_label = "image"
+        self._image_label = "input"
         self._target_label = "target"
 
     def update(self, step_data: StepData):
         if self._first_batch is None:
             x = step_data.batch[self._image_label]
             y_true = step_data.batch[self._target_label]
-            y_pred = step_data.model_out.out
-            if y_true.ndim != y_pred.ndim:
-                y_true = torch.nn.functional.one_hot(y_true).permute(
-                    0, -1, 1, 2
-                )
+            y_pred = step_data.model_out["out"]
+
             if x.shape[0] > self._limit:
                 x, y_true, y_pred = (
                     x[: self._limit],
@@ -37,9 +34,7 @@ class MaskMetric(BaseMetric):
             # Convert from BCHW to BHWC
             self._first_batch = (
                 np.transpose(x.detach().cpu().numpy(), (0, 2, 3, 1)),
-                np.transpose(
-                    y_true.detach().cpu().numpy(), (0, 2, 3, 1)
-                ),
+                y_true.detach().cpu().numpy(),
                 np.transpose(
                     y_pred.detach().cpu().numpy(), (0, 2, 3, 1)
                 ),
@@ -57,7 +52,7 @@ class MaskMetric(BaseMetric):
                             "class_labels": self.class_labels,
                         },
                         "ground_truth": {
-                            "mask_data": gt_mask[..., 0],
+                            "mask_data": gt_mask,
                             "class_labels": self.class_labels,
                         },
                     },
