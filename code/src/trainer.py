@@ -75,6 +75,13 @@ class Trainer:
             project_name="MasterThesis", config=config
         )
 
+        if "wandb" in log_with:
+            import wandb
+
+            wandb.watch(
+                models=model, criterion=loss_fn, log="all", log_freq=100
+            )
+
         if scheduler is None:
             # If no scheduler is given create a 'constant' scheduler
             scheduler = optim.lr_scheduler.LambdaLR(
@@ -206,10 +213,20 @@ class Trainer:
         #     self.train_dataloader,
         #     os.path.join(dir, "train_dataloader.pt"),
         # )
-        torch.save(self.model, os.path.join(dir, "model.pt"))
-        torch.save(self.loss_fn, os.path.join(dir, "loss_fn.pt"))
-        # torch.save(self.optimizer, os.path.join(dir, "optimizer.pt"))
-        # torch.save(self.scheduler, os.path.join(dir, "scheduler.pt"))
+        torch.save(
+            self.model.state_dict(), os.path.join(dir, "model.pt")
+        )
+        torch.save(
+            self.loss_fn.state_dict(), os.path.join(dir, "loss_fn.pt")
+        )
+        torch.save(
+            self.optimizer.state_dict(),
+            os.path.join(dir, "optimizer.pt"),
+        )
+        torch.save(
+            self.scheduler.state_dict(),
+            os.path.join(dir, "scheduler.pt"),
+        )
         # torch.save(
         # self.eval_dataloader,
         # os.path.join(dir, "eval_dataloader.pt"),
