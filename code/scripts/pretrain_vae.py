@@ -11,6 +11,7 @@ import losses
 from models.semantic_vae import SemanticVAE
 import datasets
 from trainer import Trainer
+import metrics
 
 
 def train(
@@ -41,7 +42,7 @@ def train(
                         weight=torch.tensor(
                             train_dataset.class_weights, device="cuda"
                         ),
-                        ignore_index=133,
+                        ignore_index=len(train_dataset.class_weights),
                     )
                 ),
                 1,
@@ -49,24 +50,51 @@ def train(
         ]
     )
 
+    num_classes = ignore_index = len(train_dataset.class_map)
+    train_metrics = [
+        metrics.AverageMetric(
+            "TrainAverageLoss", lambda step_data: step_data.loss
+        ),
+        metrics.MaskMetric("TrainMaskMetric", train_dataset.class_map),
+        metrics.ConfusionMetrics(
+            "ConfusionMetrics",
+            num_classes,
+            ignore_index=ignore_index,
+            prefix="Train",
+        ),
+    ]
+
+    eval_metrics = [
+        metrics.AverageMetric(
+            "EvalAverageLoss", lambda step_data: step_data.loss
+        ),
+        metrics.MaskMetric("EvalMaskMetric", train_dataset.class_map),
+        metrics.ConfusionMetrics(
+            "ConfusionMetrics",
+            num_classes,
+            ignore_index=ignore_index,
+            prefix="Eval",
+        ),
+    ]
+
     trainer = Trainer(
-        DataLoader(train_dataset, batch_size=256),
+        DataLoader(train_dataset, batch_size=16),
         model,
         loss_fn=loss_fn,
         optimizer=optimizer,
         scheduler=schedule,
-        eval_dataloader=DataLoader(val_dataset, batch_size=256),
+        eval_dataloader=DataLoader(val_dataset, batch_size=16),
         config={},  # TODO ensure all values are hparams
-        train_metrics=[],
-        eval_metrics=[],
+        train_metrics=train_metrics,
+        eval_metrics=eval_metrics,
     )
 
-    trainer.steps(1000)
+    trainer.steps(100_000)
 
 
 if __name__ == "__main__":
-    dataset_root = "/home/mcs001/20182591/data/"
-    
+    dataset_root = "/datasets/"
+
     image_net_transforms = [
         # Rescale to [0, 1], then normalize using mean and std of ImageNet1K DS
         transforms.ToDtype(torch.float32, scale=True),
@@ -76,29 +104,30 @@ if __name__ == "__main__":
     ]
 
     data_transforms = transforms.Compose(
-        [transforms.Resize((128, 128)), *image_net_transforms]
+        [transforms.Resize((64, 64)), *image_net_transforms]
     )
 
     train_dataset = datasets.CoCoDataset(
         "train",
         transform=data_transforms,
         output_structure={"input": "img", "target": "semantic_mask"},
-        base_path=os.path.join(dataset_root, "coco")
+        base_path=os.path.join(dataset_root, "coco"),
+        length=64,
     )
     val_dataset = datasets.CoCoDataset(
         "val",
         transform=data_transforms,
         output_structure={"input": "img", "target": "semantic_mask"},
-        base_path=os.path.join(dataset_root, "coco")
+        base_path=os.path.join(dataset_root, "coco"),
     )
 
     model = SemanticVAE(
         3,
         len(train_dataset.class_map),
-        [32, 32, 64, 64, 128, 256, 512],
-        [2, 2, 2, 1, 2, 1, 2],
-        [1.0, 0.5, 0.5, 0.5, 0.5, 0.5, 1.0],
+        [16, 32, 64, 128, 256],
+        [1, 2, 2, 2, 2],
+        [1.0, 1.0, 1.0, 1.0, 1.0],
     )
 
-    summary(model.to("cuda"), (1, 3, 256, 256))
+    summary(model.to("cuda"), (1, 3, 64, 64))
     train(model, train_dataset, val_dataset)

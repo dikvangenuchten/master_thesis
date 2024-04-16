@@ -11,6 +11,7 @@ from torch.utils import data
 from tqdm import tqdm, trange
 
 from metrics.base_metric import BaseMetric, StepData
+from losses import SummedLoss
 from losses.gradient_penalty import GradientPenalty
 
 
@@ -111,6 +112,13 @@ class Trainer:
         self.train_dataloader = train_dataloader
         self.model = model
         self.loss_fn = loss_fn
+        if isinstance(self.loss_fn, SummedLoss):
+            self.loss_fn.add_log_callback(
+                lambda name, val: self._accelerator.log(
+                    {name: val}, log_kwargs={"wandb": {"commit": False}}
+                )
+            )
+
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.eval_dataloader = eval_dataloader
@@ -148,7 +156,6 @@ class Trainer:
         self.optimizer.zero_grad()
         # Forward pass
         input = batch["input"]
-        input.requires_grad_(True)
         model_out = self.model(input)
         # Calculate Loss
         loss = self.loss_fn(model_out, batch)

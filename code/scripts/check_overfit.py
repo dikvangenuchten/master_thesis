@@ -38,7 +38,7 @@ def train(
     # TODO: Create a weighted loss combiner
     loss_fn = losses.SummedLoss(
         losses=[
-            losses.WeightedLoss(losses.KLDivergence(), 0.1),
+            losses.WeightedLoss(losses.HierarchicalKLDivergence(), 0.1),
             losses.WeightedLoss(
                 losses.WrappedLoss(
                     nn.CrossEntropyLoss(

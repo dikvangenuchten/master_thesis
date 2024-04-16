@@ -1,11 +1,11 @@
-from typing import Optional, Dict, List
+from typing import Callable, Optional, Dict, List
 
 import torch
 from torch import nn
 
 from .duq_loss import DUQLoss
 from .gradient_penalty import GradientPenalty
-from .kl_divergence import KLDivergence
+from .kl_divergence import HierarchicalKLDivergence
 
 
 class WrappedLoss(nn.Module):
@@ -68,15 +68,31 @@ class SummedLoss(nn.Module):
     ) -> None:
         super().__init__(*args, **kwargs)
         self._losses = nn.ModuleList(losses)
+        self._handles = []
 
     def forward(self, *args, **kwargs) -> torch.Tensor:
         return sum(fn(*args, **kwargs) for fn in self._losses)
+
+    def add_log_callback(self, fn: Callable[[str, torch.Tensor], None]):
+        """Adds a logging callback
+
+        Args:
+            fn (Callable[[str, torch.Tensor]]): The callback function
+                Signature should be: fn(loss_name: str, loss: torch.Tensor)
+                Return value is ignored.
+        """
+
+        def _hook_logger(module, args, output):
+            # TODO: Not all modules have `__name__` set.
+            fn(module.__class__.__name__, output)
+
+        self._handles.extend(fn.register_forward_hook(_hook_logger) for fn in self._losses)
 
 
 __all__ = [
     "DUQLoss",
     "GradientPenalty",
-    "KLDivergence",
+    "HierarchicalKLDivergence",
     "WeightedLoss",
     "WrappedLoss",
     "SummedLoss",
