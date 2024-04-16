@@ -250,11 +250,12 @@ class DecoderBlock(nn.Module):
         out_channels: int,
         bottleneck_ratio: float,
         expansion: int,
+        latent_channels: int = 32,  # Always 32 in Efficient VDVAE
     ) -> "DecoderBlock":
         return cls(
             in_channels=in_channels,
             skip_channels=skip_channels,
-            latent_channels=32,  # Always 32 in Efficient VDVAE
+            latent_channels=latent_channels,
             out_channels=out_channels,
             bottleneck_ratio=bottleneck_ratio,
             expansion=expansion,
@@ -343,10 +344,9 @@ class DecoderBlock(nn.Module):
             dist = prior
 
         if not self.training:
-            z = dist.scale
+            z = dist.loc
         else:
             z = dist.rsample()
-            # z = dist.scale
 
         z_proj = self._z_projection(z)
         out["out"] = self._out_resblock(residual + z_proj)
@@ -389,6 +389,10 @@ class SemanticVAE(nn.Module):
         bottlenecks: List[float],
     ) -> None:
         super().__init__()
+
+        assert (
+            len(layer_depths) == len(reductions) == len(bottlenecks)
+        ), "`layer_depths`, `reductions` and, `bottlenecks` should all be the same length"
 
         image_layers = [image_channels, *layer_depths]
         self._image_encoder_layers = nn.ModuleList(

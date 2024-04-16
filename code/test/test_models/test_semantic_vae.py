@@ -6,12 +6,14 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 import torch
+from torch import nn
 from models.semantic_vae import (
     DecoderBlock,
     DownSampleBlock,
     EncoderBlock,
     ResBlock,
     SemanticVAE,
+    SampleConvLayer,
 )
 
 
@@ -150,6 +152,50 @@ def test_decoder_make(
     assert (
         expected_out_shape == out.shape
     ), "Shape is incorrect for input with skip connections"
+
+
+def test_sample_conv_train_vs_test(true_or_false: bool):
+    batch_size = 2**10
+
+    in_c = skip_c = 1
+    out_c = latent_c = 1
+    expansion = 1
+
+    block = DecoderBlock.make_block(
+        in_c, skip_c, latent_c, out_c, expansion, latent_channels=1
+    )
+
+    # Check that inference near to equal for train and test
+    input = torch.rand((1, in_c, 1, 1)).expand(batch_size, -1, -1, -1)
+    x_skip_input = (
+        torch.rand((1, skip_c, 1, 1)).expand(batch_size, -1, -1, -1)
+        if true_or_false
+        else None
+    )
+
+    block.train()
+
+    # Turn off bn as it breaks the checks further down
+    def disable_bn(module):
+        """Disables BN training mode"""
+        if isinstance(module, nn.BatchNorm2d):
+            module.train(False)
+
+    block.apply(disable_bn)
+    train_out = block(input, x_skip_input)
+
+    block.eval()
+    test_out = block(input, x_skip_input)
+
+    assert all(
+        torch.equal(test_out["out"][i - 1], test_out["out"][i])
+        for i in range(1, 64)
+    ), "Inference should be deterministic"
+    # Due to the activation functions the output of this layer is not normally distributed (Only the prior/posterior are)
+    # However as the median == mean for the posteriors, the median does not shift as much as the mean after activation
+    assert torch.allclose(
+        train_out["out"].median(0)[0], test_out["out"][0], atol=0.1
+    )
 
 
 @pytest.mark.parametrize(
