@@ -1,4 +1,3 @@
-from collections import defaultdict
 from itertools import zip_longest
 
 from typing import Dict, List, Optional, Tuple
@@ -20,7 +19,6 @@ class ResBlock(nn.Module):
 
     Output:
         out Tensor[B, outC, H, W]
-
     """
 
     def __init__(
@@ -28,7 +26,7 @@ class ResBlock(nn.Module):
         in_channels: int,
         out_channels: int,
         bottleneck_ratio: float = 1.0,
-        activation: nn.Module = F.silu,
+        activation: nn.Module = F.relu,
     ) -> None:
         super().__init__()
 
@@ -299,7 +297,7 @@ class DecoderBlock(nn.Module):
         )
 
         self._z_projection = nn.Sequential(
-            nn.Conv2d(latent_channels, skip_channels, 1, 1), nn.SiLU()
+            nn.Conv2d(latent_channels, skip_channels, 1, 1), nn.ReLU()
         )
 
         self._out_resblock = ResBlock(
@@ -393,6 +391,12 @@ class SemanticVAE(nn.Module):
         assert (
             len(layer_depths) == len(reductions) == len(bottlenecks)
         ), "`layer_depths`, `reductions` and, `bottlenecks` should all be the same length"
+        
+        self._image_channels = image_channels
+        self._label_channels = label_channels
+        self._layer_depths = layer_depths
+        self._reductions = reductions
+        self._bottlenecks = bottlenecks
 
         image_layers = [image_channels, *layer_depths]
         self._image_encoder_layers = nn.ModuleList(
@@ -433,6 +437,11 @@ class SemanticVAE(nn.Module):
                 for i in range(len(label_layers) - 1)
             ]
         )
+        
+        # TODO: Determine if we want a seperate one for image and label
+        # TODO: Determine if it is required for it to be equal to the latent dimension
+        self._learnable_latent = nn.Parameter(torch.empty(size=(1, layer_depths[-1], 1, 1)))
+        nn.init.kaiming_uniform_(self._learnable_latent, nonlinearity="linear")
 
     @classmethod
     def default(
@@ -447,8 +456,8 @@ class SemanticVAE(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        latent_space, x_skips = self.encode_image(x)
-        mask = self.decode_label(latent_space, x_skips)
+        x_skips = self.encode_image(x)
+        mask = self.decode_label(x_skips)
         return mask
 
     def encode_image(
@@ -469,17 +478,25 @@ class SemanticVAE(nn.Module):
         for layer in self._image_encoder_layers:
             h, skip = layer(h)
             skips.append(skip)
-        return h, skips
+        return skips
 
     def encode_label(self, x: torch.Tensor) -> torch.Tensor:
         raise NotImplementedError
 
     def decode_image(
         self,
-        z: torch.Tensor,
         x_skip: Optional[List[torch.Tensor]] = None,
+        z_dim: Optional[Tuple[int, int, int]] = None,
     ) -> torch.Tensor:
-        x_skip = [] if x_skip is None else x_skip
+        if x_skip is None:
+            x_skip = []
+            b, h, w = z_dim
+        else:
+            b, _, h, w = x_skip[-1].shape
+            h = h // self._reductions[-1]
+            w = w // self._reductions[-1]
+        z = self._learnable_latent.expand(b, -1, h, w)
+
         for layer, x_skip in zip_longest(
             self._image_decoder_layers, reversed(x_skip)
         ):
@@ -488,10 +505,18 @@ class SemanticVAE(nn.Module):
 
     def decode_label(
         self,
-        z: torch.Tensor,
         x_skip: Optional[List[torch.Tensor]] = None,
+        z_dim: Optional[Tuple[int, int, int]] = None,
     ) -> torch.Tensor:
-        x_skip = [] if x_skip is None else x_skip
+        if x_skip is None:
+            x_skip = []
+            b, h, w = z_dim
+        else:
+            b, _, h, w = x_skip[-1].shape
+            h = h // self._reductions[-1]
+            w = w // self._reductions[-1]
+        z = self._learnable_latent.expand(b, -1, h, w)
+
         for layer, x_skip_ in zip_longest(
             self._label_decoder_layers, reversed(x_skip)
         ):
@@ -499,7 +524,5 @@ class SemanticVAE(nn.Module):
         return z
 
     def inference(self, x: torch.Tensor) -> torch.Tensor:
-        z = self.encode_image(x)
-        # TODO: Take mean
-        mean = z
-        return self.decode_image(mean)
+        x_skip = self.encode_image(x)
+        return self.decode_image(x_skip)
