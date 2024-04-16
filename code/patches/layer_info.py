@@ -121,20 +121,26 @@ class LayerInfo:
 
         elif isinstance(inputs, np.ndarray):
             inputs_ = torch.from_numpy(inputs)
-            size, elem_bytes = list(inputs_.size()), inputs_.element_size()
+            size, elem_bytes = (
+                list(inputs_.size()),
+                inputs_.element_size(),
+            )
 
         elif isinstance(inputs, (list, tuple)):
             size, elem_bytes = nested_list_size(inputs)
             if batch_dim is not None and batch_dim < len(size):
                 size[batch_dim] = 1
-        
+
         # PATCH
-        elif isinstance(inputs, torch.distributions.Distribution) and inputs.has_rsample:
+        elif (
+            isinstance(inputs, torch.distributions.Distribution)
+            and inputs.has_rsample
+        ):
             sample = inputs.rsample()
             size = list(sample.size())
             elem_bytes = sample.element_size()
         # PATCH
-        
+
         else:
             raise TypeError(
                 "Model contains a layer with an unsupported input or output type: "
@@ -172,11 +178,15 @@ class LayerInfo:
             elif isinstance(k, int):
                 kernel_size = int(k)
             else:
-                raise TypeError(f"kernel_size has an unexpected type: {type(k)}")
+                raise TypeError(
+                    f"kernel_size has an unexpected type: {type(k)}"
+                )
             return kernel_size
         return None
 
-    def get_layer_name(self, show_var_name: bool, show_depth: bool) -> str:
+    def get_layer_name(
+        self, show_var_name: bool, show_depth: bool
+    ) -> str:
         layer_name = self.class_name
         if show_var_name and self.var_name:
             layer_name += f" ({self.var_name})"
@@ -201,7 +211,9 @@ class LayerInfo:
             if is_lazy(param):
                 self.contains_lazy_param = True
                 continue
-            cur_params, name = self.get_param_count(self.module, name, param)
+            cur_params, name = self.get_param_count(
+                self.module, name, param
+            )
             self.param_bytes += param.element_size() * cur_params
 
             self.num_params += cur_params
@@ -238,12 +250,17 @@ class LayerInfo:
         i.e., taking the batch-dimension into account.
         """
         for name, param in self.module.named_parameters():
-            cur_params, name = self.get_param_count(self.module, name, param)
+            cur_params, name = self.get_param_count(
+                self.module, name, param
+            )
             if name in ("weight", "bias"):
                 # ignore C when calculating Mult-Adds in ConvNd
                 if "Conv" in self.class_name:
                     self.macs += int(
-                        cur_params * prod(self.output_size[:1] + self.output_size[2:])
+                        cur_params
+                        * prod(
+                            self.output_size[:1] + self.output_size[2:]
+                        )
                     )
                 else:
                     self.macs += self.output_size[0] * cur_params
@@ -267,7 +284,9 @@ class LayerInfo:
             return f"{self.macs:,}"
         if reached_max_depth:
             sum_child_macs = sum(
-                child.macs for child in self.children if child.is_leaf_layer
+                child.macs
+                for child in self.children
+                if child.is_leaf_layer
             )
             return f"{sum_child_macs:,}"
         return "--"
@@ -280,12 +299,19 @@ class LayerInfo:
             return "(recursive)"
         if reached_max_depth or self.is_leaf_layer:
             param_count_str = f"{self.num_params:,}"
-            return param_count_str if self.trainable_params else f"({param_count_str})"
+            return (
+                param_count_str
+                if self.trainable_params
+                else f"({param_count_str})"
+            )
         leftover_params = self.leftover_params()
         return f"{leftover_params:,}" if leftover_params > 0 else "--"
 
     def params_percent(
-        self, total_params: int, reached_max_depth: bool, precision: int = 2
+        self,
+        total_params: int,
+        reached_max_depth: bool,
+        precision: int = 2,
     ) -> str:
         """Convert num_params to string."""
         spacing = 5
@@ -309,7 +335,9 @@ class LayerInfo:
         included in the child num_param counts.
         """
         return self.num_params - sum(
-            child.num_params if child.is_leaf_layer else child.leftover_params()
+            child.num_params
+            if child.is_leaf_layer
+            else child.leftover_params()
             for child in self.children
             if not child.is_recursive
         )
@@ -324,7 +352,9 @@ class LayerInfo:
         )
 
 
-def nested_list_size(inputs: Sequence[Any] | torch.Tensor) -> tuple[list[int], int]:
+def nested_list_size(
+    inputs: Sequence[Any] | torch.Tensor,
+) -> tuple[list[int], int]:
     """Flattens nested list size."""
     if hasattr(inputs, "tensors"):
         size, elem_bytes = nested_list_size(inputs.tensors)
@@ -332,7 +362,10 @@ def nested_list_size(inputs: Sequence[Any] | torch.Tensor) -> tuple[list[int], i
         size, elem_bytes = list(inputs.size()), inputs.element_size()
     elif isinstance(inputs, np.ndarray):
         inputs_torch = torch.from_numpy(inputs)  # preserves dtype
-        size, elem_bytes = list(inputs_torch.size()), inputs_torch.element_size()
+        size, elem_bytes = (
+            list(inputs_torch.size()),
+            inputs_torch.element_size(),
+        )
     elif not hasattr(inputs, "__getitem__") or not inputs:
         size, elem_bytes = [], 0
     elif isinstance(inputs, dict):
@@ -370,7 +403,9 @@ def rgetattr(module: nn.Module, attr: str) -> torch.Tensor | None:
     return module
 
 
-def get_children_layers(summary_list: list[LayerInfo], index: int) -> list[LayerInfo]:
+def get_children_layers(
+    summary_list: list[LayerInfo], index: int
+) -> list[LayerInfo]:
     """Fetches all of the children of a given layer."""
     num_children = 0
     for layer in summary_list[index + 1 :]:
