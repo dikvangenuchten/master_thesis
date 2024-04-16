@@ -1,7 +1,6 @@
 import numpy as np
 from torch import Tensor
 
-import torch
 import wandb
 from metrics.base_metric import BaseMetric, StepData
 

@@ -2,8 +2,6 @@ from typing import List
 
 import numpy as np
 import pytest
-from hypothesis import given, settings
-from hypothesis import strategies as st
 
 import torch
 from torch import nn
@@ -13,7 +11,6 @@ from models.semantic_vae import (
     EncoderBlock,
     ResBlock,
     SemanticVAE,
-    SampleConvLayer,
 )
 
 
@@ -215,7 +212,7 @@ def test_semantic_vae_inference_shapes(
     bottlenecks: List[float],
     device: str,
 ):
-    tot_reduction = np.prod(reductions)
+    np.prod(reductions)
     b, c, h, w = test_image_batch.shape
     num_classes = 8
 

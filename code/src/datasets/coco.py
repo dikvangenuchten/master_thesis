@@ -6,7 +6,6 @@ from typing import (
     List,
     Optional,
     Literal,
-    Tuple,
     get_args,
 )
 from functools import cache
