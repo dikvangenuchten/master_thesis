@@ -41,8 +41,10 @@ class CoCoDataset(torch.utils.data.Dataset):
         sample: bool = True,
         num_classes: Optional[int] = None,
         length: Optional[int] = None,
+        cache_in_ram: bool = False,
     ):
         self._length = length
+
         unsuported_outs = {
             k: v
             for k, v in output_structure.items()
@@ -85,6 +87,10 @@ class CoCoDataset(torch.utils.data.Dataset):
         self._latents = latents
         self._sample = sample
         self._weights = None
+        self._cache_in_ram = cache_in_ram
+
+        if self._cache_in_ram:
+            self._cache = [None] * len(self)
 
     def __len__(self) -> int:
         if self._length is None:
@@ -104,7 +110,7 @@ class CoCoDataset(torch.utils.data.Dataset):
                 max(self._cat_id_to_semantic.values()) + 1
             )
             for annotation in tqdm.tqdm(
-                self._panoptic_anns["annotations"]
+                self._panoptic_anns["annotations"][: len(self)]
             ):
                 for segment in annotation["segments_info"]:
                     id = self._cat_id_to_semantic[
@@ -113,6 +119,8 @@ class CoCoDataset(torch.utils.data.Dataset):
                     frequencies[id] += segment["area"]
             self._weights = [
                 sum(frequencies) / (freq * len(frequencies))
+                if freq != 0
+                else 1
                 for freq in frequencies
             ]
         return self._weights
@@ -178,13 +186,23 @@ class CoCoDataset(torch.utils.data.Dataset):
         return Mask(torch.stack([sem_mask, ins_mask]))
 
     def __getitem__(self, index) -> Dict[str, torch.Tensor]:
-        out = {
-            k: self._get_type(index, v)
-            for k, v in self.output_structure.items()
-        }
+        out = self._getitem(index % 32)
         if self.transform is not None:
             return self.transform(out)
         return out
+
+    def _getitem(self, index) -> Dict[str, torch.Tensor]:
+        if self._cache_in_ram:
+            if self._cache[index] is None:
+                self._cache[index] = {
+                    k: self._get_type(index, v)
+                    for k, v in self.output_structure.items()
+                }
+            return self._cache[index]
+        return {
+            k: self._get_type(index, v)
+            for k, v in self.output_structure.items()
+        }
 
     def _get_type(self, index, type_) -> torch.Tensor:
         if type_ == "img":
