@@ -67,3 +67,5 @@ jobs:
           pytest --cache-clear --cov=src/ . | tee pytest-coverage.txt
       - name: Comment coverage
         uses: coroo/pytest-coverage-commentator@v1.0.2
+        with:
+          pytest-coverage: code/pytest-coverage.txt
