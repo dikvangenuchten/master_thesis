@@ -194,6 +194,7 @@ def test_decoderblock_train_vs_test(true_or_false: bool):
         train_out["out"].median(0)[0], test_out["out"][0], atol=0.1
     )
 
+
 @pytest.mark.parametrize(
     "channels,reductions,bottlenecks",
     [
@@ -217,17 +218,22 @@ def test_semantic_vae_inference_shapes(
     num_classes = 8
 
     model = SemanticVAE(
-        3, num_classes, channels, reductions, bottlenecks
+        3,
+        num_classes,
+        channels,
+        reductions,
+        bottlenecks,
+        input_shape=(h, w),
     )
     test_image_batch = test_image_batch.to(device)
     model = model.to(device)
 
     z = model.encode_image(test_image_batch)
 
-    # Currently the latent parameter is of shape [1, b, 1, 1] 
+    # Currently the latent parameter is of shape [1, b, 1, 1]
     # to keep the model translational invariant. It is to be
     # determend if this is not desired
-    
+
     # expected_latent_shape = torch.Size(
     #     [
     #         b,
@@ -278,7 +284,12 @@ def test_semantic_vae_inference_shapes_e2e(
     num_classes = 8
 
     model = SemanticVAE(
-        3, num_classes, channels, reductions, bottlenecks
+        3,
+        num_classes,
+        channels,
+        reductions,
+        bottlenecks,
+        input_shape=(h, w),
     )
     test_image_batch = test_image_batch.to(device)
     model = model.to(device)

@@ -38,7 +38,7 @@ def train(
     # TODO: Create a weighted loss combiner
     loss_fn = losses.SummedLoss(
         losses=[
-            losses.WeightedLoss(losses.HierarchicalKLDivergence(), 0.1),
+            # losses.WeightedLoss(losses.HierarchicalKLDivergence(), 0.0),
             losses.WeightedLoss(
                 losses.WrappedLoss(
                     nn.CrossEntropyLoss(
@@ -106,8 +106,9 @@ if __name__ == "__main__":
         ),
     ]
 
+    input_shape = (64, 64)
     data_transforms = transforms.Compose(
-        [transforms.Resize((64, 64)), *image_net_transforms]
+        [transforms.Resize(input_shape), *image_net_transforms]
     )
 
     train_dataset = datasets.CoCoDataset(
@@ -126,7 +127,8 @@ if __name__ == "__main__":
         [16, 32, 64, 128],
         [1, 1, 4, 2],
         [1.0, 1.0, 1.0, 0.5],
+        input_shape=input_shape,
     )
 
-    summary(model.to("cuda"), (1, 3, 64, 64))
+    summary(model.to("cuda"), (1, 3, *input_shape))
     train(model, train_dataset, val_dataset)

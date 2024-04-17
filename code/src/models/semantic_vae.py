@@ -356,15 +356,6 @@ class DecoderBlock(nn.Module):
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         return (x, x)
 
-    def _sample(self, mu: torch.Tensor, std: torch.Tensor):
-        # TODO during bootstrapping we should also sample
-        if not self.training:
-            return mu
-        else:
-            # Sample during training
-            eps = torch.empty_like(mu).normal_(0.0, 1.0)
-            return mu + std * eps
-
 
 class SemanticVAE(nn.Module):
     """Semantic VAE
@@ -385,18 +376,24 @@ class SemanticVAE(nn.Module):
         layer_depths: List[int],
         reductions: List[int],
         bottlenecks: List[float],
+        input_shape: Tuple[int, int] = (128, 128),
     ) -> None:
         super().__init__()
 
         assert (
             len(layer_depths) == len(reductions) == len(bottlenecks)
         ), "`layer_depths`, `reductions` and, `bottlenecks` should all be the same length"
-        
+
         self._image_channels = image_channels
         self._label_channels = label_channels
         self._layer_depths = layer_depths
         self._reductions = reductions
         self._bottlenecks = bottlenecks
+        tot_reduction = torch.prod(torch.tensor(reductions))
+        self._latent_shape = (
+            int(input_shape[0] / tot_reduction),
+            int(input_shape[1] / tot_reduction),
+        )
 
         image_layers = [image_channels, *layer_depths]
         self._image_encoder_layers = nn.ModuleList(
@@ -437,11 +434,17 @@ class SemanticVAE(nn.Module):
                 for i in range(len(label_layers) - 1)
             ]
         )
-        
+
         # TODO: Determine if we want a seperate one for image and label
-        # TODO: Determine if it is required for it to be equal to the latent dimension
-        self._learnable_latent = nn.Parameter(torch.empty(size=(1, layer_depths[-1], 1, 1)))
-        nn.init.kaiming_uniform_(self._learnable_latent, nonlinearity="linear")
+        self._learnable_latent = nn.Parameter(
+            torch.empty(
+                size=(1, layer_depths[-1], *self._latent_shape)
+            ),
+            requires_grad=True,
+        )
+        nn.init.kaiming_uniform_(
+            self._learnable_latent, nonlinearity="linear"
+        )
 
     @classmethod
     def default(
@@ -488,14 +491,14 @@ class SemanticVAE(nn.Module):
         x_skip: Optional[List[torch.Tensor]] = None,
         z_dim: Optional[Tuple[int, int, int]] = None,
     ) -> torch.Tensor:
-        if x_skip is None:
+        if x_skip is not None:
+            bs = x_skip[0].size(0)
+        elif z_dim is not None:
             x_skip = []
-            b, h, w = z_dim
+            bs, _, _ = z_dim
         else:
-            b, _, h, w = x_skip[-1].shape
-            h = h // self._reductions[-1]
-            w = w // self._reductions[-1]
-        z = self._learnable_latent.expand(b, -1, h, w)
+            bs = 1
+        z = self._learnable_latent.expand(bs, -1, -1, -1)
 
         for layer, x_skip in zip_longest(
             self._image_decoder_layers, reversed(x_skip)
@@ -508,14 +511,14 @@ class SemanticVAE(nn.Module):
         x_skip: Optional[List[torch.Tensor]] = None,
         z_dim: Optional[Tuple[int, int, int]] = None,
     ) -> torch.Tensor:
-        if x_skip is None:
+        if x_skip is not None:
+            bs = x_skip[0].size(0)
+        elif z_dim is not None:
             x_skip = []
-            b, h, w = z_dim
+            bs, _, _ = z_dim
         else:
-            b, _, h, w = x_skip[-1].shape
-            h = h // self._reductions[-1]
-            w = w // self._reductions[-1]
-        z = self._learnable_latent.expand(b, -1, h, w)
+            bs = 1
+        z = self._learnable_latent.expand(bs, -1, -1, -1)
 
         for layer, x_skip_ in zip_longest(
             self._label_decoder_layers, reversed(x_skip)
