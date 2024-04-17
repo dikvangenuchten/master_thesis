@@ -86,7 +86,10 @@ class SummedLoss(nn.Module):
             # TODO: Not all modules have `__name__` set.
             fn(module.__class__.__name__, output)
 
-        self._handles.extend(fn.register_forward_hook(_hook_logger) for fn in self._losses)
+        self._handles.extend(
+            fn.register_forward_hook(_hook_logger)
+            for fn in self._losses
+        )
 
 
 __all__ = [

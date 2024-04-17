@@ -15,8 +15,8 @@ def calculate_std_loss(p: torch.Tensor, q: torch.Tensor):
 
 
 class HierarchicalKLDivergence(nn.Module):
-    """Calculates the Hierachical KLDivergence loss.    
-    """
+    """Calculates the Hierachical KLDivergence loss."""
+
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
