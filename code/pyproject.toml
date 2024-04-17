@@ -6,7 +6,7 @@ testpaths = [
   "test/*"
 ]
 norecursedirs = [
-  "wandb", "src", "scripts", ".*"
+  "wandb", "src", "scripts", ".*", "venv"
 ]
 
 [tool.ruff]
