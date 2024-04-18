@@ -65,7 +65,7 @@ class WeightedLoss(nn.Module):
 
     def forward(self, *args, **kwargs) -> torch.Tensor:
         return self._weight * self._loss_fn(*args, **kwargs)
-    
+
     def add_log_callback(self, fn: Callable[[str, torch.Tensor], None]):
         """Adds a logging callback
 
@@ -78,6 +78,7 @@ class WeightedLoss(nn.Module):
             return self._loss_fn.add_log_callback(fn)
 
         self._loss_fn.register_forward_hook(_create_log_hook(fn))
+
 
 class SummedLoss(nn.Module):
     """Sums the losses
@@ -107,12 +108,17 @@ class SummedLoss(nn.Module):
             if hasattr(loss_fn, "add_log_callback"):
                 self._handles.append(loss_fn.add_log_callback(fn))
             else:
-                self._handles.append(loss_fn.register_forward_hook(_create_log_hook(fn)))
+                self._handles.append(
+                    loss_fn.register_forward_hook(_create_log_hook(fn))
+                )
+
 
 def _create_log_hook(fn):
     def _hook_logger(module, args, output):
         fn(module.__class__.__name__, output)
+
     return _hook_logger
+
 
 __all__ = [
     "DUQLoss",

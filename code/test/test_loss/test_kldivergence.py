@@ -46,14 +46,11 @@ def test_loss_is_bigger_if_incorrect():
         "priors": [target_dist],
         "posteriors": [non_target_dist],
     }
-    
-    assert loss_fn(correct, ...) < loss_fn(incorrect, ...)
-    
 
-@pytest.mark.parametrize("target_mu,target_var",[
-    (0, 1),
-    (1, 0.1)
-])
+    assert loss_fn(correct, ...) < loss_fn(incorrect, ...)
+
+
+@pytest.mark.parametrize("target_mu,target_var", [(0, 1), (1, 0.1)])
 def test_very_simple_model(device, target_mu, target_var):
     batch_size = 32
     shape = torch.tensor((1, 1, 1), device=device)
@@ -94,6 +91,10 @@ def test_very_simple_model(device, target_mu, target_var):
     assert (
         (torch.tensor(losses)[:-1] - torch.tensor(losses)[1:]) > 0
     ).all()
-    
-    assert ((init_mu - target_mu).abs() > (mu - target_mu).abs()).all(), "Mean diverged"
-    assert ((init_var - target_var).abs() > (var - target_var).abs()).all(), "Variance diverged"
+
+    assert (
+        (init_mu - target_mu).abs() > (mu - target_mu).abs()
+    ).all(), "Mean diverged"
+    assert (
+        (init_var - target_var).abs() > (var - target_var).abs()
+    ).all(), "Variance diverged"
