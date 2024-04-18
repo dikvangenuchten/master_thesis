@@ -38,6 +38,16 @@ class WrappedLoss(nn.Module):
         kwargs = {v: state[k] for k, v in self._keys.items()}
         return self._loss_fn(**kwargs)
 
+    def add_log_callback(self, fn: Callable[[str, torch.Tensor], None]):
+        """Adds a logging callback
+
+        Args:
+            fn (Callable[[str, torch.Tensor]]): The callback function
+                Signature should be: fn(loss_name: str, loss: torch.Tensor)
+                Return value is ignored.
+        """
+        self._loss_fn.register_forward_hook(_create_log_hook(fn))
+
 
 class WeightedLoss(nn.Module):
     """Weighted Loss
@@ -55,7 +65,19 @@ class WeightedLoss(nn.Module):
 
     def forward(self, *args, **kwargs) -> torch.Tensor:
         return self._weight * self._loss_fn(*args, **kwargs)
+    
+    def add_log_callback(self, fn: Callable[[str, torch.Tensor], None]):
+        """Adds a logging callback
 
+        Args:
+            fn (Callable[[str, torch.Tensor]]): The callback function
+                Signature should be: fn(loss_name: str, loss: torch.Tensor)
+                Return value is ignored.
+        """
+        if hasattr(self._loss_fn, "add_log_callback"):
+            return self._loss_fn.add_log_callback(fn)
+
+        self._loss_fn.register_forward_hook(_create_log_hook(fn))
 
 class SummedLoss(nn.Module):
     """Sums the losses
@@ -81,16 +103,16 @@ class SummedLoss(nn.Module):
                 Signature should be: fn(loss_name: str, loss: torch.Tensor)
                 Return value is ignored.
         """
+        for loss_fn in self._losses:
+            if hasattr(loss_fn, "add_log_callback"):
+                self._handles.append(loss_fn.add_log_callback(fn))
+            else:
+                self._handles.append(loss_fn.register_forward_hook(_create_log_hook(fn)))
 
-        def _hook_logger(module, args, output):
-            # TODO: Not all modules have `__name__` set.
-            fn(module.__class__.__name__, output)
-
-        self._handles.extend(
-            fn.register_forward_hook(_hook_logger)
-            for fn in self._losses
-        )
-
+def _create_log_hook(fn):
+    def _hook_logger(module, args, output):
+        fn(module.__class__.__name__, output)
+    return _hook_logger
 
 __all__ = [
     "DUQLoss",
