@@ -1,3 +1,4 @@
+import pytest
 import torch
 from torch import distributions, nn
 
@@ -49,10 +50,13 @@ def test_loss_is_bigger_if_incorrect():
     assert loss_fn(correct, ...) < loss_fn(incorrect, ...)
     
 
-
-def test_very_simple_model(device):
+@pytest.mark.parametrize("target_mu,target_var",[
+    (0, 1),
+    (1, 0.1)
+])
+def test_very_simple_model(device, target_mu, target_var):
     batch_size = 32
-    shape = torch.tensor((2, 2, 2), device=device)
+    shape = torch.tensor((1, 1, 1), device=device)
     hidden = shape.prod()
     model = nn.Sequential(
         nn.Linear(1, hidden),
@@ -64,11 +68,13 @@ def test_very_simple_model(device):
     optim = torch.optim.Adam(model.parameters())
     input_ = torch.ones([batch_size, 1], device=device)
     target_dist = distributions.Normal(
-        torch.zeros(batch_size, *shape, device=device),
-        torch.ones(batch_size, *shape, device=device),
+        target_mu * torch.ones(batch_size, *shape, device=device),
+        target_var * torch.ones(batch_size, *shape, device=device),
     )
 
     losses = []
+    init_mu, init_var_logits = model(input_).chunk(2, dim=1)
+    init_var = nn.functional.softplus(init_var_logits)
 
     for i in range(10):
         optim.zero_grad()
@@ -88,3 +94,6 @@ def test_very_simple_model(device):
     assert (
         (torch.tensor(losses)[:-1] - torch.tensor(losses)[1:]) > 0
     ).all()
+    
+    assert ((init_mu - target_mu).abs() > (mu - target_mu).abs()).all(), "Mean diverged"
+    assert ((init_var - target_var).abs() > (var - target_var).abs()).all(), "Variance diverged"
