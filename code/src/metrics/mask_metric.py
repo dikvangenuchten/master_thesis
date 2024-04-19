@@ -35,37 +35,49 @@ class MaskMetric(BaseMetric):
                     y_true[: self._limit],
                     y_pred[: self._limit],
                 )
+
+            pr_masks_scr, pr_masks_val = y_pred.max(1)
+            pr_masks_val[pr_masks_scr < self._threshold] = len(
+                self.class_labels
+            )
             # Convert from BCHW to BHWC
             self._first_batch = (
-                np.transpose(x.detach().cpu().numpy(), (0, 2, 3, 1)),
-                y_true.detach().cpu().numpy(),
-                y_pred.detach().cpu().numpy(),
+                x.detach()
+                .permute(0, 2, 3, 1)
+                .to(device="cpu", non_blocking=True)
+                .numpy(),
+                y_true.detach()
+                .to(device="cpu", non_blocking=True)
+                .numpy(),
+                pr_masks_val.detach()
+                .to(device="cpu", non_blocking=True)
+                .numpy(),
             )
 
     def compute(self) -> Tensor:
+        if self._first_batch is None:
+            return {}
+
         images = []
         imgs, gt_masks, pr_masks = self._first_batch
-        pr_masks_val = pr_masks.argmax(1)
-        pr_masks_scr = pr_masks.max(1)
-        pr_masks_val[pr_masks_scr < self._threshold] = len(
-            self.class_labels
-        )
-        for img, gt_mask, pr_mask in zip(imgs, gt_masks, pr_masks_val):
-            images.append(
-                wandb.Image(
-                    img,
-                    masks={
-                        "predictions": {
-                            "mask_data": pr_mask,
-                            "class_labels": self.class_labels,
-                        },
-                        "ground_truth": {
-                            "mask_data": gt_mask,
-                            "class_labels": self.class_labels,
-                        },
+
+        images = [
+            wandb.Image(
+                img,
+                masks={
+                    "predictions": {
+                        "mask_data": pr_mask,
+                        "class_labels": self.class_labels,
                     },
-                )
+                    "ground_truth": {
+                        "mask_data": gt_mask,
+                        "class_labels": self.class_labels,
+                    },
+                },
             )
+            for img, gt_mask, pr_mask in zip(imgs, gt_masks, pr_masks)
+        ]
+
         return {self.name: images}
 
     def reset(self):

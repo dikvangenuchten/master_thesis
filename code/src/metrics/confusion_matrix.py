@@ -2,7 +2,7 @@ from typing import Optional, Dict
 from torch import Tensor
 import torch
 from torch.nn import functional as F
-from torchmetrics.classification import MultilabelConfusionMatrix
+from torchmetrics.classification import MulticlassConfusionMatrix
 
 from metrics.base_metric import BaseMetric, StepData
 
@@ -44,20 +44,20 @@ class ConfusionMetrics(BaseMetric):
         self.num_classes = num_labels
         self._logits = logits
         self.ignore_index = ignore_index
-        self._confusion_matrix = MultilabelConfusionMatrix(
-            num_labels, threshold, ignore_index, normalize=None
-        ).to(device=device)
+        self._confusion_matrix = MulticlassConfusionMatrix(
+            num_classes=num_labels,
+            ignore_index=ignore_index,
+            normalize=None,
+            validate_args=False,
+        ).to(device="cuda" if torch.cuda.is_available else None)
         self._prefix = prefix
 
     def update(self, step_data: StepData):
         y_true = step_data.batch["target"]
-        y_pred = step_data.model_out["out"]
-        if y_true.shape != y_pred.shape:
-            mask = y_true != self.ignore_index
-            y_true = mask.unsqueeze(1) * F.one_hot(
-                mask * y_true, num_classes=self.num_classes
-            ).permute(0, -1, 1, 2)
-        self._confusion_matrix.to(device=y_pred.device)
+        y_pred = step_data.model_out.get(
+            "probs", step_data.model_out["out"]
+        )
+
         self._confusion_matrix.update(y_pred, y_true)
 
     def compute(self) -> Dict[str, Tensor]:
@@ -69,27 +69,23 @@ class ConfusionMetrics(BaseMetric):
         - :math:`C_{1, 1}`: True positives
         """
         cm = self._confusion_matrix.compute()
-        tn = cm[:, 0, 0].sum()
-        fp = cm[:, 0, 1].sum()
-        fn = cm[:, 1, 0].sum()
-        tp = cm[:, 1, 1].sum()
+        tp = cm.diag().sum()
+        fp = cm.sum() - tp
 
-        SQ = _safe_div(tp, (fp + tp + fn))
-        RQ = _safe_div(tp, (tp + 0.5 * (fp + fn)))
+        SQ = _safe_div(tp, (fp + tp))
+        RQ = _safe_div(tp, (tp + 0.5 * (fp)))
         PQ = SQ * RQ
 
         return {
-            f"{self._prefix}True negatives": tn,
             f"{self._prefix}False positives": fp,
-            f"{self._prefix}False negatives": fn,
             f"{self._prefix}True positives": tp,
             f"{self._prefix}SQ": SQ,
             f"{self._prefix}RQ": RQ,
             f"{self._prefix}PQ": PQ,
             f"{self._prefix}Precision": _safe_div(tp, (tp + fp)),
-            f"{self._prefix}Recall": _safe_div(tp, (tp + fn)),
+            # f"{self._prefix}Recall": _safe_div(tp, (tp + fp)),
             f"{self._prefix}Accuracy": _safe_div(
-                tp + tn, (tp + tn + fp + fn)
+                tp, (tp + fp)
             ),
         }
 

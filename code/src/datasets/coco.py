@@ -40,7 +40,6 @@ class CoCoDataset(torch.utils.data.Dataset):
         sample: bool = True,
         num_classes: Optional[int] = None,
         length: Optional[int] = None,
-        cache_in_ram: bool = False,
     ):
         self._length = length
 
@@ -86,10 +85,6 @@ class CoCoDataset(torch.utils.data.Dataset):
         self._latents = latents
         self._sample = sample
         self._weights = None
-        self._cache_in_ram = cache_in_ram
-
-        if self._cache_in_ram:
-            self._cache = [None] * len(self)
 
     def __len__(self) -> int:
         if self._length is None:
@@ -185,19 +180,12 @@ class CoCoDataset(torch.utils.data.Dataset):
         return Mask(torch.stack([sem_mask, ins_mask]))
 
     def __getitem__(self, index) -> Dict[str, torch.Tensor]:
-        out = self._getitem(index % 32)
+        out = self._getitem(index)
         if self.transform is not None:
             return self.transform(out)
         return out
 
     def _getitem(self, index) -> Dict[str, torch.Tensor]:
-        if self._cache_in_ram:
-            if self._cache[index] is None:
-                self._cache[index] = {
-                    k: self._get_type(index, v)
-                    for k, v in self.output_structure.items()
-                }
-            return self._cache[index]
         return {
             k: self._get_type(index, v)
             for k, v in self.output_structure.items()

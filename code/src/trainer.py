@@ -153,7 +153,7 @@ class Trainer:
         self, batch: Dict[str, torch.Tensor]
     ) -> torch.Tensor:
         self.model.train()
-        self.optimizer.zero_grad()
+        self.optimizer.zero_grad(set_to_none=True)
         # Forward pass
         input = batch["input"]
         model_out = self.model(input)
@@ -206,7 +206,7 @@ class Trainer:
                 e_loss = self.eval_step(next(iter_eval))
                 eval_loss.add(e_loss)
             if step % log_every_n_steps == 0:
-                self.save(os.path.join(self._ckpt_dir, f"step-{step}"))
+                self.save(os.path.join(self._ckpt_dir, f"{step % 5}"))
                 self._log_and_reset_metrics(step=step)
             pbar.set_description(
                 f"train_loss: {train_loss.val:.5f} (last: {train_loss.last:.5f}) "

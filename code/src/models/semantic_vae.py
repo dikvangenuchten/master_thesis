@@ -204,6 +204,7 @@ class SampleConvLayer(nn.Module):
         )
         # Recommended value by Efficient-VDVAE
         self._softplus = nn.Softplus(beta=torch.log(torch.tensor(2.0)))
+        self._eps = torch.as_tensor(1e-5)
 
     def __call__(
         self, *args: torch.Any, **kwds: torch.Any
@@ -216,7 +217,7 @@ class SampleConvLayer(nn.Module):
     ) -> distributions.Distribution:
         x = self._conv(x)
         mean, std = torch.chunk(x, chunks=2, dim=1)
-        std = self._softplus(std)
+        std = self._softplus(std) + self._eps
         if distribution:
             return distributions.Normal(mean, std)
         return mean, std
@@ -382,7 +383,7 @@ class SemanticVAE(nn.Module):
 
         assert (
             len(layer_depths) == len(reductions) == len(bottlenecks)
-        ), "`layer_depths`, `reductions` and, `bottlenecks` should all be the same length"
+        ), f"`layer_depths`, `reductions` and, `bottlenecks` should all be the same length, but are: {len(layer_depths)=}, {len(reductions)=}, {len(bottlenecks)=}"
 
         self._image_channels = image_channels
         self._label_channels = label_channels
@@ -524,6 +525,7 @@ class SemanticVAE(nn.Module):
             self._label_decoder_layers, reversed(x_skip)
         ):
             z = layer(z, x_skip_)
+        z["probs"] = z["out"].softmax(1)
         return z
 
     def inference(self, x: torch.Tensor) -> torch.Tensor:

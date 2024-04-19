@@ -1,6 +1,3 @@
-"""Verify the model overfits on a small dataset
-"""
-
 import os
 import torch
 from torch import nn
@@ -14,7 +11,6 @@ import losses
 from models.semantic_vae import SemanticVAE
 import datasets
 from trainer import Trainer
-import metrics
 
 
 def train(
@@ -30,20 +26,20 @@ def train(
         eps=1e-8,
         weight_decay=0.0,
     )
-    schedule = torch.optim.lr_scheduler.ConstantLR(
-        optimizer=optimizer, factor=1
+    schedule = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer=optimizer, T_max=750000, eta_min=2e-4
     )
 
     loss_fn = losses.SummedLoss(
         losses=[
-            # losses.WeightedLoss(losses.HierarchicalKLDivergenceLoss(), 0.1),
+            losses.WeightedLoss(losses.KLDivergence(), 0.1),
             losses.WeightedLoss(
                 losses.WrappedLoss(
                     nn.CrossEntropyLoss(
                         weight=torch.tensor(
                             train_dataset.class_weights, device="cuda"
                         ),
-                        ignore_index=len(train_dataset.class_weights),
+                        ignore_index=133,
                     )
                 ),
                 1,
@@ -51,58 +47,24 @@ def train(
         ]
     )
 
-    num_classes = ignore_index = len(train_dataset.class_map)
-    train_metrics = [
-        metrics.AverageMetric(
-            "TrainAverageLoss", lambda step_data: step_data.loss
-        ),
-        metrics.MaskMetric("TrainMaskMetric", train_dataset.class_map),
-        metrics.ConfusionMetrics(
-            "ConfusionMetrics",
-            num_classes,
-            ignore_index=ignore_index,
-            prefix="Train",
-        ),
-    ]
-
-    eval_metrics = [
-        metrics.AverageMetric(
-            "EvalAverageLoss", lambda step_data: step_data.loss
-        ),
-        metrics.MaskMetric("EvalMaskMetric", train_dataset.class_map),
-        metrics.ConfusionMetrics(
-            "ConfusionMetrics",
-            num_classes,
-            ignore_index=ignore_index,
-            prefix="Eval",
-        ),
-    ]
-
     trainer = Trainer(
-        DataLoader(
-            train_dataset,
-            batch_size=16,
-            num_workers=4,
-            persistent_workers=True,
-            pin_memory=True,
-        ),
+        DataLoader(train_dataset, batch_size=64, num_workers=os.environ["SLURM_NTASKS"], pin_memory=True),
         model,
         loss_fn=loss_fn,
         optimizer=optimizer,
         scheduler=schedule,
-        eval_dataloader=DataLoader(
-            val_dataset, num_workers=1, batch_size=16
-        ),
+        eval_dataloader=DataLoader(val_dataset, batch_size=64, num_workers=os.environ["SLURM_NTASKS"], pin_memory=True),
         config={},  # TODO ensure all values are hparams
-        train_metrics=train_metrics,
-        eval_metrics=eval_metrics,
+        train_metrics=[],
+        eval_metrics=[],
     )
 
     trainer.steps(100_000)
 
 
 if __name__ == "__main__":
-    dataset_root = "/datasets/"
+    dataset_root = "/local/20182591/"
+    torch.set_num_threads(os.environ["SLURM_NTASKS"])
 
     image_net_transforms = [
         # Rescale to [0, 1], then normalize using mean and std of ImageNet1K DS
@@ -114,7 +76,7 @@ if __name__ == "__main__":
 
     input_shape = (128, 128)
     data_transforms = transforms.Compose(
-        [transforms.Resize(input_shape), *image_net_transforms]
+        [transforms.Resize(*input_shape), *image_net_transforms]
     )
 
     train_dataset = datasets.CoCoDataset(
@@ -122,9 +84,13 @@ if __name__ == "__main__":
         transform=data_transforms,
         output_structure={"input": "img", "target": "semantic_mask"},
         base_path=os.path.join(dataset_root, "coco"),
-        length=16,
     )
-    val_dataset = train_dataset
+    val_dataset = datasets.CoCoDataset(
+        "val",
+        transform=data_transforms,
+        output_structure={"input": "img", "target": "semantic_mask"},
+        base_path=os.path.join(dataset_root, "coco"),
+    )
 
     model = SemanticVAE(
         3,
@@ -135,5 +101,5 @@ if __name__ == "__main__":
         input_shape=input_shape,
     )
 
-    summary(model.to("cuda"), (1, 3, *input_shape))
+    # summary(model.to("cuda"), (1, 3, 256, 256))
     train(model, train_dataset, val_dataset)

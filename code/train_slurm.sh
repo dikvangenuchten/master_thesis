@@ -3,12 +3,13 @@
 #SBATCH --job-name=master-thesis-dik
 #SBATCH --output=results/masther-thesis_%j.txt
 #SBATCH --partition=mcs.gpu.q
-#SBATCH --time=16:00:00
+#SBATCH --time=3:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=4G
 #SBATCH --gpus=1
+#SBATCH --gres=gpu:1
 
 
 # Load modules or software if needed
@@ -18,5 +19,15 @@ python -m venv venv
 python -m pip install -r requirements_d.txt
 python -m pip install -r requirements.txt
 
+# Copy dataset to local
+echo "Transfering Dataset"
+mkdir -p /local/20182519/dataset/coco
+rsync -Pr /home/mcs001/20182591/data/coco.tar.xz /local/20182519/dataset/coco.tar.xz
+tar -xvf /local/20182519/dataset/coco.tar.xz
+
 # Execute the script or command
-python src/main.py
+echo "Starting Python script"
+set -o allexport
+source .env
+set +o allexport
+python scripts/train_slurm.py

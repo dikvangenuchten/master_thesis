@@ -82,8 +82,8 @@ class WeightedLoss(nn.Module):
 
 class SummedLoss(nn.Module):
     """Sums the losses
-
-    Currently it is not possible to track the losses individually.
+    
+    To log the individual losses use the `add_log_callback`.
     """
 
     def __init__(
@@ -114,8 +114,9 @@ class SummedLoss(nn.Module):
 
 
 def _create_log_hook(fn):
-    def _hook_logger(module, args, output):
-        fn(module.__class__.__name__, output)
+    def _hook_logger(module: nn.Module, args, output: torch.Tensor):
+        prefix = "train" if output.requires_grad else "val"
+        fn(prefix + module.__class__.__name__, output)
 
     return _hook_logger
 
