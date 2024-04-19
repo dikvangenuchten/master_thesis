@@ -82,7 +82,7 @@ class WeightedLoss(nn.Module):
 
 class SummedLoss(nn.Module):
     """Sums the losses
-    
+
     To log the individual losses use the `add_log_callback`.
     """
 

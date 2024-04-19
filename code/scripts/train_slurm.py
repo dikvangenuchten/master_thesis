@@ -48,12 +48,22 @@ def train(
     )
 
     trainer = Trainer(
-        DataLoader(train_dataset, batch_size=64, num_workers=os.environ["SLURM_NTASKS"], pin_memory=True),
+        DataLoader(
+            train_dataset,
+            batch_size=64,
+            num_workers=os.environ["SLURM_NTASKS"],
+            pin_memory=True,
+        ),
         model,
         loss_fn=loss_fn,
         optimizer=optimizer,
         scheduler=schedule,
-        eval_dataloader=DataLoader(val_dataset, batch_size=64, num_workers=os.environ["SLURM_NTASKS"], pin_memory=True),
+        eval_dataloader=DataLoader(
+            val_dataset,
+            batch_size=64,
+            num_workers=os.environ["SLURM_NTASKS"],
+            pin_memory=True,
+        ),
         config={},  # TODO ensure all values are hparams
         train_metrics=[],
         eval_metrics=[],

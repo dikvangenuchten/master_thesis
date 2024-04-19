@@ -84,9 +84,7 @@ class ConfusionMetrics(BaseMetric):
             f"{self._prefix}PQ": PQ,
             f"{self._prefix}Precision": _safe_div(tp, (tp + fp)),
             # f"{self._prefix}Recall": _safe_div(tp, (tp + fp)),
-            f"{self._prefix}Accuracy": _safe_div(
-                tp, (tp + fp)
-            ),
+            f"{self._prefix}Accuracy": _safe_div(tp, (tp + fp)),
         }
 
     def reset(self):
