@@ -1,7 +1,6 @@
 from typing import Optional, Dict
 from torch import Tensor
 import torch
-from torch.nn import functional as F
 from torchmetrics.classification import MulticlassConfusionMatrix
 
 from metrics.base_metric import BaseMetric, StepData
