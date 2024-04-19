@@ -3,7 +3,6 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2 as transforms
-from torchinfo import summary
 
 import utils  # noqa
 
@@ -32,7 +31,7 @@ def train(
 
     loss_fn = losses.SummedLoss(
         losses=[
-            losses.WeightedLoss(losses.KLDivergence(), 0.1),
+            losses.WeightedLoss(losses.HierarchicalKLDivergenceLoss(), 0.1),
             losses.WeightedLoss(
                 losses.WrappedLoss(
                     nn.CrossEntropyLoss(
@@ -51,7 +50,7 @@ def train(
         DataLoader(
             train_dataset,
             batch_size=64,
-            num_workers=os.environ["SLURM_NTASKS"],
+            num_workers=int(os.environ["SLURM_NTASKS"]),
             pin_memory=True,
         ),
         model,
@@ -61,7 +60,7 @@ def train(
         eval_dataloader=DataLoader(
             val_dataset,
             batch_size=64,
-            num_workers=os.environ["SLURM_NTASKS"],
+            num_workers=int(os.environ["SLURM_NTASKS"]),
             pin_memory=True,
         ),
         config={},  # TODO ensure all values are hparams
@@ -74,7 +73,7 @@ def train(
 
 if __name__ == "__main__":
     dataset_root = "/local/20182591/"
-    torch.set_num_threads(os.environ["SLURM_NTASKS"])
+    torch.set_num_threads(int(os.environ["SLURM_NTASKS"]))
 
     image_net_transforms = [
         # Rescale to [0, 1], then normalize using mean and std of ImageNet1K DS
@@ -86,7 +85,7 @@ if __name__ == "__main__":
 
     input_shape = (128, 128)
     data_transforms = transforms.Compose(
-        [transforms.Resize(*input_shape), *image_net_transforms]
+        [transforms.Resize(input_shape), *image_net_transforms]
     )
 
     train_dataset = datasets.CoCoDataset(
