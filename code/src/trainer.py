@@ -128,10 +128,11 @@ class Trainer:
 
         # Save based on start time of run
         self._ckpt_dir = os.path.join(
-            "/datasets",
+            os.environ.get("DATA_DIR", "/datasets"),
             "ckpts",
             datetime.datetime.now().strftime("%Y/%m/%d-%H:%M"),
         )
+        print(f"Model ckpts will be saved in: {self._ckpt_dir}")
 
     @property
     def device(self):

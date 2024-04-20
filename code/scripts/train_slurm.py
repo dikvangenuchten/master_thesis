@@ -75,8 +75,8 @@ def train(
 
 
 if __name__ == "__main__":
-    dataset_root = "/local/20182591/dataset/"
-    # dataset_root = "/datasets/"
+    dataset_root = os.environ.get("DATA_DIR", "/datasets/")
+    print(f"{dataset_root=}")
     
     torch.set_num_threads(int(os.environ["SLURM_NTASKS"]))
 
