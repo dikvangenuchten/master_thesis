@@ -22,7 +22,7 @@ python -m pip install -r requirements.txt
 # Copy dataset to local
 echo "Transfering Dataset"
 mkdir -p /local/20182519/dataset/coco
-rsync -Pr /home/mcs001/20182591/master_thesis/code/coco/ /local/20182519/dataset/coco/
+rsync -zqr /home/mcs001/20182591/master_thesis/code/coco/ /local/20182519/dataset/coco/
 
 # Execute the script or command
 echo "Starting Python script"

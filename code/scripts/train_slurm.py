@@ -31,7 +31,9 @@ def train(
 
     loss_fn = losses.SummedLoss(
         losses=[
-            losses.WeightedLoss(losses.HierarchicalKLDivergenceLoss(), 0.1),
+            losses.WeightedLoss(
+                losses.HierarchicalKLDivergenceLoss(), 0.1
+            ),
             losses.WeightedLoss(
                 losses.WrappedLoss(
                     nn.CrossEntropyLoss(
@@ -45,11 +47,12 @@ def train(
             ),
         ]
     )
+    batch_size=64
 
     trainer = Trainer(
         DataLoader(
             train_dataset,
-            batch_size=64,
+            batch_size=batch_size,
             num_workers=int(os.environ["SLURM_NTASKS"]),
             pin_memory=True,
         ),
@@ -59,7 +62,7 @@ def train(
         scheduler=schedule,
         eval_dataloader=DataLoader(
             val_dataset,
-            batch_size=64,
+            batch_size=batch_size,
             num_workers=int(os.environ["SLURM_NTASKS"]),
             pin_memory=True,
         ),
@@ -72,7 +75,9 @@ def train(
 
 
 if __name__ == "__main__":
-    dataset_root = "/local/20182591/"
+    dataset_root = "/local/20182591/dataset/"
+    # dataset_root = "/datasets/"
+    
     torch.set_num_threads(int(os.environ["SLURM_NTASKS"]))
 
     image_net_transforms = [
