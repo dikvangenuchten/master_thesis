@@ -111,7 +111,7 @@ def main(cfg: DictConfig) -> None:
         eval_dataloader=val_loader,
         train_metrics=train_metrics,
         eval_metrics=eval_metrics,
-        config=cfg
+        config=dict(cfg)
     )
     
     trainer.steps(cfg.general.num_steps)
