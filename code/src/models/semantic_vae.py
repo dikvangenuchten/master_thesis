@@ -374,12 +374,26 @@ class SemanticVAE(nn.Module):
         self,
         image_channels: int,
         label_channels: int,
-        layer_depths: List[int],
-        reductions: List[int],
-        bottlenecks: List[float],
+        layer_depths: List[int] | str,
+        reductions: List[int] | str,
+        bottlenecks: List[float] | str,
         input_shape: Tuple[int, int] = (128, 128),
     ) -> None:
         super().__init__()
+
+        # Note: This is not 'safe', but I only run configs I create
+        allowed_characters = list("[](),.*+ ") + list(
+            str(i) for i in range(10)
+        )
+        if isinstance(layer_depths, str):
+            assert all(c in allowed_characters for c in layer_depths)
+            layer_depths = eval(layer_depths)
+        if isinstance(reductions, str):
+            assert all(c in allowed_characters for c in reductions)
+            reductions = eval(reductions)
+        if isinstance(bottlenecks, str):
+            assert all(c in allowed_characters for c in bottlenecks)
+            bottlenecks = eval(bottlenecks)
 
         assert (
             len(layer_depths) == len(reductions) == len(bottlenecks)

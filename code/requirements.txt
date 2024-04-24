@@ -12,3 +12,5 @@ torcheval
 torchmetrics
 torchinfo==1.8.0 # This is a sctrict req, as we modify a function to support distributions.
 torchtnt==0.2.2
+hydra-core==1.3.2
+hydra-submitit-launcher==1.2.0

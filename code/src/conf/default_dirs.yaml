@@ -1,0 +1,4 @@
+paths:
+  datasets: /datasets/
+  checkpoints: ckpts/
+  max_checkpoints: 5

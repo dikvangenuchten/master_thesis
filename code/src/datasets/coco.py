@@ -32,16 +32,16 @@ class CoCoDataset(torch.utils.data.Dataset):
             "input": "latent",
             "target": "semantic_mask",
         },
-        base_path: str = "/datasets/coco/",
-        root: Optional[str] = None,
-        annFile: Optional[str] = None,
+        dataset_root: str = "/datasets/",
+        rel_path: str = "coco/",
         transform: Optional[Callable] = None,
-        latents: bool = False,
         sample: bool = True,
-        num_classes: Optional[int] = None,
         length: Optional[int] = None,
     ):
         self._length = length
+
+        # The absolute path to the dataset
+        base_path = os.path.join(dataset_root, rel_path)
 
         unsuported_outs = {
             k: v
@@ -82,7 +82,6 @@ class CoCoDataset(torch.utils.data.Dataset):
         }
 
         self.ignore_index = len(self.class_map)
-        self._latents = latents
         self._sample = sample
         self._weights = None
 

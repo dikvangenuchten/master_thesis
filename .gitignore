@@ -487,6 +487,7 @@ tmp
 
 # Result folder
 results
+outputs
 
 # Not needed in tracking
 poster
