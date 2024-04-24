@@ -1,32 +1,38 @@
+from typing import List
 import segmentation_models_pytorch as smp
 from torch import nn
 
-from models.duq import DUQHead
-
 
 class UNet(nn.Module):
-    def __init__(self, in_channels, out_channels):
+    """Small wrapper around smp.UNet
+
+    Args:
+        nn (_type_): _description_
+    """
+    def __init__(
+        self,
+        image_channels: int,
+        label_channels: int,
+        encoder_depth: int = 5,
+        decoder_channels: List[int] = (256, 128, 64, 32, 16),
+        encoder_name="mobilenet_v2",
+        encoder_weights="imagenet",
+        activation=None,
+    ):
         super().__init__()
         assert (
-            in_channels == 3
+            image_channels == 3
         ), "Currently only RGB images are supported (due to pretrained weights)"
 
-        decoder_channels = [256, 128, 64, 32, 16]
-
         self.unet = smp.Unet(
-            encoder_name="mobilenet_v2",
-            encoder_depth=5,
-            encoder_weights="imagenet",
+            encoder_name=encoder_name,
+            encoder_depth=encoder_depth,
+            encoder_weights=encoder_weights,
             decoder_channels=decoder_channels,
-            classes=out_channels,
-            activation=None,
+            classes=label_channels,
+            activation=activation,
         )
 
-        self.unet.segmentation_head = DUQHead(
-            in_channels=decoder_channels[-1],
-            num_classes=out_channels,
-        )
-
-    def forward(self, img):
-        x = self.unet(img)
-        return x
+    def forward(self, input):
+        x = self.unet(input)
+        return {"out": x}

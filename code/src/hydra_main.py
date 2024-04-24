@@ -10,6 +10,7 @@ import losses
 import metrics
 from trainer import Trainer
 
+
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: DictConfig) -> None:
     print(OmegaConf.to_yaml(cfg))
@@ -22,7 +23,7 @@ def main(cfg: DictConfig) -> None:
         ),
     ]
 
-    input_shape = (128, 128)
+    input_shape = cfg.general.input_shape
     data_transforms = transforms.Compose(
         [transforms.Resize(input_shape), *image_net_transforms]
     )
@@ -46,7 +47,7 @@ def main(cfg: DictConfig) -> None:
         num_workers=int(os.environ.get("SLURM_NTASKS", 4)),
         pin_memory=True,
     )
-    
+
     ignore_index = num_classes = len(train_dataset.class_map)
 
     model = hydra.utils.instantiate(
@@ -57,12 +58,12 @@ def main(cfg: DictConfig) -> None:
     optimizer = hydra.utils.instantiate(
         cfg.optimizer, params=model.parameters()
     )
-    
+
     loss_fn = losses.SummedLoss(
         losses=[
-            losses.WeightedLoss(
-                losses.HierarchicalKLDivergenceLoss(), 0.1
-            ),
+            # losses.WeightedLoss(
+            #     losses.HierarchicalKLDivergenceLoss(), 0.1
+            # ),
             losses.WeightedLoss(
                 losses.WrappedLoss(
                     torch.nn.CrossEntropyLoss(
@@ -76,7 +77,7 @@ def main(cfg: DictConfig) -> None:
             ),
         ]
     )
-    
+
     train_metrics = [
         metrics.AverageMetric(
             "TrainAverageLoss", lambda step_data: step_data.loss
@@ -102,7 +103,7 @@ def main(cfg: DictConfig) -> None:
             prefix="Eval",
         ),
     ]
-    
+
     trainer = Trainer(
         train_dataloader=train_loader,
         model=model,
@@ -111,9 +112,16 @@ def main(cfg: DictConfig) -> None:
         eval_dataloader=val_loader,
         train_metrics=train_metrics,
         eval_metrics=eval_metrics,
-        config=dict(cfg)
+        config=OmegaConf.to_container(cfg, resolve=True),
     )
-    
+
+    try:
+        import torchinfo
+
+        torchinfo.summary(model, input_size=(3, *input_shape), batch_dim=0)
+    except Exception as e:
+        print(f"Could not generate torchinfo.summary because: {e}")
+
     trainer.steps(cfg.general.num_steps)
 
 

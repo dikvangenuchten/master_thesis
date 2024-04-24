@@ -49,6 +49,7 @@ def test_loss_is_bigger_if_incorrect():
 
     assert loss_fn(correct, ...) < loss_fn(incorrect, ...)
 
+
 @pytest.mark.parametrize("target_mu,target_var", [(0, 1), (1, 2)])
 def test_very_simple_model(device, target_mu, target_var):
     batch_size = 512

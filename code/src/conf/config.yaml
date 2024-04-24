@@ -1,9 +1,10 @@
 defaults:
   - default_dirs
   - dataset: coco
-  - model: semantic_vae
+  - model: unet
   - optimizer: adamax
 
 general:
-  batch_size: 32
+  batch_size: 64
   num_steps: 100_000
+  input_shape: [128, 128]
