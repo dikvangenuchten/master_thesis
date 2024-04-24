@@ -374,9 +374,10 @@ class SemanticVAE(nn.Module):
         self,
         image_channels: int,
         label_channels: int,
-        layer_depths: List[int] | str,
+        encoder_channels: List[int] | str,
         reductions: List[int] | str,
         bottlenecks: List[float] | str,
+        decoder_channels: List[int] | str | None = None,
         input_shape: Tuple[int, int] = (128, 128),
     ) -> None:
         super().__init__()
@@ -385,9 +386,9 @@ class SemanticVAE(nn.Module):
         allowed_characters = list("[](),.*+ ") + list(
             str(i) for i in range(10)
         )
-        if isinstance(layer_depths, str):
-            assert all(c in allowed_characters for c in layer_depths)
-            layer_depths = eval(layer_depths)
+        if isinstance(encoder_channels, str):
+            assert all(c in allowed_characters for c in encoder_channels)
+            encoder_channels = eval(encoder_channels)
         if isinstance(reductions, str):
             assert all(c in allowed_characters for c in reductions)
             reductions = eval(reductions)
@@ -396,12 +397,13 @@ class SemanticVAE(nn.Module):
             bottlenecks = eval(bottlenecks)
 
         assert (
-            len(layer_depths) == len(reductions) == len(bottlenecks)
-        ), f"`layer_depths`, `reductions` and, `bottlenecks` should all be the same length, but are: {len(layer_depths)=}, {len(reductions)=}, {len(bottlenecks)=}"
+            len(encoder_channels) == len(reductions) == len(bottlenecks)
+        ), f"`layer_depths`, `reductions` and, `bottlenecks` should all be the same length, but are: {len(encoder_channels)=}, {len(reductions)=}, {len(bottlenecks)=}"
 
         self._image_channels = image_channels
         self._label_channels = label_channels
-        self._layer_depths = layer_depths
+        self._encoder_channels = encoder_channels
+        self._decoder_channels = decoder_channels
         self._reductions = reductions
         self._bottlenecks = bottlenecks
         tot_reduction = torch.prod(torch.tensor(reductions))
@@ -410,55 +412,52 @@ class SemanticVAE(nn.Module):
             int(input_shape[1] / tot_reduction),
         )
 
-        image_layers = [image_channels, *layer_depths]
-        self._image_encoder_layers = nn.ModuleList(
-            [
-                EncoderBlock.make_block(
-                    in_channels=image_layers[i],
-                    out_channels=image_layers[i + 1],
-                    bottleneck_ratio=bottlenecks[i],
-                    downsample_factor=reductions[i],
-                )
-                for i in range(len(image_layers) - 1)
-            ]
-        )
+        img_encoder_channels = [image_channels, *encoder_channels]
+        self._image_encoder_layers = self._create_encoder(reductions, bottlenecks, img_encoder_channels)
 
-        self._image_decoder_layers = nn.ModuleList(
-            [
-                DecoderBlock.make_block(
-                    in_channels=image_layers[-i - 1],
-                    skip_channels=image_layers[-i - 1],
-                    out_channels=image_layers[-i - 2],
-                    bottleneck_ratio=bottlenecks[-1 - i],
-                    expansion=reductions[-i - 1],
-                )
-                for i in range(len(image_layers) - 1)
-            ]
-        )
+        self._image_decoder_layers = self._create_decoder(reductions, bottlenecks, img_encoder_channels)
 
-        label_layers = [label_channels, *layer_depths]
-        self._label_decoder_layers = nn.ModuleList(
-            [
-                DecoderBlock.make_block(
-                    in_channels=label_layers[-i - 1],
-                    skip_channels=label_layers[-i - 1],
-                    out_channels=label_layers[-i - 2],
-                    bottleneck_ratio=bottlenecks[-1 - i],
-                    expansion=reductions[-i - 1],
-                )
-                for i in range(len(label_layers) - 1)
-            ]
-        )
+        label_layers = [label_channels, *encoder_channels]
+        self._label_decoder_layers = self._create_decoder(reductions, bottlenecks, label_layers)
 
         # TODO: Determine if we want a seperate one for image and label
         self._learnable_latent = nn.Parameter(
             torch.empty(
-                size=(1, layer_depths[-1], *self._latent_shape)
+                size=(1, encoder_channels[-1], *self._latent_shape)
             ),
             requires_grad=True,
         )
         nn.init.kaiming_uniform_(
             self._learnable_latent, nonlinearity="linear"
+        )
+    
+    @staticmethod
+    def _create_encoder(reductions, bottlenecks, layers):
+        return nn.ModuleList(
+            [
+                EncoderBlock.make_block(
+                    in_channels=layers[i],
+                    out_channels=layers[i + 1],
+                    bottleneck_ratio=bottlenecks[i],
+                    downsample_factor=reductions[i],
+                )
+                for i in range(len(layers) - 1)
+            ]
+        )
+
+    @staticmethod
+    def _create_decoder(reductions, bottlenecks, layers):
+        return nn.ModuleList(
+            [
+                DecoderBlock.make_block(
+                    in_channels=layers[-i - 1],
+                    skip_channels=layers[-i - 1],
+                    out_channels=layers[-i - 2],
+                    bottleneck_ratio=bottlenecks[-1 - i],
+                    expansion=reductions[-i - 1],
+                )
+                for i in range(len(layers) - 1)
+            ]
         )
 
     @classmethod

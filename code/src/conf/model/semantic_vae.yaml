@@ -1,5 +1,6 @@
 _target_: models.SemanticVAE
 image_channels: 3
-layer_depths: '[8] * 6 + [16] * 6 + [66] * 6 + [256] * 6 + [512] * 6'
-reductions: '[2, 1, 1] * 6 + [1, 1, 1] * 4'
-bottlenecks: '[0.75] * 30'
+encoder_channels: [16, 32, 64, 128, 256, 512]
+decoder_channels: [512, 256, 128, 64, 32, 16]
+reductions: [2, 2, 2, 2, 2, 2]
+bottlenecks: '[0.75] * 6'

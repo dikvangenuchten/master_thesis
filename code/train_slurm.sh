@@ -29,4 +29,4 @@ echo "Starting Python script"
 set -o allexport
 source .env
 set +o allexport
-python src/train_hydra.py "$@"
+python src/hydra_main.py "$@"
