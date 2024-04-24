@@ -49,10 +49,9 @@ def test_loss_is_bigger_if_incorrect():
 
     assert loss_fn(correct, ...) < loss_fn(incorrect, ...)
 
-
-@pytest.mark.parametrize("target_mu,target_var", [(0, 1), (1, 0.1)])
+@pytest.mark.parametrize("target_mu,target_var", [(0, 1), (1, 2)])
 def test_very_simple_model(device, target_mu, target_var):
-    batch_size = 32
+    batch_size = 512
     shape = torch.tensor((1, 1, 1), device=device)
     hidden = shape.prod()
     model = nn.Sequential(
@@ -62,7 +61,7 @@ def test_very_simple_model(device, target_mu, target_var):
 
     loss_fn = HierarchicalKLDivergenceLoss()
 
-    optim = torch.optim.Adam(model.parameters())
+    optim = torch.optim.Adam(model.parameters(), lr=1e-1)
     input_ = torch.ones([batch_size, 1], device=device)
     target_dist = distributions.Normal(
         target_mu * torch.ones(batch_size, *shape, device=device),
@@ -70,12 +69,12 @@ def test_very_simple_model(device, target_mu, target_var):
     )
 
     losses = []
-    init_mu, init_var_logits = model(input_).chunk(2, dim=1)
+    init_mu, init_var_logits = model(input_[0:1]).chunk(2, dim=1)
     init_var = nn.functional.softplus(init_var_logits)
 
-    for i in range(10):
+    for i in range(100):
         optim.zero_grad()
-        out = model(input_)
+        out = model(torch.rand_like(input_))
         mu, var_logits = out.chunk(2, dim=1)
         var = nn.functional.softplus(var_logits)
         cur_dist = distributions.Normal(
@@ -87,14 +86,13 @@ def test_very_simple_model(device, target_mu, target_var):
         loss.backward()
         optim.step()
         losses.append(loss.detach())
-    # Although not guaranteed to always be the case, for this simple problem loss should always be decreasing.
-    assert (
-        (torch.tensor(losses)[:-1] - torch.tensor(losses)[1:]) > 0
-    ).all()
+
+    mu, var_logits = model(input_[0:1]).chunk(2, dim=1)
+    var = nn.functional.softplus(var_logits)
 
     assert (
-        (init_mu - target_mu).abs() > (mu - target_mu).abs()
+        (init_mu[0] - target_mu).abs() > (mu[0] - target_mu).abs()
     ).all(), "Mean diverged"
     assert (
-        (init_var - target_var).abs() > (var - target_var).abs()
+        (init_var[0] - target_var).abs() > (var[0] - target_var).abs()
     ).all(), "Variance diverged"

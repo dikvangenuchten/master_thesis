@@ -58,7 +58,7 @@ def dataset(test_image):
     ds = CoCoDataset(
         split="val",
         output_structure={"input": "img", "target": "semantic_mask"},
-        base_path="test/data/coco",
+        dataset_root="test/data",
         transform=data_transforms,
     )
 
