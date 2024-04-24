@@ -9,6 +9,7 @@ class UNet(nn.Module):
     Args:
         nn (_type_): _description_
     """
+
     def __init__(
         self,
         image_channels: int,

@@ -387,7 +387,9 @@ class SemanticVAE(nn.Module):
             str(i) for i in range(10)
         )
         if isinstance(encoder_channels, str):
-            assert all(c in allowed_characters for c in encoder_channels)
+            assert all(
+                c in allowed_characters for c in encoder_channels
+            )
             encoder_channels = eval(encoder_channels)
         if isinstance(reductions, str):
             assert all(c in allowed_characters for c in reductions)
@@ -413,12 +415,18 @@ class SemanticVAE(nn.Module):
         )
 
         img_encoder_channels = [image_channels, *encoder_channels]
-        self._image_encoder_layers = self._create_encoder(reductions, bottlenecks, img_encoder_channels)
+        self._image_encoder_layers = self._create_encoder(
+            reductions, bottlenecks, img_encoder_channels
+        )
 
-        self._image_decoder_layers = self._create_decoder(reductions, bottlenecks, img_encoder_channels)
+        self._image_decoder_layers = self._create_decoder(
+            reductions, bottlenecks, img_encoder_channels
+        )
 
         label_layers = [label_channels, *encoder_channels]
-        self._label_decoder_layers = self._create_decoder(reductions, bottlenecks, label_layers)
+        self._label_decoder_layers = self._create_decoder(
+            reductions, bottlenecks, label_layers
+        )
 
         # TODO: Determine if we want a seperate one for image and label
         self._learnable_latent = nn.Parameter(
@@ -430,7 +438,7 @@ class SemanticVAE(nn.Module):
         nn.init.kaiming_uniform_(
             self._learnable_latent, nonlinearity="linear"
         )
-    
+
     @staticmethod
     def _create_encoder(reductions, bottlenecks, layers):
         return nn.ModuleList(

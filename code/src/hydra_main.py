@@ -118,7 +118,9 @@ def main(cfg: DictConfig) -> None:
     try:
         import torchinfo
 
-        torchinfo.summary(model, input_size=(3, *input_shape), batch_dim=0)
+        torchinfo.summary(
+            model, input_size=(3, *input_shape), batch_dim=0
+        )
     except Exception as e:
         print(f"Could not generate torchinfo.summary because: {e}")
 

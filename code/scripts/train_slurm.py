@@ -47,7 +47,7 @@ def train(
             ),
         ]
     )
-    batch_size=64
+    batch_size = 64
 
     trainer = Trainer(
         DataLoader(
@@ -77,7 +77,7 @@ def train(
 if __name__ == "__main__":
     dataset_root = os.environ.get("DATA_DIR", "/datasets/")
     print(f"{dataset_root=}")
-    
+
     torch.set_num_threads(int(os.environ["SLURM_NTASKS"]))
 
     image_net_transforms = [
