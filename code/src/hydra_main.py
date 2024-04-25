@@ -13,7 +13,7 @@ from trainer import Trainer
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: DictConfig) -> None:
-    print(OmegaConf.to_yaml(cfg))
+    print(OmegaConf.to_yaml(cfg, resolve=True))
 
     image_net_transforms = [
         # Rescale to [0, 1], then normalize using mean and std of ImageNet1K DS
