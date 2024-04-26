@@ -3,359 +3,8 @@ from itertools import zip_longest
 from typing import Dict, List, Optional, Tuple
 import torch
 from torch import nn
-from torch.nn import functional as F
-from torch import distributions
 
-
-class ResBlock(nn.Module):
-    """Residual Convolutional Block
-
-    HParams:
-        inC: The number of input channels
-        outC: The number of output channels
-
-    Input:
-        in Tensor[B, inC, H, W]
-
-    Output:
-        out Tensor[B, outC, H, W]
-    """
-
-    def __init__(
-        self,
-        in_channels: int,
-        out_channels: int,
-        bottleneck_ratio: float = 1.0,
-        activation: nn.Module = F.relu,
-    ) -> None:
-        super().__init__()
-
-        bottle_filters = max(int(in_channels * bottleneck_ratio), 1)
-        self._residual = in_channels == out_channels
-        self._activation = activation
-        self._bn = nn.BatchNorm2d(in_channels)
-
-        self._layers = nn.ModuleList(
-            [
-                # in_filters, out_filters, kernel, stride
-                nn.Conv2d(in_channels, bottle_filters, 1, 1),
-                nn.Conv2d(
-                    bottle_filters, bottle_filters, 3, 1, padding="same"
-                ),
-                nn.Conv2d(
-                    bottle_filters, bottle_filters, 3, 1, padding="same"
-                ),
-                nn.Conv2d(bottle_filters, out_channels, 1, 1),
-            ]
-        )
-
-    def forward(self, x) -> torch.Tensor:
-        x = self._bn(x)
-        identity = x
-        for layer in self._layers:
-            x = self._activation(x)
-            x = layer(x)
-        if self._residual:
-            return x + identity
-        return x
-
-
-class DownSampleBlock(nn.Module):
-    """Downsamples the input
-
-    HParams:
-        inC (int): The number of input channels
-        outC (int): The number of output channels
-        df (int): The downsample factor
-
-    Input:
-        x Tensor[B, inC, W, H]
-
-    Output:
-        x Tensor[B, outC, W/df, H/df]
-
-    """
-
-    def __init__(
-        self,
-        in_channels: int,
-        out_channels: int,
-        downsample_factor: int,
-    ) -> None:
-        super().__init__()
-        self._conv = nn.Conv2d(
-            in_channels=in_channels,
-            out_channels=out_channels,
-            kernel_size=downsample_factor,
-            stride=downsample_factor,
-        )
-        self._activation = nn.LeakyReLU(0.1)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self._conv(x)
-        return self._activation(x)
-
-
-class EncoderBlock(nn.Module):
-    """The initial encoder block is based on the Efficient-VDVAE paper
-
-    It consist of a ResBlock and a downsample block
-
-        |
-        | [B, C_in, W, H]
-        v
-    ---------
-    | ResBl |
-    ---------
-        | [B, C_skip, W, H]
-        L-> Skip connection
-        v
-    ---------
-    | DownS |
-    ---------
-        | [B, C_out, W/d, H/d]
-        v
-        out
-    """
-
-    @classmethod
-    def make_block(
-        cls,
-        in_channels: int,
-        out_channels: int,
-        bottleneck_ratio: float,
-        downsample_factor: int,
-    ):
-        return cls(
-            in_channels,
-            out_channels,
-            out_channels,
-            bottleneck_ratio,
-            downsample_factor,
-        )
-
-    def __init__(
-        self,
-        in_channels: int,
-        skip_channels: int,
-        out_channels: int,
-        bottleneck_ratio: float,
-        downsample_factor: int,
-    ) -> None:
-        super().__init__()
-
-        self._resblock = ResBlock(
-            in_channels=in_channels,
-            out_channels=in_channels,
-            bottleneck_ratio=bottleneck_ratio,
-        )
-
-        self._skip_projection = nn.Conv2d(
-            in_channels=in_channels,
-            out_channels=skip_channels,
-            kernel_size=1,
-            stride=1,
-        )
-
-        self._downblock = DownSampleBlock(
-            in_channels=in_channels,
-            out_channels=out_channels,
-            downsample_factor=downsample_factor,
-        )
-
-    def forward(
-        self, x: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        x = self._resblock(x)
-        skip = self._skip_projection(x)
-        out = self._downblock(x)
-        return out, skip
-
-
-class UnpoolLayer(nn.Module):
-    def __init__(
-        self, in_channels: int, out_channels: int, expansion: int
-    ) -> None:
-        super().__init__()
-        self._conv = nn.Conv2d(
-            in_channels, out_channels, kernel_size=1, stride=1
-        )
-        self._expansion = expansion
-
-    def forward(self, x) -> torch.Tensor:
-        x = self._conv(x)
-        x = F.relu(x)
-        x = F.interpolate(x, scale_factor=self._expansion)
-        return x
-
-
-class SampleConvLayer(nn.Module):
-    def __init__(
-        self, in_channels: int, out_channels: Optional[int] = None
-    ) -> None:
-        super().__init__()
-        if out_channels is None:
-            out_channels = in_channels
-        self._conv = nn.Conv2d(
-            in_channels=in_channels,
-            # Mean and (log) variance
-            out_channels=out_channels * 2,
-            kernel_size=1,
-        )
-        # Recommended value by Efficient-VDVAE
-        self._softplus = nn.Softplus(beta=torch.log(torch.tensor(2.0)))
-        self._eps = torch.as_tensor(1e-5)
-
-    def __call__(
-        self, *args: torch.Any, **kwds: torch.Any
-    ) -> distributions.Distribution:
-        """Only added for type-hinting"""
-        return super().__call__(*args, **kwds)
-
-    def forward(
-        self, x, distribution=True
-    ) -> distributions.Distribution:
-        x = self._conv(x)
-        mean, std = torch.chunk(x, chunks=2, dim=1)
-        std = self._softplus(std) + self._eps
-        if distribution:
-            return distributions.Normal(mean, std)
-        return mean, std
-
-
-class DecoderBlock(nn.Module):
-    """DecoderBlock in the VAE
-
-    HParams:
-        inC: The amount of input channels
-        latC: The amount of input channels of the skip connection
-        outC: The amount of output channels
-        expansion: The upscaling of the input
-
-        latC: The amount of internal latent channels
-
-    Inputs:
-        x ([B, inC, H, W]):
-        x_skip (B, skipC, H * expansion, W * expansion):
-
-    Output: Tensor[B, outC, H * expansion, W * expansion]
-    """
-
-    @classmethod
-    def make_block(
-        cls,
-        in_channels: int,
-        skip_channels: int,
-        out_channels: int,
-        bottleneck_ratio: float,
-        expansion: int,
-        latent_channels: int = 32,  # Always 32 in Efficient VDVAE
-    ) -> "DecoderBlock":
-        return cls(
-            in_channels=in_channels,
-            skip_channels=skip_channels,
-            latent_channels=latent_channels,
-            out_channels=out_channels,
-            bottleneck_ratio=bottleneck_ratio,
-            expansion=expansion,
-        )
-
-    def __init__(
-        self,
-        in_channels: int,
-        skip_channels: int,
-        latent_channels: int,
-        out_channels: int,
-        bottleneck_ratio: float,
-        expansion: int,
-    ) -> None:
-        super().__init__()
-        self._params = {
-            "in_channels": in_channels,
-            "skip_channels": skip_channels,
-            "latent_channels": latent_channels,
-            "out_channels": out_channels,
-            "bottleneck_ratio": bottleneck_ratio,
-            "expansion": expansion,
-        }
-        self._unpool = UnpoolLayer(
-            in_channels, skip_channels, expansion
-        )
-
-        self._prior_net = ResBlock(
-            in_channels=skip_channels, out_channels=skip_channels
-        )
-        self._prior_layer = SampleConvLayer(
-            skip_channels, latent_channels
-        )
-
-        self._posterior_net = ResBlock(
-            in_channels=skip_channels + skip_channels,
-            out_channels=skip_channels,
-        )
-        self._posterior_layer = SampleConvLayer(
-            skip_channels, latent_channels
-        )
-
-        self._z_projection = nn.Sequential(
-            nn.Conv2d(latent_channels, skip_channels, 1, 1), nn.ReLU()
-        )
-
-        self._out_resblock = ResBlock(
-            in_channels=skip_channels,
-            out_channels=out_channels,
-            bottleneck_ratio=bottleneck_ratio,
-        )
-
-    def __call__(
-        self,
-        input: Dict[str, torch.Tensor] | torch.Tensor,
-        x_skip: torch.Tensor = None,
-    ) -> torch.Any:
-        if isinstance(input, torch.Tensor):
-            return super().__call__({"out": input}, x_skip)
-        return super().__call__(input, x_skip)
-
-    def forward(
-        self,
-        input: Dict[str, torch.Tensor],
-        x_skip: Optional[torch.Tensor] = None,
-    ) -> torch.Tensor:
-        x = self._unpool(input["out"])
-        # Prior net is a residual block
-        residual = self._prior_net(x)
-        prior = self._prior_layer(residual)
-        out = {
-            "priors": [*input.get("priors", []), prior],
-        }
-
-        if x_skip is not None:
-            # This is only the case if no skip connection is present
-            # As this model is not for generating novel images/segmentations
-            post = self._posterior_net(torch.cat((x, x_skip), dim=1))
-            posterior = self._posterior_layer(post)
-            dist = posterior
-            out["posteriors"] = [
-                *input.get("posteriors", []),
-                posterior,
-            ]
-        else:
-            dist = prior
-
-        if not self.training:
-            z = dist.loc
-        else:
-            z = dist.rsample()
-
-        z_proj = self._z_projection(z)
-        out["out"] = self._out_resblock(residual + z_proj)
-
-        return out
-
-    def posterior(
-        self, x: torch.Tensor, x_skip: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        return (x, x)
+from .modules import DecoderBlock, EncoderBlock
 
 
 class SemanticVAE(nn.Module):
@@ -402,6 +51,9 @@ class SemanticVAE(nn.Module):
             len(encoder_channels) == len(reductions) == len(bottlenecks)
         ), f"`layer_depths`, `reductions` and, `bottlenecks` should all be the same length, but are: {len(encoder_channels)=}, {len(reductions)=}, {len(bottlenecks)=}"
 
+        if decoder_channels is None:
+            decoder_channels = list(reversed(encoder_channels))
+
         self._image_channels = image_channels
         self._label_channels = label_channels
         self._encoder_channels = encoder_channels
@@ -409,6 +61,12 @@ class SemanticVAE(nn.Module):
         self._reductions = reductions
         self._bottlenecks = bottlenecks
         tot_reduction = torch.prod(torch.tensor(reductions))
+        assert (
+            input_shape[0] % tot_reduction == 0
+        ), f"Input shape {(input_shape[0])} must be a multiple of {tot_reduction}"
+        assert (
+            input_shape[1] % tot_reduction == 0
+        ), f"Input shape {(input_shape[1])} must be a multiple of {tot_reduction}"
         self._latent_shape = (
             int(input_shape[0] / tot_reduction),
             int(input_shape[1] / tot_reduction),
@@ -423,9 +81,9 @@ class SemanticVAE(nn.Module):
             reductions, bottlenecks, img_encoder_channels
         )
 
-        label_layers = [label_channels, *encoder_channels]
+        label_layers = [*decoder_channels, label_channels]
         self._label_decoder_layers = self._create_decoder(
-            reductions, bottlenecks, label_layers
+            reductions, bottlenecks, list(reversed(label_layers))
         )
 
         # TODO: Determine if we want a seperate one for image and label

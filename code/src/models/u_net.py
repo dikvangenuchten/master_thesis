@@ -1,14 +1,10 @@
 from typing import List
-import segmentation_models_pytorch as smp
+import torchseg as smp
 from torch import nn
 
 
 class UNet(nn.Module):
-    """Small wrapper around smp.UNet
-
-    Args:
-        nn (_type_): _description_
-    """
+    """Standard UNet based on"""
 
     def __init__(
         self,
@@ -16,7 +12,7 @@ class UNet(nn.Module):
         label_channels: int,
         encoder_depth: int = 5,
         decoder_channels: List[int] = (256, 128, 64, 32, 16),
-        encoder_name="mobilenet_v2",
+        encoder_name="mobilenetv2_100",
         encoder_weights="imagenet",
         activation=None,
     ):

@@ -13,15 +13,15 @@ def test_toy_dataset_initialization():
     assert dataset is not None
 
 
-def test_toy_transform(test_image: Image):
+def test_toy_transform(image: Image):
     transform = ToySegmentationTransform()
-    img, mask = transform(test_image)
+    img, mask = transform(image)
     assert (
         img.shape[1:] == mask.shape[1:]
     ), "Mask does not have the same W,H dimensions"
     assert (
         torch.where(mask == 0, img, 0)
-        == torch.where(mask == 0, test_image, 0)
+        == torch.where(mask == 0, image, 0)
     ).all(), "The image was modified outside of the mask"
     assert (
         torch.where(mask == 1, img[0:1], 255) == 255

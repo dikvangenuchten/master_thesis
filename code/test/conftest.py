@@ -4,7 +4,7 @@ import pytest
 
 
 @pytest.fixture(scope="session")
-def test_image(path="test/data/example.jpg"):
+def image(path="test/data/example.jpg"):
     from torchvision.tv_tensors import Image
     from PIL import Image as PImage
 
@@ -12,12 +12,10 @@ def test_image(path="test/data/example.jpg"):
 
 
 @pytest.fixture(scope="session")
-def test_image_batch(test_image):
+def image_batch(image):
     import torch
 
-    return torch.reshape(test_image, [1, *test_image.shape]).to(
-        torch.float32
-    )
+    return torch.reshape(image, [1, *image.shape]).to(torch.float32)
 
 
 @pytest.fixture(params=[True, False])
@@ -38,7 +36,7 @@ def set_wandb_to_offline():
 
 
 @pytest.fixture(scope="session")
-def dataset(test_image):
+def dataset(image):
     import torch
     from torchvision.transforms import v2 as transforms
     from datasets import CoCoDataset

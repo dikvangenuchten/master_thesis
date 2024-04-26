@@ -5,13 +5,14 @@ import pytest
 
 import torch
 from torch import nn
-from models.semantic_vae import (
+
+from models.modules import (
     DecoderBlock,
     DownSampleBlock,
     EncoderBlock,
     ResBlock,
-    SemanticVAE,
 )
+from models import SemanticVAE
 
 
 @pytest.mark.parametrize(
@@ -207,14 +208,14 @@ def test_decoderblock_train_vs_test(true_or_false: bool):
     ],
 )
 def test_semantic_vae_inference_shapes(
-    test_image_batch,
+    image_batch,
     channels: List[int],
     reductions: List[int],
     bottlenecks: List[float],
     device: str,
 ):
     np.prod(reductions)
-    b, c, h, w = test_image_batch.shape
+    b, c, h, w = image_batch.shape
     num_classes = 8
 
     model = SemanticVAE(
@@ -225,10 +226,10 @@ def test_semantic_vae_inference_shapes(
         bottlenecks,
         input_shape=(h, w),
     )
-    test_image_batch = test_image_batch.to(device)
+    image_batch = image_batch.to(device)
     model = model.to(device)
 
-    z = model.encode_image(test_image_batch)
+    z = model.encode_image(image_batch)
 
     # Currently the latent parameter is of shape [1, b, 1, 1]
     # to keep the model translational invariant. It is to be
@@ -249,8 +250,8 @@ def test_semantic_vae_inference_shapes(
     decoded = model.decode_image(z)["out"]
 
     assert (
-        test_image_batch.shape == decoded.shape
-    ), f"Shape of the decoded image is not equal. expected: {test_image_batch.shape} != {decoded.shape} :actual"
+        image_batch.shape == decoded.shape
+    ), f"Shape of the decoded image is not equal. expected: {image_batch.shape} != {decoded.shape} :actual"
 
     segmentation = model.decode_label(z)["out"]
 
@@ -274,13 +275,13 @@ def test_semantic_vae_inference_shapes(
     ],
 )
 def test_semantic_vae_inference_shapes_e2e(
-    test_image_batch,
+    image_batch,
     channels: List[int],
     reductions: List[int],
     bottlenecks: List[float],
     device: str,
 ):
-    b, c, h, w = test_image_batch.shape
+    b, c, h, w = image_batch.shape
     num_classes = 8
 
     model = SemanticVAE(
@@ -291,11 +292,11 @@ def test_semantic_vae_inference_shapes_e2e(
         bottlenecks,
         input_shape=(h, w),
     )
-    test_image_batch = test_image_batch.to(device)
+    image_batch = image_batch.to(device)
     model = model.to(device)
 
     expected_segmentation_shape = torch.Size([b, num_classes, h, w])
-    segmentation = model(test_image_batch)["out"]
+    segmentation = model(image_batch)["out"]
     assert (
         segmentation.shape == expected_segmentation_shape
     ), f"Segmentation shape is not equal to expected: {list(segmentation.shape)} != {expected_segmentation_shape}"

@@ -22,9 +22,9 @@ def trainer(bs_model: nn.Module):
     )
 
 
-def test_trainer_single_epoch(test_image_batch, trainer):
+def test_trainer_single_epoch(image_batch, trainer):
     """Train a model on a single image."""
-    input = test_image_batch.to(trainer.device)
+    input = image_batch.to(trainer.device)
     pre = trainer.model(input)
     pre_loss = trainer.epoch()
     for _ in range(4):
@@ -37,8 +37,8 @@ def test_trainer_single_epoch(test_image_batch, trainer):
     ), "Loss increased for simple example training"
 
 
-def test_trainer_eval_epoch(test_image_batch, trainer):
-    input = test_image_batch.to(trainer.device)
+def test_trainer_eval_epoch(image_batch, trainer):
+    input = image_batch.to(trainer.device)
     pre = trainer.model(input)
     _ = trainer.eval_epoch()
     post = trainer.model(input)
@@ -49,13 +49,13 @@ def test_trainer_eval_epoch(test_image_batch, trainer):
 def test_save_load(
     trainer: Trainer,
     tmp_path: str,
-    test_image_batch: torch.Tensor,
+    image_batch: torch.Tensor,
 ):
     epoch = 0
     path = tmp_path / f"trainer-ckpt-{epoch}"
     trainer.save(path)
 
     loaded = Trainer.load(path)
-    x = test_image_batch.to(device=trainer.device)
+    x = image_batch.to(device=trainer.device)
 
     assert torch.allclose(trainer.model(x), loaded.model(x))
