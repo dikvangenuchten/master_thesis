@@ -1,11 +1,9 @@
 import itertools
 from typing import List, Optional
 from torch import nn
-import torch
-import torchvision
 import torchseg
 
-from .modules import SampleConvLayer, DecoderBlock, Conv2dBN
+from .modules import SampleConvLayer, DecoderBlock
 
 
 class MobileVAE(nn.Module):
@@ -78,7 +76,9 @@ class MobileVAE(nn.Module):
         skip_connections = self._encoder(x)[::-1]
 
         out = skip_connections[0]
-        for layer, skip in zip(self._decoder, skip_connections[1:], strict=True):
+        for layer, skip in zip(
+            self._decoder, skip_connections[1:], strict=True
+        ):
             out = layer(out, skip)
 
         return out

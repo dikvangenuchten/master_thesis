@@ -12,7 +12,15 @@ def test_forward_pass(image_batch):
     out = model(image_batch)
     assert "out" in out
 
-    assert out["out"].shape[0] == image_batch.shape[0], "Batch dimension is not equal"
-    assert out["out"].shape[2] == image_batch.shape[2], "Height dimension is not equal"
-    assert out["out"].shape[3] == image_batch.shape[3], "Width dimension is not equal"
-    assert out["out"].shape[1] == num_classes, "Channel dimension is incorrect"
+    assert (
+        out["out"].shape[0] == image_batch.shape[0]
+    ), "Batch dimension is not equal"
+    assert (
+        out["out"].shape[2] == image_batch.shape[2]
+    ), "Height dimension is not equal"
+    assert (
+        out["out"].shape[3] == image_batch.shape[3]
+    ), "Width dimension is not equal"
+    assert (
+        out["out"].shape[1] == num_classes
+    ), "Channel dimension is incorrect"
