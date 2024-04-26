@@ -14,7 +14,7 @@ class UNet(nn.Module):
         decoder_channels: List[int] = (256, 128, 64, 32, 16),
         encoder_name="mobilenetv2_100",
         encoder_weights="imagenet",
-        activation=None,
+        activation=nn.Identity(),
     ):
         super().__init__()
         assert (
