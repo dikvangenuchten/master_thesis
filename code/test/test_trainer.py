@@ -20,6 +20,7 @@ def trainer(dataset, device):
 
     model = MobileVAE(
         len(dataset.class_map),
+        encoder_depth = 1
     )
 
     return Trainer(
