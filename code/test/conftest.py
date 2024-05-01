@@ -70,7 +70,7 @@ def dataloader(dataset):
     return DataLoader(dataset, batch_size=4)
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def device():
     import torch
 

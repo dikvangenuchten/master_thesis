@@ -10,8 +10,8 @@ class MobileVAE(nn.Module):
     def __init__(
         self,
         label_channels: int,
-        encoder_name: str,
-        encoder_depth: int,
+        encoder_name: str = "mobilenetv2_100",
+        encoder_depth: int = 5,
         image_channels: int = 3,
         decoder_channels: Optional[List[int]] = None,
         encoder_weights: str = "imagenet",

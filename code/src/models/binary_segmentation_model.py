@@ -19,4 +19,4 @@ class BinarySegmentationModel(nn.Module):
 
     def forward(self, img: torch.Tensor) -> torch.Tensor:
         x = self._conv1(img)
-        return x
+        return {"out": x}

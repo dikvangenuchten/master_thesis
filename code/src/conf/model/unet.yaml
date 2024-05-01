@@ -1,4 +1,4 @@
 _target_: models.UNet
 image_channels: 3
 encoder_depth: 5
-encoder_weights: null
+encoder_weights: "imagenet"

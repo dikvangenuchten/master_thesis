@@ -1,21 +1,32 @@
 import pytest
 import torch
-from torch import nn, optim
+from torch import nn, optim, utils
 
-from datasets.toy_data import SegmentationToyDataset
+import losses
+from models import MobileVAE
 from trainer import Trainer
 
 
 @pytest.fixture(scope="module")
-def trainer(bs_model: nn.Module):
-    dataset = SegmentationToyDataset(limit=1, base_path="test/data")
-    bs_dataloader = dataset.to_loader(batch_size=1)
+def trainer(dataset, device):
+    dataloader = utils.data.DataLoader(dataset, batch_size=16)
+
+    loss_fn = losses.WrappedLoss(
+        nn.CrossEntropyLoss(
+            weight=torch.tensor(dataset.class_weights, device=device),
+            ignore_index=133,
+        )
+    )
+
+    model = MobileVAE(
+        len(dataset.class_map),
+    )
 
     return Trainer(
-        bs_dataloader,
-        bs_model,
-        nn.MSELoss(),
-        optim.Adam(bs_model.parameters()),
+        dataloader,
+        model,
+        loss_fn,
+        optim.Adam(model.parameters()),
         # Default log_with is ["wandb"], but that needs to
         # be a singleton, which causes trouble in testing
         log_with=[],
@@ -25,11 +36,13 @@ def trainer(bs_model: nn.Module):
 def test_trainer_single_epoch(image_batch, trainer):
     """Train a model on a single image."""
     input = image_batch.to(trainer.device)
-    pre = trainer.model(input)
+    pre = trainer.model.eval()(input)["out"]
+    pre2 = trainer.model.eval()(input)["out"]
+    assert (pre == pre2).all(), "For this test to work model should be determenistic in eval mode"
     pre_loss = trainer.epoch()
-    for _ in range(4):
+    for _ in range(1):
         trainer.epoch()
-    post = trainer.model(input)
+    post = trainer.model.eval()(input)["out"]
     post_loss = trainer.epoch()
     assert not (pre == post).all(), "The model was not updated"
     assert (
@@ -39,9 +52,12 @@ def test_trainer_single_epoch(image_batch, trainer):
 
 def test_trainer_eval_epoch(image_batch, trainer):
     input = image_batch.to(trainer.device)
-    pre = trainer.model(input)
+    pre = trainer.model.eval()(input)["out"]
+    pre2 = trainer.model.eval()(input)["out"]
+    assert (pre == pre2).all(), "For this test to work model should be determenistic in eval mode"
+    trainer.model.train() # This ensures eval must be called in trainer eval epoch
     _ = trainer.eval_epoch()
-    post = trainer.model(input)
+    post = trainer.model(input)["out"]
     assert (pre == post).all(), "Evaluation should not modify model"
 
 

@@ -76,13 +76,6 @@ class Trainer:
             project_name="MasterThesis", config=config
         )
 
-        if "wandb" in log_with:
-            import wandb
-
-            wandb.watch(
-                models=model, criterion=loss_fn, log="all", log_freq=100
-            )
-
         if scheduler is None:
             # If no scheduler is given create a 'constant' scheduler
             scheduler = optim.lr_scheduler.LambdaLR(
@@ -95,14 +88,27 @@ class Trainer:
             )
             eval_dataloader = train_dataloader
 
+        if "wandb" in log_with:
+            import wandb
+
+            wandb.watch(
+                models=model,
+                criterion=loss_fn,
+                log="all",
+                log_freq=100,
+                log_graph=True,
+            )
+
         (
             model,
+            loss_fn,
             optimizer,
             train_dataloader,
             eval_dataloader,
             scheduler,
         ) = self._accelerator.prepare(
             model,
+            loss_fn,
             optimizer,
             train_dataloader,
             eval_dataloader,
@@ -163,6 +169,11 @@ class Trainer:
         # Backward
         self._accelerator.backward(loss)
         self.optimizer.step()
+        self.scheduler.step()
+        self._accelerator.log(
+            {"lr": self.scheduler.get_last_lr()},
+            log_kwargs={"wandb": {"commit": False}},
+        )
         step_data = StepData(batch, model_out, loss)
         [metric.update(step_data) for metric in self.train_metrics]
         return loss.detach()
@@ -290,35 +301,16 @@ class Trainer:
         stop = False
         pbar = tqdm(self.train_dataloader, leave=False, desc="training")
         for batch_idx, batch in enumerate(pbar):
-            self.optimizer.zero_grad()
-
-            input = batch["input"]
-            input.requires_grad_(True)
-            target = batch["target"]
-
-            model_out = self.model(input)
-
-            loss = self.loss_fn(model_out, target)
-
-            # Gradient penalty
-            # Gradient penalty is broken for VAE
-            # gp = self._gradient_penalty(input, output)
-            # loss += gp
-
-            # Backpropagation
-            self._accelerator.backward(loss)
-            self.optimizer.step()
+            loss = self.train_step(batch)
 
             # Keep track of average loss
             loss_d = loss.detach()
             loss_sum += loss_d.sum()
-            loss_count += input.shape[0]
+            loss_count += batch["input"].shape[0]
             pbar.set_description(
                 f"Training: loss={(loss_sum / loss_count).item():.4f}"
             )
 
-            step_data = StepData(batch, model_out, loss)
-            [metric.update(step_data) for metric in self.train_metrics]
             if stop:
                 # Manual break using debugger
                 break
@@ -339,24 +331,11 @@ class Trainer:
                     self.eval_dataloader, leave=False, desc="evaluation"
                 )
             ):
-                input = batch["input"]
-                input.requires_grad_(True)
-                target = batch["target"]
-
-                model_out = self.model(input)
-
-                loss = self.loss_fn(model_out, target)
+                loss = self.eval_step(batch)
 
                 # Keep track of average loss
-                loss_d = loss.detach()
-                loss_sum += loss_d.sum()
-                loss_count += input.shape[0]
-
-                step_data = StepData(batch, model_out, loss)
-                [
-                    metric.update(step_data)
-                    for metric in self.eval_metrics
-                ]
+                loss_sum += loss.detach().sum()
+                loss_count += batch["input"].shape[0]
 
         self._log_and_reset_metrics(epoch)
         return (loss_sum / loss_count).item()
