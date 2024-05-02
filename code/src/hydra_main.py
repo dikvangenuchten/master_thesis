@@ -6,7 +6,6 @@ from torchvision.transforms import v2 as transforms
 
 from omegaconf import DictConfig, OmegaConf
 
-import losses
 import metrics
 from trainer import Trainer
 
@@ -14,7 +13,6 @@ from trainer import Trainer
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: DictConfig) -> None:
     print(OmegaConf.to_yaml(cfg, resolve=True))
-    
 
     loss_fn = hydra.utils.instantiate(cfg.loss)
 
@@ -32,15 +30,21 @@ def main(cfg: DictConfig) -> None:
     )
 
     # Load datasets
-    dataset_factory = hydra.utils.instantiate(cfg.dataset, _partial_=True)
-    train_dataset = dataset_factory(split="train", transform=data_transforms)
+    dataset_factory = hydra.utils.instantiate(
+        cfg.dataset, _partial_=True
+    )
+    train_dataset = dataset_factory(
+        split="train", transform=data_transforms
+    )
     train_loader = DataLoader(
         train_dataset,
         batch_size=cfg.general.batch_size,
         num_workers=int(os.environ.get("SLURM_NTASKS", 4)),
         pin_memory=True,
     )
-    val_dataset = dataset_factory(split="val", transform=data_transforms)
+    val_dataset = dataset_factory(
+        split="val", transform=data_transforms
+    )
     val_loader = DataLoader(
         val_dataset,
         batch_size=cfg.general.batch_size,
