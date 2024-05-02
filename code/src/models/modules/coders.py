@@ -149,8 +149,8 @@ class DecoderBlock(nn.Module):
         else:
             dist = prior
 
-        if not self.training:
-            z = dist.loc
+        if self.training:
+            z = dist.rsample()
         else:
             z = dist.loc
 

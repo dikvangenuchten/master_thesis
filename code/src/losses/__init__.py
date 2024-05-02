@@ -87,10 +87,11 @@ class SummedLoss(nn.Module):
     """
 
     def __init__(
-        self, losses: List[nn.Module], *args, **kwargs
+        self, losses: Dict[str, nn.Module], *args, **kwargs
     ) -> None:
         super().__init__(*args, **kwargs)
-        self._losses = nn.ModuleList(losses)
+        self._names = list(losses.keys())
+        self._losses = nn.ModuleList(list(losses.values()))
         self._handles = []
 
     def forward(self, *args, **kwargs) -> torch.Tensor:

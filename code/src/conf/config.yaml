@@ -3,6 +3,8 @@ defaults:
   - dataset: coco
   - model: unet
   - optimizer: adamax
+  - loss:
+    - recon_loss
 
 general:
   batch_size: 64

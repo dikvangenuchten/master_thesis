@@ -14,6 +14,9 @@ from trainer import Trainer
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: DictConfig) -> None:
     print(OmegaConf.to_yaml(cfg, resolve=True))
+    
+
+    loss_fn = hydra.utils.instantiate(cfg.loss)
 
     image_net_transforms = [
         # Rescale to [0, 1], then normalize using mean and std of ImageNet1K DS
@@ -29,18 +32,15 @@ def main(cfg: DictConfig) -> None:
     )
 
     # Load datasets
-    train_dataset = hydra.utils.instantiate(
-        cfg.dataset, split="train", transform=data_transforms
-    )
+    dataset_factory = hydra.utils.instantiate(cfg.dataset, _partial_=True)
+    train_dataset = dataset_factory(split="train", transform=data_transforms)
     train_loader = DataLoader(
         train_dataset,
         batch_size=cfg.general.batch_size,
         num_workers=int(os.environ.get("SLURM_NTASKS", 4)),
         pin_memory=True,
     )
-    val_dataset = hydra.utils.instantiate(
-        cfg.dataset, split="train", transform=data_transforms
-    )
+    val_dataset = dataset_factory(split="val", transform=data_transforms)
     val_loader = DataLoader(
         val_dataset,
         batch_size=cfg.general.batch_size,
@@ -57,25 +57,6 @@ def main(cfg: DictConfig) -> None:
 
     optimizer = hydra.utils.instantiate(
         cfg.optimizer, params=model.parameters()
-    )
-
-    loss_fn = losses.SummedLoss(
-        losses=[
-            # losses.WeightedLoss(
-            #     losses.HierarchicalKLDivergenceLoss(), 0.1
-            # ),
-            losses.WeightedLoss(
-                losses.WrappedLoss(
-                    torch.nn.CrossEntropyLoss(
-                        weight=torch.tensor(
-                            train_dataset.class_weights, device="cuda"
-                        ),
-                        ignore_index=133,
-                    )
-                ),
-                1,
-            ),
-        ]
     )
 
     train_metrics = [
