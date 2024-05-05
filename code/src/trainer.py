@@ -67,6 +67,7 @@ class Trainer:
         train_metrics: List[BaseMetric] = None,
         eval_metrics: List[BaseMetric] = None,
         log_with: List[str] = ["wandb"],
+        clip_norm: float = 1e10,
     ) -> None:
         train_metrics = [] if train_metrics is None else train_metrics
         eval_metrics = [] if eval_metrics is None else eval_metrics
@@ -75,6 +76,8 @@ class Trainer:
         self._accelerator.init_trackers(
             project_name="MasterThesis", config=config
         )
+
+        self._clip_norm = clip_norm
 
         if scheduler is None:
             # If no scheduler is given create a 'constant' scheduler
@@ -168,10 +171,13 @@ class Trainer:
         loss = self.loss_fn(model_out, batch)
         # Backward
         self._accelerator.backward(loss)
+        nn.utils.clip_grad_norm_(
+            self.model.parameters(), self._clip_norm
+        )
         self.optimizer.step()
         self.scheduler.step()
         self._accelerator.log(
-            {"lr": self.scheduler.get_last_lr()},
+            {"lr": self.scheduler.get_last_lr()[0]},
             log_kwargs={"wandb": {"commit": False}},
         )
         step_data = StepData(batch, model_out, loss)

@@ -1,0 +1,11 @@
+# @package _global_
+defaults:
+  - /loss: recon_loss
+
+dataset:
+  output_structure:
+    target: img
+
+
+model: # Disable the skip connection on the highest few levels to force better 
+  skip_connections: [True, True, False, False, False]

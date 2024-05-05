@@ -1,0 +1,7 @@
+defaults:
+  - crossentropy_loss@losses.crossentropy_loss
+  - kl_divergence@losses.kl_divergence
+
+
+_target_: losses.SummedLoss
+_recursive_: True

@@ -1,0 +1,7 @@
+_target_: "losses.WrappedLoss"
+loss_fn:
+  _target_: "torch.nn.CrossEntropyLoss"
+  ignore_index: ${dataset.ignore_index}
+keys:
+  out: input
+  target: target

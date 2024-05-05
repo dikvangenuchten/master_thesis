@@ -7,7 +7,6 @@ from torchvision.transforms import v2 as transforms
 from omegaconf import DictConfig, OmegaConf
 
 import metrics
-from trainer import Trainer
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
@@ -52,7 +51,7 @@ def main(cfg: DictConfig) -> None:
         pin_memory=True,
     )
 
-    ignore_index = num_classes = len(train_dataset.class_map)
+    num_classes = len(train_dataset.class_map)
 
     model = hydra.utils.instantiate(
         cfg.model,
@@ -63,36 +62,48 @@ def main(cfg: DictConfig) -> None:
         cfg.optimizer, params=model.parameters()
     )
 
+    if cfg.scheduler is not None:
+        scheduler = hydra.utils.instantiate(
+            cfg.scheduler, optimizer=optimizer
+        )
+    else:
+        scheduler = None
+
     train_metrics = [
         metrics.AverageMetric(
             "TrainAverageLoss", lambda step_data: step_data.loss
         ),
-        metrics.MaskMetric("TrainMaskMetric", train_dataset.class_map),
-        metrics.ConfusionMetrics(
-            "ConfusionMetrics",
-            num_classes,
-            ignore_index=ignore_index,
-            prefix="Train",
-        ),
+        metrics.ImageMetric("TrainReconstruction"),
+        # metrics.ConfusionMetrics(
+        # "ConfusionMetrics",
+        # num_classes,
+        # ignore_index=ignore_index,
+        # prefix="Train",
+        # ),
     ]
 
     eval_metrics = [
         metrics.AverageMetric(
             "EvalAverageLoss", lambda step_data: step_data.loss
         ),
-        metrics.MaskMetric("EvalMaskMetric", train_dataset.class_map),
-        metrics.ConfusionMetrics(
-            "ConfusionMetrics",
-            num_classes,
-            ignore_index=ignore_index,
-            prefix="Eval",
-        ),
+        metrics.ImageMetric("EvalReconstruction"),
+        # metrics.ConfusionMetrics(
+        # "ConfusionMetrics",
+        # num_classes,
+        # ignore_index=ignore_index,
+        # prefix="Eval",
+        # ),
     ]
 
-    trainer = Trainer(
+    # Required to be able to use config as kwarg.
+    trainer_factory = hydra.utils.instantiate(
+        cfg.trainer, _partial_=True
+    )
+    trainer = trainer_factory(
         train_dataloader=train_loader,
         model=model,
         optimizer=optimizer,
+        scheduler=scheduler,
         loss_fn=loss_fn,
         eval_dataloader=val_loader,
         train_metrics=train_metrics,

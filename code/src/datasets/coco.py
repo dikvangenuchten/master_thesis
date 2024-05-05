@@ -37,6 +37,7 @@ class CoCoDataset(torch.utils.data.Dataset):
         transform: Optional[Callable] = None,
         sample: bool = True,
         length: Optional[int] = None,
+        ignore_index=None,
     ):
         self._length = length
 
@@ -81,7 +82,12 @@ class CoCoDataset(torch.utils.data.Dataset):
             for i, cat in enumerate(self._panoptic_anns["categories"])
         }
 
-        self.ignore_index = len(self.class_map)
+        if ignore_index is None:
+            ignore_index = len(self.class_map)
+        elif ignore_index < len(self.class_map):
+            print("Warning: ignore index is < the amount of classes")
+
+        self.ignore_index = ignore_index
         self._sample = sample
         self._weights = None
 
@@ -94,6 +100,8 @@ class CoCoDataset(torch.utils.data.Dataset):
 
     @property
     def class_map(self) -> dict:
+        if self.output_structure.get("target") == "img":
+            return {0: "R", 1: "G", 3: "B"}
         return self._class_map
 
     @property

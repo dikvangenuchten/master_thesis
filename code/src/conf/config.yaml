@@ -1,10 +1,11 @@
 defaults:
   - default_dirs
   - dataset: coco
-  - model: unet
+  - model: mobile_vae
+  - scheduler: cosine_annealing
   - optimizer: adamax
-  - loss:
-    - recon_loss
+  - loss: recon_loss
+  - .@trainer: trainer
 
 general:
   batch_size: 64

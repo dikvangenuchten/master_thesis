@@ -4,3 +4,4 @@ output_structure:
   target: semantic_mask
 rel_path: "coco"
 dataset_root: ${..paths.datasets}
+ignore_index: 133

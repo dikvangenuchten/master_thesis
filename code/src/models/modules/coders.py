@@ -132,9 +132,7 @@ class DecoderBlock(nn.Module):
         # Prior net is a residual block
         residual = self._prior_net(x)
         prior = self._prior_layer(residual)
-        out = {
-            "priors": [*input.get("priors", []), prior],
-        }
+        out = input
 
         if x_skip is not None:
             # This is only the case if no skip connection is present
@@ -142,17 +140,15 @@ class DecoderBlock(nn.Module):
             post = self._posterior_net(torch.cat((x, x_skip), dim=1))
             posterior = self._posterior_layer(post)
             dist = posterior
-            out["posteriors"] = [
-                *input.get("posteriors", []),
-                posterior,
-            ]
+            out.setdefault("priors", []).append(prior)
+            out.setdefault("posteriors", []).append(posterior)
         else:
             dist = prior
 
         if self.training:
             z = dist.rsample()
         else:
-            z = dist.loc
+            z = dist.mean
 
         z_proj = self._z_projection(z)
         out["out"] = self._out_resblock(residual + z_proj)
