@@ -27,6 +27,4 @@ class AnnealingWeightedLoss(nn.Module):
 
     def _calc_weight(self, step) -> torch.Tensor:
         period = math.pi * step / self._max_step
-        return self._eta_min + self._half_range * (
-            1 + math.cos(period)
-        )
+        return self._eta_min + self._half_range * (1 + math.cos(period))

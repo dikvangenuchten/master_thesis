@@ -7,6 +7,7 @@ from .confusion_matrix import ConfusionMetrics
 __all__ = [
     "AverageMetric",
     "MaskMetric",
-    "ImageMetric" "ConfusionMetrics",
+    "ImageMetric",
+    "ConfusionMetrics",
     "StepData",
 ]
