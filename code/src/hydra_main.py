@@ -18,9 +18,6 @@ def main(cfg: DictConfig) -> None:
     image_net_transforms = [
         # Rescale to [0, 1], then normalize using mean and std of ImageNet1K DS
         transforms.ToDtype(torch.float32, scale=True),
-        transforms.Normalize(
-            mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-        ),
     ]
 
     input_shape = cfg.general.input_shape

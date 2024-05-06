@@ -9,3 +9,6 @@ dataset:
 
 model: # Disable the skip connection on the highest few levels to force better 
   skip_connections: [True, True, False, False, False]
+  activation:
+    _target_: torch.nn.Sigmoid
+  encoder_weights: null

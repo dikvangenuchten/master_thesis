@@ -6,6 +6,7 @@ from torch import nn
 from .duq_loss import DUQLoss
 from .gradient_penalty import GradientPenalty
 from .kl_divergence import HierarchicalKLDivergenceLoss
+from .annealing_loss import AnnealingWeightedLoss
 
 
 class WrappedLoss(nn.Module):
@@ -129,4 +130,5 @@ __all__ = [
     "WeightedLoss",
     "WrappedLoss",
     "SummedLoss",
+    "AnnealingWeightedLoss",
 ]

@@ -160,7 +160,7 @@ class Trainer:
         )
 
     def train_step(
-        self, batch: Dict[str, torch.Tensor]
+        self, **batch: Dict[str, torch.Tensor]
     ) -> torch.Tensor:
         self.model.train()
         self.optimizer.zero_grad(set_to_none=True)
@@ -218,7 +218,7 @@ class Trainer:
         eval_loss = RunningMean()
 
         for step in (pbar := trange(training_steps)):
-            loss = self.train_step(next(iter_train))
+            loss = self.train_step(**next(iter_train), step=step)
             train_loss.add(loss)
             if step % eval_every_n_steps == 0:
                 e_loss = self.eval_step(next(iter_eval))
@@ -302,12 +302,16 @@ class Trainer:
     def epoch(self, epoch: Optional[int] = None) -> torch.Tensor:
         loss_sum = 0
         loss_count = 0
+        epoch = epoch if epoch is not None else 0
+        step_offset = epoch * len(self.train_dataloader)
         self.model.train()
 
         stop = False
         pbar = tqdm(self.train_dataloader, leave=False, desc="training")
         for batch_idx, batch in enumerate(pbar):
-            loss = self.train_step(batch)
+            loss = self.train_step(
+                **batch, step=batch_idx + step_offset
+            )
 
             # Keep track of average loss
             loss_d = loss.detach()
