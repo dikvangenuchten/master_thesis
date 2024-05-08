@@ -3,7 +3,7 @@ pythonpath = [
   "src"
 ]
 testpaths = [
-  "test/*"
+  "test"
 ]
 norecursedirs = [
   "wandb", "src", "scripts", ".*", "venv"

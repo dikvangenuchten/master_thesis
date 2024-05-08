@@ -51,7 +51,7 @@ def test_loss_is_bigger_if_incorrect():
 
 
 @pytest.mark.parametrize("target_mu,target_var", [(0, 1), (1, 2)])
-def test_very_simple_model(i, device, target_mu, target_var):
+def test_very_simple_model(device, target_mu, target_var):
     batch_size = 512
     shape = torch.tensor((1, 1, 1), device=device)
     hidden = shape.prod()
