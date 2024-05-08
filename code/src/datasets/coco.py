@@ -92,11 +92,7 @@ class CoCoDataset(torch.utils.data.Dataset):
         self._weights = None
 
     def __len__(self) -> int:
-        if self._length is None:
-            return len(self._panoptic_anns["annotations"])
-        return min(
-            self._length, len(self._panoptic_anns["annotations"])
-        )
+        return len(self._panoptic_anns["annotations"])
 
     @property
     def class_map(self) -> dict:
@@ -193,6 +189,9 @@ class CoCoDataset(torch.utils.data.Dataset):
         return out
 
     def _getitem(self, index) -> Dict[str, torch.Tensor]:
+        if self._length is not None:
+            # This is for some reason ~8 times faster compared to reducing the actual dataset size
+            index = index % self._length
         return {
             k: self._get_type(index, v)
             for k, v in self.output_structure.items()

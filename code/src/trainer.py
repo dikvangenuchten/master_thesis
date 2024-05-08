@@ -72,7 +72,9 @@ class Trainer:
         train_metrics = [] if train_metrics is None else train_metrics
         eval_metrics = [] if eval_metrics is None else eval_metrics
 
-        self._accelerator = Accelerator(log_with=log_with)
+        self._accelerator = Accelerator(
+            log_with=log_with, mixed_precision="fp16"
+        )
         self._accelerator.init_trackers(
             project_name="MasterThesis", config=config
         )
@@ -91,7 +93,7 @@ class Trainer:
             )
             eval_dataloader = train_dataloader
 
-        if "wandb" in log_with:
+        if log_with is not None and "wandb" in log_with:
             import wandb
 
             wandb.watch(
@@ -217,7 +219,7 @@ class Trainer:
         train_loss = RunningMean()
         eval_loss = RunningMean()
 
-        for step in (pbar := trange(training_steps)):
+        for step in (pbar := trange(training_steps, smoothing=0.01)):
             loss = self.train_step(**next(iter_train), step=step)
             train_loss.add(loss)
             if step % eval_every_n_steps == 0:

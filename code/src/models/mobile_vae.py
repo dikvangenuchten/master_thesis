@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import itertools
 from typing import Dict, List, Optional
 from torch import nn, distributions
@@ -106,22 +107,6 @@ class MobileVAE(nn.Module):
         ]
 
         self._mid_block = MidBlock(in_channels=decoder_channels[0])
-
-        self._decoder = nn.ModuleList(
-            [
-                UpscaleBlock(
-                    in_channels=in_channels,
-                    out_channels=out_channels,
-                    expansion=expansion,
-                )
-                for in_channels, out_channels, expansion in zip(
-                    decoder_channels[:-1],
-                    decoder_channels[1:],
-                    expansions,
-                    strict=True,
-                )
-            ]
-        )
 
         self._decoder = nn.ModuleList(
             [

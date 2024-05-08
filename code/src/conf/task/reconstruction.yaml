@@ -6,9 +6,12 @@ dataset:
   output_structure:
     target: img
 
-
-model: # Disable the skip connection on the highest few levels to force better 
-  skip_connections: [True, True, False, False, False]
+model: # Disable the skip connection on the highest few levels to force better encoding
+  encoder_depth: 5
+  skip_connections: [False, False, False, False, False]
   activation:
     _target_: torch.nn.Sigmoid
   encoder_weights: null
+
+optimizer:
+  lr: 1e-3

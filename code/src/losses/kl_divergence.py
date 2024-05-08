@@ -30,6 +30,10 @@ class HierarchicalKLDivergenceLoss(nn.Module):
 
         loss = 0
         for posterior, prior in zip(posteriors, priors):
-            _loss = torch.distributions.kl_divergence(prior, posterior)
+            _loss = (
+                torch.distributions.kl_divergence(posterior, prior)
+                .flatten(1)
+                .sum(1)
+            )
             loss += _loss.mean()
         return loss

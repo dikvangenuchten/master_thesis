@@ -1,0 +1,7 @@
+_target_: "losses.WrappedLoss"
+loss_fn:
+  _target_: "torch.nn.L1Loss"
+  reduction: "sum"
+keys:
+  out: input
+  input: target

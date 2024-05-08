@@ -17,15 +17,16 @@ class UnpoolLayer(nn.Module):
         self._conv = Conv2dBN(
             in_channels,
             out_channels,
-            1,
-            1,
+            kernel_size=expansion * 3,
+            stride=1,
+            padding="same",
             activation=nn.ReLU(inplace=True),
         )
         self._expansion = expansion
 
     def forward(self, x) -> torch.Tensor:
-        x = self._conv(x)
         x = F.interpolate(x, scale_factor=self._expansion)
+        x = self._conv(x)
         return x
 
 

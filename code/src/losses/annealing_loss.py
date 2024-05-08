@@ -7,16 +7,16 @@ class AnnealingWeightedLoss(nn.Module):
     def __init__(
         self,
         loss_fn: nn.Module,
-        eta_min: float,
-        eta_max: float,
+        start_value: float,
+        end_value: float,
         max_step: int,
         *args,
         **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
 
-        self._eta_min = eta_min
-        self._half_range = 0.5 * (eta_max - eta_min)
+        self._eta_min = start_value
+        self._half_range = 0.5 * (end_value - start_value)
         self._max_step = max_step
         self._loss_fn = loss_fn
 

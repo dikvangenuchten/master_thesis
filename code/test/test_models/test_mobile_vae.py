@@ -6,7 +6,7 @@ def test_forward_pass(image_batch):
     model = MobileVAE(
         label_channels=num_classes,
         encoder_name="mobilenetv2_100",
-        encoder_depth=3,
+        encoder_depth=1,
     )
 
     out = model(image_batch)

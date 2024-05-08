@@ -1,6 +1,6 @@
 defaults:
-  - mse_loss@losses.mse_loss
-  - kl_divergence@losses.kl_divergence
+  - l1_loss@losses.l1_loss
+  - annealing_kl_divergence_loss@losses.kl_divergence
 
 
 _target_: losses.SummedLoss

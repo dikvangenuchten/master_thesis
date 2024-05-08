@@ -1,4 +1,4 @@
-from typing import Optional, Callable
+from typing import Optional, Callable, Tuple, Union
 
 from torch import nn, Tensor
 
@@ -10,11 +10,19 @@ class Conv2dBN(nn.Sequential):
         out_channels: int,
         kernel_size: int,
         stride: int = 1,
+        *,
+        padding: Union[str, Tuple[int, int], int] = 0,
         activation: Optional[Callable] = None,
     ):
         super().__init__()
 
-        conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride)
+        conv = nn.Conv2d(
+            in_channels,
+            out_channels,
+            kernel_size,
+            stride,
+            padding=padding,
+        )
         bn = nn.BatchNorm2d(out_channels)
         if activation is None:
             activation = nn.Identity()
@@ -49,13 +57,13 @@ class ResBlock(nn.Module):
         self._residual = in_channels == out_channels
 
         self._conv_bn_1 = Conv2dBN(
-            in_channels, bottle_filters, 1, 1, activation
+            in_channels, bottle_filters, 1, 1, activation=activation
         )
         self._conv_bn_2 = Conv2dBN(
-            bottle_filters, bottle_filters, 1, 1, activation
+            bottle_filters, bottle_filters, 1, 1, activation=activation
         )
         self._conv_bn_3 = Conv2dBN(
-            bottle_filters, out_channels, 1, 1, None
+            bottle_filters, out_channels, 1, 1, activation=None
         )
 
     def forward(self, x) -> Tensor:

@@ -10,4 +10,4 @@ defaults:
 general:
   batch_size: 64
   num_steps: 100_000
-  input_shape: [128, 128]
+  input_shape: [256, 256]
