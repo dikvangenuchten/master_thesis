@@ -18,7 +18,11 @@ def trainer(dataset, device):
         )
     )
 
-    model = MobileVAE(len(dataset.class_map), activation=torch.nn.Softmax(1), encoder_depth=1)
+    model = MobileVAE(
+        len(dataset.class_map),
+        activation=torch.nn.Softmax(1),
+        encoder_depth=1,
+    )
 
     return hydra.utils.instantiate(
         {

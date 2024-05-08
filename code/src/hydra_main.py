@@ -1,7 +1,6 @@
 import os
 import hydra
 import torch
-import torch
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2 as transforms
 
@@ -13,7 +12,6 @@ import metrics
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: DictConfig) -> None:
     print(OmegaConf.to_yaml(cfg, resolve=True))
-
 
     image_net_transforms = [
         # Rescale to [0, 1], then normalize using mean and std of ImageNet1K DS
@@ -50,7 +48,7 @@ def main(cfg: DictConfig) -> None:
     )
 
     num_classes = len(train_dataset.class_map)
-    
+
     loss_fn = hydra.utils.instantiate(cfg.loss)
 
     model = hydra.utils.instantiate(
@@ -90,10 +88,10 @@ def main(cfg: DictConfig) -> None:
         # metrics.ImageMetric("EvalReconstruction"),
         metrics.MaskMetric("EvalMask", train_dataset.class_map),
         metrics.ConfusionMetrics(
-        "ConfusionMetrics",
-        num_classes,
-        ignore_index=num_classes,
-        prefix="Eval",
+            "ConfusionMetrics",
+            num_classes,
+            ignore_index=num_classes,
+            prefix="Eval",
         ),
     ]
 
