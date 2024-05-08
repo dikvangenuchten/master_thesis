@@ -18,7 +18,7 @@ def trainer(dataset, device):
         )
     )
 
-    model = MobileVAE(len(dataset.class_map), encoder_depth=1)
+    model = MobileVAE(len(dataset.class_map), activation=torch.nn.Softmax(1), encoder_depth=1)
 
     return hydra.utils.instantiate(
         {
@@ -33,16 +33,6 @@ def trainer(dataset, device):
         }
     )
 
-    # return Trainer(
-    #     dataloader=dataloader,
-    #     model=model,
-    #     loss_fn=loss_fn,
-    #     optimizer=optim.Adam(model.parameters()),
-    #     # Default log_with is ["wandb"], but that needs to
-    #     # be a singleton, which causes trouble in testing
-    #     log_with=[],
-    # )
-
 
 def test_trainer_single_epoch(image_batch, trainer):
     """Train a model on a single image."""
@@ -53,7 +43,7 @@ def test_trainer_single_epoch(image_batch, trainer):
         pre == pre2
     ).all(), "For this test to work model should be determenistic in eval mode"
     pre_loss = trainer.epoch()
-    for i in range(3):
+    for i in range(10):
         trainer.epoch(i)
     post = trainer.model.eval()(input)["out"]
     post_loss = trainer.epoch()

@@ -1,3 +1,22 @@
 # @package _global_
 defaults:
   - override /loss: semantic_loss
+
+dataset:
+  output_structure:
+    target: semantic_mask
+
+model:
+  encoder_depth: 5
+  skip_connections: [False, False, False, False, False]
+  activation:
+    _target_: torch.nn.Softmax
+    dim: 1
+
+  encoder_weights: null
+
+optimizer:
+  lr: 1e-5
+
+general:
+  input_shape: [128, 128]

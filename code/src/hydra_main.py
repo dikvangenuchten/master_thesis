@@ -1,6 +1,7 @@
 import os
 import hydra
 import torch
+import torch
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2 as transforms
 
@@ -13,7 +14,6 @@ import metrics
 def main(cfg: DictConfig) -> None:
     print(OmegaConf.to_yaml(cfg, resolve=True))
 
-    loss_fn = hydra.utils.instantiate(cfg.loss)
 
     image_net_transforms = [
         # Rescale to [0, 1], then normalize using mean and std of ImageNet1K DS
@@ -32,6 +32,7 @@ def main(cfg: DictConfig) -> None:
     train_dataset = dataset_factory(
         split="train", transform=data_transforms
     )
+    cfg.general.class_weights = train_dataset.class_weights
     train_loader = DataLoader(
         train_dataset,
         batch_size=cfg.general.batch_size,
@@ -49,6 +50,8 @@ def main(cfg: DictConfig) -> None:
     )
 
     num_classes = len(train_dataset.class_map)
+    
+    loss_fn = hydra.utils.instantiate(cfg.loss)
 
     model = hydra.utils.instantiate(
         cfg.model,
@@ -70,26 +73,28 @@ def main(cfg: DictConfig) -> None:
         metrics.AverageMetric(
             "TrainAverageLoss", lambda step_data: step_data.loss
         ),
-        metrics.ImageMetric("TrainReconstruction"),
-        # metrics.ConfusionMetrics(
-        # "ConfusionMetrics",
-        # num_classes,
-        # ignore_index=ignore_index,
-        # prefix="Train",
-        # ),
+        # metrics.ImageMetric("TrainReconstruction"),
+        metrics.MaskMetric("TrainMask", train_dataset.class_map),
+        metrics.ConfusionMetrics(
+            "ConfusionMetrics",
+            num_classes,
+            ignore_index=num_classes,
+            prefix="Train",
+        ),
     ]
 
     eval_metrics = [
         metrics.AverageMetric(
             "EvalAverageLoss", lambda step_data: step_data.loss
         ),
-        metrics.ImageMetric("EvalReconstruction"),
-        # metrics.ConfusionMetrics(
-        # "ConfusionMetrics",
-        # num_classes,
-        # ignore_index=ignore_index,
-        # prefix="Eval",
-        # ),
+        # metrics.ImageMetric("EvalReconstruction"),
+        metrics.MaskMetric("EvalMask", train_dataset.class_map),
+        metrics.ConfusionMetrics(
+        "ConfusionMetrics",
+        num_classes,
+        ignore_index=num_classes,
+        prefix="Eval",
+        ),
     ]
 
     # Required to be able to use config as kwarg.
