@@ -1,13 +1,7 @@
 [tool.pytest.ini_options]
-pythonpath = [
-  "src"
-]
-testpaths = [
-  "test"
-]
-norecursedirs = [
-  "wandb", "src", "scripts", ".*", "venv"
-]
+pythonpath = "src"
+# This is more reliable then testpaths
+norecursedirs = "[!t][!e][!s][!t]*"
 
 [tool.ruff]
 line-length = 72
