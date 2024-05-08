@@ -12,7 +12,7 @@ class MaskMetric(BaseMetric):
         name: str,
         class_labels: dict,
         limit: int = 32,
-        threshold: float = 0.1,
+        threshold: float = 0.01,
     ) -> None:
         super().__init__(name)
         self._first_batch = None

@@ -96,7 +96,7 @@ class SummedLoss(nn.Module):
         self._handles = []
 
     def forward(self, *args, **kwargs) -> torch.Tensor:
-        return sum(fn(*args, **kwargs) for fn in self._losses)
+        return sum(fn(*args, **kwargs).mean(0) for fn in self._losses)
 
     def add_log_callback(self, fn: Callable[[str, torch.Tensor], None]):
         """Adds a logging callback

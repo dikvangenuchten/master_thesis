@@ -9,14 +9,12 @@ dataset:
 model:
   encoder_depth: 5
   skip_connections: [False, False, False, False, False]
-  activation:
-    _target_: torch.nn.Softmax
-    dim: 1
 
   encoder_weights: null
 
 optimizer:
-  lr: 1e-5
+  lr: 1e-3
 
 general:
+  batch_size: 128
   input_shape: [128, 128]
