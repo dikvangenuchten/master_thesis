@@ -9,12 +9,10 @@ dataset:
   top_k_classes: 5
 
 optimizer:
-  lr: 1e-4
+  lr: 1e-5
+scheduler:
+  eta_min: 1e-3
 
 general:
   # batch_size: 64
   input_shape: [128, 128]
-
-loss:
-  loss_fn:
-    reduction: mean

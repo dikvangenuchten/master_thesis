@@ -242,6 +242,7 @@ def _filter_annotations(
                 filtered_annotation["segments_info"].append(segment)
             else:
                 segment["category_id"] = top_k_classes
+                filtered_annotation["segments_info"].append(segment)
         if len(filtered_annotation["segments_info"]) > 0:
             annotations.append(filtered_annotation)
     data["annotations"] = annotations
