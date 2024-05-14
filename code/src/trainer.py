@@ -135,7 +135,7 @@ class Trainer:
         self.eval_dataloader = eval_dataloader
         self.train_metrics = train_metrics
         self.eval_metrics = eval_metrics
-        self._gradient_penalty = (GradientPenalty(),)
+        self._gradient_penalty = GradientPenalty()
 
         # Save based on start time of run
         self._ckpt_dir = os.path.join(

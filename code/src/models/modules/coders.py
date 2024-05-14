@@ -147,7 +147,8 @@ class DecoderBlock(nn.Module):
             dist = prior
 
         if self.training:
-            z = dist.rsample()
+            # z = dist.rsample()
+            z = dist.mean
         else:
             z = dist.mean
 

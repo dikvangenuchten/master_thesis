@@ -8,13 +8,12 @@ dataset:
 
 model:
   encoder_depth: 5
-  skip_connections: [False, False, False, False, False]
-
-  encoder_weights: null
+  skip_connections: [True, True, True, True, True]
+  encoder_weights: "imagenet"
 
 optimizer:
-  lr: 1e-3
+  lr: 1e-5
 
 general:
-  batch_size: 128
+  # batch_size: 64
   input_shape: [128, 128]

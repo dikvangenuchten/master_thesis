@@ -32,10 +32,10 @@ class UpscaleBlock(nn.Module):
         self._block2 = ResBlock(out_channels, out_channels)
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
-        x = self._unpool(input)
+        x = self._unpool(input["out"])
         x = self._block1(x)
-        x = self._block2(x)
-        return x
+        input["out"] = self._block2(x)
+        return input
 
 
 class MidBlock(nn.Module):
@@ -52,7 +52,7 @@ class MidBlock(nn.Module):
     def forward(self, input) -> Dict[str, torch.Tensor]:
         dist = self._sample_layer(input)
         return {
-            "out": dist.rsample() if self.training else dist.mean,
+            "out": dist.mean if self.training else dist.mean,
             "priors": [
                 distributions.Normal(
                     torch.zeros_like(dist.mean),
@@ -126,6 +126,7 @@ class MobileVAE(nn.Module):
                 )
             ]
         )
+
         self._skip_connections = skip_connections[:encoder_depth]
         self._activation = activation
 
@@ -142,7 +143,8 @@ class MobileVAE(nn.Module):
             self._skip_connections,
             strict=True,
         ):
-            out = layer(out, skip_data if skip else None)
+            out = layer(out)
+            # out = layer(out, skip_data if skip else None)
 
         out["out"] = self._activation(out["out"])
 
