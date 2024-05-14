@@ -35,6 +35,7 @@ class CoCoDataset(torch.utils.data.Dataset):
         dataset_root: str = "/datasets/",
         rel_path: str = "coco/",
         transform: Optional[Callable] = None,
+        top_k_classes: Optional[int] = None,
         sample: bool = True,
         length: Optional[int] = None,
         ignore_index=None,
@@ -64,6 +65,10 @@ class CoCoDataset(torch.utils.data.Dataset):
 
         with open(self._panoptic_root + ".json") as f:
             self._panoptic_anns = json.load(f)
+
+        self._panoptic_anns = _filter_annotations(
+            self._panoptic_anns, top_k_classes=top_k_classes
+        )
 
         self._coco_path = os.path.join(
             base_path, "annotations", f"instances_{split}2017.json"
@@ -166,15 +171,13 @@ class CoCoDataset(torch.utils.data.Dataset):
         # Unlabeled places are given the 0 class
 
         instance_mask = rgb2id(mask)
-        sem_mask = torch.zeros_like(instance_mask, dtype=torch.long)
+        sem_mask = torch.ones_like(instance_mask, dtype=torch.long) * self.ignore_index
         for segment_info in ann["segments_info"]:
             sem_mask[
                 instance_mask == segment_info["id"]
             ] = self._cat_id_to_semantic[segment_info["category_id"]]
-        # Temporarily only load semantic mask
 
-        # Set unlabeled values
-        sem_mask[mask.sum(0) == 0] = len(self.class_map)
+        # 'Temporarily' only load semantic mask
         return Mask(sem_mask)
 
         ins_mask = torch.zeros_like(instance_mask, dtype=torch.long)
@@ -209,6 +212,40 @@ class CoCoDataset(torch.utils.data.Dataset):
                 f"{type_} is not supported in {self.__qualname__}"
             )
 
+
+def _filter_annotations(
+    data: Dict, top_k_classes: Optional[int]
+) -> Dict:
+    if top_k_classes is None:
+        return data
+    # Calculate the top k classes
+    freq_dict = {}
+    for annotation in tqdm.tqdm(data["annotations"]):
+        for segment in annotation["segments_info"]:
+            id = segment["category_id"]
+            freq_dict[id] = freq_dict.get(id, 0) + segment["area"]
+
+    top_k = sorted(((v, k) for k, v in freq_dict.items()), reverse=True)[:top_k_classes]
+    top_k_cat_ids = [id for (freq_, id) in top_k]
+    
+    data["categories"] = [d for d in data["categories"] if d["id"] in top_k_cat_ids]
+    # Add a 'Background' class
+    data["categories"].append(
+        {"supercategory": "background", "isthing": 0, "id": top_k_classes, "name": "background"}
+    )
+    annotations = []
+    for annotation in tqdm.tqdm(data["annotations"]):
+        filtered_annotation = annotation.copy()
+        filtered_annotation["segments_info"] = []
+        for segment in annotation["segments_info"]:
+            if segment["category_id"] in top_k_cat_ids:
+                filtered_annotation["segments_info"].append(segment)
+            else:
+                segment["category_id"] = top_k_classes
+        if len(filtered_annotation["segments_info"]) > 0:
+            annotations.append(filtered_annotation)
+    data["annotations"] = annotations
+    return data
 
 def rgb2id(color: torch.Tensor):
     """Convert an RGB value to an id

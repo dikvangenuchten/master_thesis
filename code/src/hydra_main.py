@@ -76,7 +76,7 @@ def main(cfg: DictConfig) -> None:
         metrics.ConfusionMetrics(
             "ConfusionMetrics",
             num_classes,
-            ignore_index=num_classes,
+            ignore_index=train_dataset.ignore_index,
             prefix="Train",
         ),
     ]
@@ -90,7 +90,7 @@ def main(cfg: DictConfig) -> None:
         metrics.ConfusionMetrics(
             "ConfusionMetrics",
             num_classes,
-            ignore_index=num_classes,
+            ignore_index=train_dataset.ignore_index,
             prefix="Eval",
         ),
     ]

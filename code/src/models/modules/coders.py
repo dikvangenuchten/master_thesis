@@ -30,7 +30,7 @@ class UnpoolLayer(nn.Module):
         return x
 
 
-class DecoderBlock(nn.Module):
+class VariationalDecoderBlock(nn.Module):
     """DecoderBlock in the VAE
 
     HParams:
@@ -57,7 +57,7 @@ class DecoderBlock(nn.Module):
         bottleneck_ratio: float,
         expansion: int,
         latent_channels: int = 32,  # Always 32 in Efficient VDVAE
-    ) -> "DecoderBlock":
+    ) -> "VariationalDecoderBlock":
         return cls(
             in_channels=in_channels,
             skip_channels=skip_channels,
@@ -129,10 +129,10 @@ class DecoderBlock(nn.Module):
         input: Dict[str, Tensor],
         x_skip: Optional[Tensor] = None,
     ) -> Tensor:
-        x = self._unpool(input["out"])
+        internal_skip = self._unpool(input["out"])
         # Prior net is a residual block
-        residual = self._prior_net(x)
-        prior = self._prior_layer(residual)
+        x = self._prior_net(internal_skip)
+        prior = self._prior_layer(x)
         out = input
 
         if x_skip is not None:
@@ -153,14 +153,9 @@ class DecoderBlock(nn.Module):
             z = dist.mean
 
         z_proj = self._z_projection(z)
-        out["out"] = self._out_resblock(residual + z_proj)
+        out["out"] = self._out_resblock(internal_skip + z_proj)
 
         return out
-
-    def posterior(
-        self, x: Tensor, x_skip: Tensor
-    ) -> Tuple[Tensor, Tensor]:
-        return (x, x)
 
 
 class DownSampleBlock(nn.Module):

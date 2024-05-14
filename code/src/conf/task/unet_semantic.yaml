@@ -1,0 +1,20 @@
+# @package _global_
+defaults:
+  - override /loss: crossentropy_loss
+  - override /model: unet
+
+dataset:
+  output_structure:
+    target: semantic_mask
+  top_k_classes: 5
+
+optimizer:
+  lr: 1e-4
+
+general:
+  # batch_size: 64
+  input_shape: [128, 128]
+
+loss:
+  loss_fn:
+    reduction: mean

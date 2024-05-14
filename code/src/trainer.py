@@ -200,6 +200,7 @@ class Trainer:
         training_steps: int,
         eval_every_n_steps: int = 100,
         log_every_n_steps: Optional[int] = None,
+        num_eval_steps: int = 10,
     ):
         """Run `n` training steps
 
@@ -223,8 +224,11 @@ class Trainer:
             loss = self.train_step(**next(iter_train), step=step)
             train_loss.add(loss)
             if step % eval_every_n_steps == 0:
-                e_loss = self.eval_step(next(iter_eval))
-                eval_loss.add(e_loss)
+                e_loss = sum(
+                    self.eval_step(next(iter_eval))
+                    for i in range(num_eval_steps)
+                )
+                eval_loss.add(e_loss / num_eval_steps)
             if step % log_every_n_steps == 0:
                 self.save(os.path.join(self._ckpt_dir, f"{step % 5}"))
                 self._log_and_reset_metrics(step=step)

@@ -57,13 +57,28 @@ class ResBlock(nn.Module):
         self._residual = in_channels == out_channels
 
         self._conv_bn_1 = Conv2dBN(
-            in_channels, bottle_filters, 3, 1, padding="same", activation=activation
+            in_channels,
+            bottle_filters,
+            3,
+            1,
+            padding="same",
+            activation=activation,
         )
         self._conv_bn_2 = Conv2dBN(
-            bottle_filters, bottle_filters, 3, 1, padding="same", activation=activation
+            bottle_filters,
+            bottle_filters,
+            3,
+            1,
+            padding="same",
+            activation=activation,
         )
         self._conv_bn_3 = Conv2dBN(
-            bottle_filters, out_channels, 3, 1, padding="same", activation=None
+            bottle_filters,
+            out_channels,
+            3,
+            1,
+            padding="same",
+            activation=None,
         )
 
     def forward(self, x) -> Tensor:

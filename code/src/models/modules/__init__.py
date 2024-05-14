@@ -1,7 +1,7 @@
 from .sampleconv import SampleConvLayer
 from .resblock import ResBlock, Conv2dBN
 from .coders import (
-    DecoderBlock,
+    VariationalDecoderBlock,
     EncoderBlock,
     DownSampleBlock,
     UnpoolLayer,
@@ -11,7 +11,7 @@ __all__ = [
     "SampleConvLayer",
     "ResBlock",
     "Conv2dBN",
-    "DecoderBlock",
+    "VariationalDecoderBlock",
     "EncoderBlock",
     "DownSampleBlock",
     "UnpoolLayer",

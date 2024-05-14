@@ -8,7 +8,7 @@ import torchseg
 
 from .modules import (
     SampleConvLayer,
-    DecoderBlock,
+    VariationalDecoderBlock,
     UnpoolLayer,
     ResBlock,
 )
@@ -109,7 +109,7 @@ class MobileVAE(nn.Module):
 
         self._decoder = nn.ModuleList(
             [
-                DecoderBlock(
+                VariationalDecoderBlock(
                     in_channels=in_channels,
                     latent_channels=in_channels,
                     skip_channels=skip_channels,

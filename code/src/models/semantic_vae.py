@@ -4,7 +4,7 @@ from typing import List, Optional, Tuple
 import torch
 from torch import nn
 
-from .modules import DecoderBlock, EncoderBlock
+from .modules import VariationalDecoderBlock, EncoderBlock
 
 
 class SemanticVAE(nn.Module):
@@ -115,7 +115,7 @@ class SemanticVAE(nn.Module):
     def _create_decoder(reductions, bottlenecks, layers):
         return nn.ModuleList(
             [
-                DecoderBlock.make_block(
+                VariationalDecoderBlock.make_block(
                     in_channels=layers[-i - 1],
                     skip_channels=layers[-i - 1],
                     out_channels=layers[-i - 2],

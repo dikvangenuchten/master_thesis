@@ -5,6 +5,7 @@ defaults:
 dataset:
   output_structure:
     target: semantic_mask
+  top_k_classes: 5
 
 model:
   encoder_depth: 5

@@ -7,7 +7,7 @@ import torch
 from torch import nn
 
 from models.modules import (
-    DecoderBlock,
+    VariationalDecoderBlock,
     DownSampleBlock,
     EncoderBlock,
     ResBlock,
@@ -131,7 +131,7 @@ def test_decoder_make(
     out_height = out_width = 4 * expansion
     in_c = skip_c = in_channels
     out_c = latent_c = out_channels
-    block = DecoderBlock.make_block(
+    block = VariationalDecoderBlock.make_block(
         in_c, skip_c, latent_c, out_c, expansion
     )
 
@@ -159,7 +159,7 @@ def test_decoderblock_train_vs_test(true_or_false: bool):
     out_c = latent_c = 1
     expansion = 1
 
-    block = DecoderBlock.make_block(
+    block = VariationalDecoderBlock.make_block(
         in_c, skip_c, latent_c, out_c, expansion, latent_channels=1
     )
 
