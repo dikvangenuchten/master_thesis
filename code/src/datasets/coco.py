@@ -36,6 +36,7 @@ class CoCoDataset(torch.utils.data.Dataset):
         rel_path: str = "coco/",
         transform: Optional[Callable] = None,
         top_k_classes: Optional[int] = None,
+        supercategories_only: bool = False,
         sample: bool = True,
         length: Optional[int] = None,
         ignore_index=None,
@@ -67,7 +68,7 @@ class CoCoDataset(torch.utils.data.Dataset):
             self._panoptic_anns = json.load(f)
 
         self._panoptic_anns = _filter_annotations(
-            self._panoptic_anns, top_k_classes=top_k_classes
+            self._panoptic_anns, top_k_classes=top_k_classes, supercategories_only=supercategories_only
         )
 
         self._coco_path = os.path.join(
@@ -214,8 +215,26 @@ class CoCoDataset(torch.utils.data.Dataset):
 
 
 def _filter_annotations(
-    data: Dict, top_k_classes: Optional[int]
+    data: Dict, top_k_classes: Optional[int], supercategories_only: bool
 ) -> Dict:
+    if supercategories_only:
+        id_to_supercategory = {c["id"] : c["supercategory"] for c in data["categories"]}
+        supercategories = list({c["supercategory"] for c in data["categories"]})
+        
+        for annotation in tqdm.tqdm(data["annotations"]):
+            for segment in annotation["segments_info"]:
+                segment["category_id"] = supercategories.index(id_to_supercategory[segment["category_id"]])
+
+        super_isthing = {c["supercategory"]: c["isthing"] for c in data["categories"]}
+        data["categories"] = [
+            {
+                "supercategory": category,
+                "isthing": super_isthing[category],
+                "name": category,
+                "id": i
+            } for i, category in enumerate(supercategories)
+        ]
+
     if top_k_classes is None:
         return data
     # Calculate the top k classes
