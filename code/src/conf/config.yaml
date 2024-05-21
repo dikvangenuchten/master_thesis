@@ -10,5 +10,5 @@ defaults:
 general:
   batch_size: 64
   num_steps: 100_000
-  input_shape: [256, 256]
+  input_shape: [128, 128]
   class_weights: null

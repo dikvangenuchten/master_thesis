@@ -73,7 +73,8 @@ class Trainer:
         eval_metrics = [] if eval_metrics is None else eval_metrics
 
         self._accelerator = Accelerator(
-            log_with=log_with, mixed_precision="fp16"
+            log_with=log_with,
+            # mixed_precision="fp16"
         )
         self._accelerator.init_trackers(
             project_name="MasterThesis", config=config

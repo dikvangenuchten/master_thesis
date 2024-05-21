@@ -5,12 +5,13 @@ defaults:
 dataset:
   output_structure:
     target: semantic_mask
-  top_k_classes: 5
+  supercategories_only: True
 
 model:
   encoder_depth: 5
   skip_connections: [True, True, True, True, True]
   encoder_weights: "imagenet"
+  state_dict_path: "models/pretrained-vae.pt"
 
 optimizer:
   lr: 1e-5
@@ -18,5 +19,6 @@ scheduler:
   eta_min: 1e-3
 
 general:
-  # batch_size: 64
+  batch_size: 64
   input_shape: [128, 128]
+

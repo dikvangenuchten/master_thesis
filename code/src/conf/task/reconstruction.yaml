@@ -15,3 +15,7 @@ model: # Disable the skip connection on the highest few levels to force better e
 
 optimizer:
   lr: 1e-3
+
+general:
+  batch_size: 64
+  input_shape: [128, 128]

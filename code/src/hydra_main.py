@@ -14,7 +14,7 @@ def main(cfg: DictConfig) -> None:
     print(OmegaConf.to_yaml(cfg, resolve=True))
 
     image_net_transforms = [
-        # Rescale to [0, 1], then normalize using mean and std of ImageNet1K DS
+        # Rescale to [0, 1]
         transforms.ToDtype(torch.float32, scale=True),
     ]
 
@@ -121,6 +121,9 @@ def main(cfg: DictConfig) -> None:
         print(f"Could not generate torchinfo.summary because: {e}")
 
     trainer.steps(cfg.general.num_steps)
+    trainer.save(
+        hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
+    )
 
 
 if __name__ == "__main__":

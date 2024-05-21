@@ -68,7 +68,9 @@ class CoCoDataset(torch.utils.data.Dataset):
             self._panoptic_anns = json.load(f)
 
         self._panoptic_anns = _filter_annotations(
-            self._panoptic_anns, top_k_classes=top_k_classes, supercategories_only=supercategories_only
+            self._panoptic_anns,
+            top_k_classes=top_k_classes,
+            supercategories_only=supercategories_only,
         )
 
         self._coco_path = os.path.join(
@@ -172,7 +174,10 @@ class CoCoDataset(torch.utils.data.Dataset):
         # Unlabeled places are given the 0 class
 
         instance_mask = rgb2id(mask)
-        sem_mask = torch.ones_like(instance_mask, dtype=torch.long) * self.ignore_index
+        sem_mask = (
+            torch.ones_like(instance_mask, dtype=torch.long)
+            * self.ignore_index
+        )
         for segment_info in ann["segments_info"]:
             sem_mask[
                 instance_mask == segment_info["id"]
@@ -218,21 +223,30 @@ def _filter_annotations(
     data: Dict, top_k_classes: Optional[int], supercategories_only: bool
 ) -> Dict:
     if supercategories_only:
-        id_to_supercategory = {c["id"] : c["supercategory"] for c in data["categories"]}
-        supercategories = list({c["supercategory"] for c in data["categories"]})
-        
+        id_to_supercategory = {
+            c["id"]: c["supercategory"] for c in data["categories"]
+        }
+        supercategories = list(
+            {c["supercategory"] for c in data["categories"]}
+        )
+
         for annotation in tqdm.tqdm(data["annotations"]):
             for segment in annotation["segments_info"]:
-                segment["category_id"] = supercategories.index(id_to_supercategory[segment["category_id"]])
+                segment["category_id"] = supercategories.index(
+                    id_to_supercategory[segment["category_id"]]
+                )
 
-        super_isthing = {c["supercategory"]: c["isthing"] for c in data["categories"]}
+        super_isthing = {
+            c["supercategory"]: c["isthing"] for c in data["categories"]
+        }
         data["categories"] = [
             {
                 "supercategory": category,
                 "isthing": super_isthing[category],
                 "name": category,
-                "id": i
-            } for i, category in enumerate(supercategories)
+                "id": i,
+            }
+            for i, category in enumerate(supercategories)
         ]
 
     if top_k_classes is None:
@@ -244,13 +258,22 @@ def _filter_annotations(
             id = segment["category_id"]
             freq_dict[id] = freq_dict.get(id, 0) + segment["area"]
 
-    top_k = sorted(((v, k) for k, v in freq_dict.items()), reverse=True)[:top_k_classes]
+    top_k = sorted(
+        ((v, k) for k, v in freq_dict.items()), reverse=True
+    )[:top_k_classes]
     top_k_cat_ids = [id for (freq_, id) in top_k]
-    
-    data["categories"] = [d for d in data["categories"] if d["id"] in top_k_cat_ids]
+
+    data["categories"] = [
+        d for d in data["categories"] if d["id"] in top_k_cat_ids
+    ]
     # Add a 'Background' class
     data["categories"].append(
-        {"supercategory": "background", "isthing": 0, "id": top_k_classes, "name": "background"}
+        {
+            "supercategory": "background",
+            "isthing": 0,
+            "id": top_k_classes,
+            "name": "background",
+        }
     )
     annotations = []
     for annotation in tqdm.tqdm(data["annotations"]):
@@ -266,6 +289,7 @@ def _filter_annotations(
             annotations.append(filtered_annotation)
     data["annotations"] = annotations
     return data
+
 
 def rgb2id(color: torch.Tensor):
     """Convert an RGB value to an id

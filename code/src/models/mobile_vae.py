@@ -1,5 +1,5 @@
 import itertools
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Mapping, Optional
 from torch import nn, distributions
 import torch
 from torchvision.transforms import v2 as transforms
@@ -74,24 +74,77 @@ class MobileVAE(nn.Module):
         encoder_weights: str = "imagenet",
         skip_connections: List[bool] = [True, True, True, True, True],
         activation: nn.Module = nn.Identity(),
-        **kwargs,
+        state_dict: Optional[dict] = None,
+        load_encoder: bool = True,
+        load_mid_block: bool = True,
+        load_decoder: bool = True,
     ) -> None:
+        super().__init__()
+
+        # Hardcode the imagenet normalization function
+        # I see no value in making this adaptable
         self._normalize = (
             transforms.Normalize(
                 mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
             ),
         )
 
-        super().__init__()
+        self._skip_connections = skip_connections[:encoder_depth]
+        self._activation = activation
 
-        self._encoder = torchseg.encoders.get_encoder(
-            encoder_name,
+        self._encoder = self._create_encoder(
+            encoder_name=encoder_name,
             depth=encoder_depth,
             weights=encoder_weights,
             in_channels=image_channels,
         )
-        # First one is always the raw image
-        encoder_out_channels = self._encoder.out_channels
+        self._mid_block = self._create_mid_block(
+            self._encoder.out_channels[-1],
+        )
+        self._decoder = self._create_decoder(
+            encoder_out_channels=self._encoder.out_channels,
+            encoder_reductions=self._encoder.reductions,
+            label_channels=label_channels,
+            decoder_channels=decoder_channels,
+        )
+
+        if state_dict is not None:
+            self.load_state_dict(
+                state_dict,
+                load_encoder=load_encoder,
+                load_mid_block=load_mid_block,
+                load_decoder=load_decoder,
+            )
+
+    @staticmethod
+    def _create_encoder(
+        encoder_name: str,
+        depth: int,
+        weights: str,
+        in_channels: int,
+    ) -> torch.nn.Module:
+        return torchseg.encoders.get_encoder(
+            encoder_name,
+            depth=depth,
+            weights=weights,
+            in_channels=in_channels,
+        )
+
+    @staticmethod
+    def _create_mid_block(in_channels):
+        return MidBlock(in_channels=in_channels)
+
+    @staticmethod
+    def _create_decoder(
+        encoder_out_channels: List[int],
+        encoder_reductions: List[int],
+        label_channels: int,
+        decoder_channels: Optional[List[int]] = None,
+    ) -> nn.ModuleList:
+        expansions = [
+            int(b / a)
+            for a, b in itertools.pairwise(encoder_reductions)
+        ]
 
         if decoder_channels is None:
             decoder_channels = encoder_out_channels[::-1]
@@ -100,14 +153,7 @@ class MobileVAE(nn.Module):
             len(decoder_channels) == len(encoder_out_channels)
         ), "The length of decoder_channels must be equal to the encoder_depth"
 
-        expansions = [
-            int(b / a)
-            for a, b in itertools.pairwise(self._encoder.reductions)
-        ]
-
-        self._mid_block = MidBlock(in_channels=decoder_channels[0])
-
-        self._decoder = nn.ModuleList(
+        return nn.ModuleList(
             [
                 VariationalDecoderBlock(
                     in_channels=in_channels,
@@ -127,24 +173,49 @@ class MobileVAE(nn.Module):
             ]
         )
 
-        self._skip_connections = skip_connections[:encoder_depth]
-        self._activation = activation
+    def state_dict(self, *args, **kwargs):
+        return {
+            "encoder": self._encoder.state_dict(*args, **kwargs),
+            "mid_block": self._mid_block.state_dict(*args, **kwargs),
+            "decoder": self._decoder.state_dict(*args, **kwargs),
+        }
 
-        self._kwargs = kwargs
+    def load_state_dict(
+        self,
+        state_dict: Mapping[str, Any],
+        strict: bool = True,
+        assign: bool = False,
+        load_encoder: bool = True,
+        load_mid_block: bool = True,
+        load_decoder: bool = True,
+    ):
+        if load_encoder:
+            self._encoder.load_state_dict(state_dict["encoder"], strict=strict, assign=assign)
+        if load_mid_block:
+            self._mid_block.load_state_dict(state_dict["mid_block"], strict=strict, assign=assign)
+        if load_decoder:
+            self._decoder.load_state_dict(state_dict["decoder"], strict=strict, assign=assign)
 
     def forward(self, x):
-        # First one is alwasy the raw image
-        skip_connections = self._encoder(x)[::-1]
+        # Reverse the order so we can iterate from bottom up
+        skip_connections = self.encode(x)
+        return self.decode(skip_connections)
 
-        out = self._mid_block(skip_connections[0])
+    
+    def encode(self, x) -> List[torch.Tensor]:
+        skip_connections = self._encoder(x)[::-1]
+        skip_connections[0] = self._mid_block(skip_connections[0])
+        return skip_connections
+
+    def decode(self, skip_connections):
+        out = skip_connections[0]
         for layer, skip_data, skip in zip(
             self._decoder,
             skip_connections[1:],
             self._skip_connections,
             strict=True,
         ):
-            out = layer(out)
-            # out = layer(out, skip_data if skip else None)
+            out = layer(out, skip_data if skip else None)
 
         out["out"] = self._activation(out["out"])
 

@@ -187,7 +187,7 @@ def test_decoderblock_train_vs_test(true_or_false: bool):
 
     assert all(
         torch.equal(test_out["out"][i - 1], test_out["out"][i])
-        for i in range(1, 64)
+        for i in range(1, min(64, batch_size))
     ), "Inference should be deterministic"
     # Due to the activation functions the output of this layer is not normally distributed (Only the prior/posterior are)
     # However as the median == mean for the posteriors, the median does not shift as much as the mean after activation
