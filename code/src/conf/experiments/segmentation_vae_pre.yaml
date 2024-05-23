@@ -1,0 +1,28 @@
+# @package _global_
+defaults:
+  - override /loss: semantic_loss
+
+dataset:
+  output_structure:
+    target: semantic_mask
+  supercategories_only: True
+
+model:
+  encoder_depth: 5
+  skip_connections: [False, False, False, False, False]
+  encoder_weights: "imagenet"
+  state_dict:
+    _target_: torch.load
+    f: ${paths.workdir}/models/pretrained-vae.pt
+  load_encoder: True
+  load_mid_block: True
+  load_decoder: False
+
+optimizer:
+  lr: 1e-5
+scheduler:
+  eta_min: 1e-3
+
+general:
+  batch_size: 64
+  input_shape: [128, 128]
