@@ -24,6 +24,20 @@ from datasets import LatentTensor
 OUTPUT_TYPES = Literal["img", "latent", "semantic_mask"]
 
 
+def _open_cache_wrapper(fn, cache_dir):
+    def _inner(path):
+        cache_path = os.path.join(cache_dir, path)
+        if not os.path.isfile(cache_path):
+            os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+            with open(path, mode="rb") as src:
+                with open(cache_path, mode="wb") as tgt:
+                    tgt.write(src.read())
+
+        return fn(cache_path)
+
+    return _inner
+
+
 class CoCoDataset(torch.utils.data.Dataset):
     def __init__(
         self,
@@ -40,16 +54,23 @@ class CoCoDataset(torch.utils.data.Dataset):
         sample: bool = True,
         length: Optional[int] = None,
         ignore_index=None,
-        percentage: float=1.00,
+        percentage: float = 1.00,
+        cache_dir: Optional[str] = None,
     ):
         self._length = length
-        
+
+        if cache_dir is not None:
+            os.makedirs(cache_dir, exist_ok=True)
+            self._open_pil_image = _open_cache_wrapper(
+                self._open_pil_image, cache_dir
+            )
+
         if percentage < 1 and split == "val":
             print("Ignoring percentage for validation split")
             percentage = 1
 
         # The absolute path to the dataset
-        base_path = os.path.join(dataset_root, rel_path)
+        self.base_path = os.path.join(dataset_root, rel_path)
 
         unsuported_outs = {
             k: v
@@ -63,11 +84,13 @@ class CoCoDataset(torch.utils.data.Dataset):
 
         self.output_structure = output_structure
 
-        self._image_root = os.path.join(base_path, f"{split}2017/")
+        self._image_root = os.path.join(self.base_path, f"{split}2017/")
         self._panoptic_root = os.path.join(
-            base_path, "annotations", f"panoptic_{split}2017"
+            self.base_path, "annotations", f"panoptic_{split}2017"
         )
-        self._latent_root = os.path.join(base_path, f"{split}_latents")
+        self._latent_root = os.path.join(
+            self.base_path, f"{split}_latents"
+        )
 
         with open(self._panoptic_root + ".json") as f:
             self._panoptic_anns = json.load(f)
@@ -76,11 +99,11 @@ class CoCoDataset(torch.utils.data.Dataset):
             self._panoptic_anns,
             top_k_classes=top_k_classes,
             supercategories_only=supercategories_only,
-            percentage=percentage
+            percentage=percentage,
         )
 
         self._coco_path = os.path.join(
-            base_path, "annotations", f"instances_{split}2017.json"
+            self.base_path, "annotations", f"instances_{split}2017.json"
         )
         self._coco = COCO(self._coco_path)
         self._ids = list(sorted(self._coco.imgs.keys()))
@@ -153,10 +176,8 @@ class CoCoDataset(torch.utils.data.Dataset):
     def _load_image(self, idx: int) -> Image:
         img_id = self._panoptic_anns["annotations"][idx]["image_id"]
         path = self._coco.imgs[img_id]["file_name"]
-        return Image(
-            PImage.open(os.path.join(self._image_root, path)).convert(
-                "RGB"
-            )
+        return self._open_pil_image(
+            os.path.join(self._image_root, path)
         )
 
     def _load_panoptic_mask(self, idx: int) -> Mask:
@@ -172,18 +193,17 @@ class CoCoDataset(torch.utils.data.Dataset):
         """
         ann = self._panoptic_anns["annotations"][idx]
         path = ann["file_name"]
-        mask = Image(
-            PImage.open(
-                os.path.join(self._panoptic_root, path)
-            ).convert("RGB")
+        # Load the encoded mask
+        enc_mask = self._open_pil_image(
+            os.path.join(self._panoptic_root, path)
         )
-        # Unlabeled places are given the 0 class
+        # Decode the mask
+        instance_mask = rgb2id(enc_mask)
+        # Unlabeled places are given the 'ignore_index' class
+        sem_mask = torch.full_like(
+            instance_mask, self.ignore_index, dtype=torch.long
+        )
 
-        instance_mask = rgb2id(mask)
-        sem_mask = (
-            torch.ones_like(instance_mask, dtype=torch.long)
-            * self.ignore_index
-        )
         for segment_info in ann["segments_info"]:
             sem_mask[
                 instance_mask == segment_info["id"]
@@ -196,6 +216,9 @@ class CoCoDataset(torch.utils.data.Dataset):
         for new_id, old_id in enumerate(instance_mask.unique()):
             ins_mask[instance_mask == old_id] = new_id
         return Mask(torch.stack([sem_mask, ins_mask]))
+
+    def _open_pil_image(self, path) -> Image:
+        return Image(PImage.open(path).convert("RGB"))
 
     def __getitem__(self, index) -> Dict[str, torch.Tensor]:
         out = self._getitem(index)
@@ -226,7 +249,10 @@ class CoCoDataset(torch.utils.data.Dataset):
 
 
 def _filter_annotations(
-    data: Dict, top_k_classes: Optional[int], supercategories_only: bool, percentage: float
+    data: Dict,
+    top_k_classes: Optional[int],
+    supercategories_only: bool,
+    percentage: float,
 ) -> Dict:
     if supercategories_only:
         id_to_supercategory = {
@@ -293,14 +319,13 @@ def _filter_annotations(
             if len(filtered_annotation["segments_info"]) > 0:
                 annotations.append(filtered_annotation)
         data["annotations"] = annotations
-    
+
     if percentage < 1:
         cur_size = len(data["annotations"])
         target_size = round(cur_size * percentage)
         data["annotations"] = data["annotations"][:target_size]
-    
+
     return data
-        
 
 
 def rgb2id(color: torch.Tensor):

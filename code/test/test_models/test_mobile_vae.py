@@ -69,9 +69,14 @@ def test_saving_and_loading():
     post_load_enc = load_model.encode(input)
 
     assert torch.equal(pre_save_out["out"], load_model(input)["out"])
-    
-    assert torch.equal(pre_save_enc[0]["out"], post_load_enc[0]["out"]), "Midblock did not have same result"
-    assert all(torch.equal(pre, post) for (pre, post) in zip(pre_save_enc[1:], post_load_enc[1:])), "Encoding should be equal"
+
+    assert torch.equal(
+        pre_save_enc[0]["out"], post_load_enc[0]["out"]
+    ), "Midblock did not have same result"
+    assert all(
+        torch.equal(pre, post)
+        for (pre, post) in zip(pre_save_enc[1:], post_load_enc[1:])
+    ), "Encoding should be equal"
 
 
 def test_loading_part():
@@ -91,24 +96,32 @@ def test_loading_part():
 
     pre_save_enc = model.encode(input)
     pre_save_dec = model(input)
-    
+
     state_dict = deepcopy(model.state_dict())
     del model
-    
+
     model = MobileVAE(
-        label_channels=4, # Different on purpose
+        label_channels=4,  # Different on purpose
         encoder_name="mobilenetv2_100",
         encoder_depth=3,
         state_dict=state_dict,
-        load_decoder=False
+        load_decoder=False,
     )
     model.eval()
-    
+
     post_save_enc = model.encode(input)
-    assert torch.equal(pre_save_enc[0]["out"], post_save_enc[0]["out"]), "Midblock did not have same result"
-    assert all(torch.equal(pre, post) for (pre, post) in zip(pre_save_enc[1:], post_save_enc[1:])), "Encoding should be equal"
+    assert torch.equal(
+        pre_save_enc[0]["out"], post_save_enc[0]["out"]
+    ), "Midblock did not have same result"
+    assert all(
+        torch.equal(pre, post)
+        for (pre, post) in zip(pre_save_enc[1:], post_save_enc[1:])
+    ), "Encoding should be equal"
 
     post_save_dec = model(input)
-    assert post_save_dec["out"].size(1) == 4, "Loaded model did not have the correct label channels"
-    assert not torch.equal(pre_save_dec["out"], post_save_dec["out"]), "Decoded result should be different"
-
+    assert (
+        post_save_dec["out"].size(1) == 4
+    ), "Loaded model did not have the correct label channels"
+    assert not torch.equal(
+        pre_save_dec["out"], post_save_dec["out"]
+    ), "Decoded result should be different"

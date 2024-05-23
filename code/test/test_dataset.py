@@ -50,3 +50,17 @@ def test_coco_dataset():
     assert (
         img.shape[1:] == semantic_mask.shape
     ), "Semantic and image shape do not match."
+
+
+def test_caching(tmp_path):
+    # This test is terrible, but stepping through the code shows it works
+    cache_dir = tmp_path / "cache"
+    ds = CoCoDataset(
+        output_structure={"img": "img", "target": "semantic_mask"},
+        dataset_root="test/data",
+        cache_dir=cache_dir,
+    )
+    batch_1 = ds[0]
+    batch_2 = ds[0]
+    assert batch_1 == batch_2
+

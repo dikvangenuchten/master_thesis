@@ -1,0 +1,3 @@
+# @package _global_
+dataset:
+  cache_dir: /local/20182591/dataset/coco/

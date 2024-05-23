@@ -190,18 +190,23 @@ class MobileVAE(nn.Module):
         load_decoder: bool = True,
     ):
         if load_encoder:
-            self._encoder.load_state_dict(state_dict["encoder"], strict=strict, assign=assign)
+            self._encoder.load_state_dict(
+                state_dict["encoder"], strict=strict, assign=assign
+            )
         if load_mid_block:
-            self._mid_block.load_state_dict(state_dict["mid_block"], strict=strict, assign=assign)
+            self._mid_block.load_state_dict(
+                state_dict["mid_block"], strict=strict, assign=assign
+            )
         if load_decoder:
-            self._decoder.load_state_dict(state_dict["decoder"], strict=strict, assign=assign)
+            self._decoder.load_state_dict(
+                state_dict["decoder"], strict=strict, assign=assign
+            )
 
     def forward(self, x):
         # Reverse the order so we can iterate from bottom up
         skip_connections = self.encode(x)
         return self.decode(skip_connections)
 
-    
     def encode(self, x) -> List[torch.Tensor]:
         skip_connections = self._encoder(x)[::-1]
         skip_connections[0] = self._mid_block(skip_connections[0])

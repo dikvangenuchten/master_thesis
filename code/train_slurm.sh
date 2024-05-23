@@ -35,4 +35,4 @@ echo "Starting Python script"
 set -o allexport
 source .env
 set +o allexport
-python src/hydra_main.py paths.datasets=/local/20182591/dataset/ "$@"
+python src/hydra_main.py paths.datasets=/local/20182591/dataset/ +mod=tue "$@"
