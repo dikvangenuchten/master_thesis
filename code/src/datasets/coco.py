@@ -40,8 +40,13 @@ class CoCoDataset(torch.utils.data.Dataset):
         sample: bool = True,
         length: Optional[int] = None,
         ignore_index=None,
+        percentage: float=1.00,
     ):
         self._length = length
+        
+        if percentage < 1 and split == "val":
+            print("Ignoring percentage for validation split")
+            percentage = 1
 
         # The absolute path to the dataset
         base_path = os.path.join(dataset_root, rel_path)
@@ -71,6 +76,7 @@ class CoCoDataset(torch.utils.data.Dataset):
             self._panoptic_anns,
             top_k_classes=top_k_classes,
             supercategories_only=supercategories_only,
+            percentage=percentage
         )
 
         self._coco_path = os.path.join(
@@ -220,7 +226,7 @@ class CoCoDataset(torch.utils.data.Dataset):
 
 
 def _filter_annotations(
-    data: Dict, top_k_classes: Optional[int], supercategories_only: bool
+    data: Dict, top_k_classes: Optional[int], supercategories_only: bool, percentage: float
 ) -> Dict:
     if supercategories_only:
         id_to_supercategory = {
@@ -249,46 +255,52 @@ def _filter_annotations(
             for i, category in enumerate(supercategories)
         ]
 
-    if top_k_classes is None:
-        return data
-    # Calculate the top k classes
-    freq_dict = {}
-    for annotation in tqdm.tqdm(data["annotations"]):
-        for segment in annotation["segments_info"]:
-            id = segment["category_id"]
-            freq_dict[id] = freq_dict.get(id, 0) + segment["area"]
+    if top_k_classes is not None:
+        # Calculate the top k classes
+        freq_dict = {}
+        for annotation in tqdm.tqdm(data["annotations"]):
+            for segment in annotation["segments_info"]:
+                id = segment["category_id"]
+                freq_dict[id] = freq_dict.get(id, 0) + segment["area"]
 
-    top_k = sorted(
-        ((v, k) for k, v in freq_dict.items()), reverse=True
-    )[:top_k_classes]
-    top_k_cat_ids = [id for (freq_, id) in top_k]
+        top_k = sorted(
+            ((v, k) for k, v in freq_dict.items()), reverse=True
+        )[:top_k_classes]
+        top_k_cat_ids = [id for (freq_, id) in top_k]
 
-    data["categories"] = [
-        d for d in data["categories"] if d["id"] in top_k_cat_ids
-    ]
-    # Add a 'Background' class
-    data["categories"].append(
-        {
-            "supercategory": "background",
-            "isthing": 0,
-            "id": top_k_classes,
-            "name": "background",
-        }
-    )
-    annotations = []
-    for annotation in tqdm.tqdm(data["annotations"]):
-        filtered_annotation = annotation.copy()
-        filtered_annotation["segments_info"] = []
-        for segment in annotation["segments_info"]:
-            if segment["category_id"] in top_k_cat_ids:
-                filtered_annotation["segments_info"].append(segment)
-            else:
-                segment["category_id"] = top_k_classes
-                filtered_annotation["segments_info"].append(segment)
-        if len(filtered_annotation["segments_info"]) > 0:
-            annotations.append(filtered_annotation)
-    data["annotations"] = annotations
+        data["categories"] = [
+            d for d in data["categories"] if d["id"] in top_k_cat_ids
+        ]
+        # Add a 'Background' class
+        data["categories"].append(
+            {
+                "supercategory": "background",
+                "isthing": 0,
+                "id": top_k_classes,
+                "name": "background",
+            }
+        )
+        annotations = []
+        for annotation in tqdm.tqdm(data["annotations"]):
+            filtered_annotation = annotation.copy()
+            filtered_annotation["segments_info"] = []
+            for segment in annotation["segments_info"]:
+                if segment["category_id"] in top_k_cat_ids:
+                    filtered_annotation["segments_info"].append(segment)
+                else:
+                    segment["category_id"] = top_k_classes
+                    filtered_annotation["segments_info"].append(segment)
+            if len(filtered_annotation["segments_info"]) > 0:
+                annotations.append(filtered_annotation)
+        data["annotations"] = annotations
+    
+    if percentage < 1:
+        cur_size = len(data["annotations"])
+        target_size = round(cur_size * percentage)
+        data["annotations"] = data["annotations"][:target_size]
+    
     return data
+        
 
 
 def rgb2id(color: torch.Tensor):

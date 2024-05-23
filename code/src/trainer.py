@@ -269,7 +269,7 @@ class Trainer:
         # torch.save(
         #     self.eval_metrics, os.path.join(dir, "eval_metrics.pt")
         # )
-        self._accelerator.save_state(dir)
+        # self._accelerator.save_state(dir)
 
     @classmethod
     def load(cls: "Trainer", dir) -> "Trainer":
@@ -303,7 +303,7 @@ class Trainer:
             eval_metrics=eval_metrics,
             log_with=log_with,
         )
-        trainer._accelerator.load_state(dir)
+        # trainer._accelerator.load_state(dir)
         return trainer
 
     def epoch(self, epoch: Optional[int] = None) -> torch.Tensor:

@@ -11,7 +11,12 @@ model:
   encoder_depth: 5
   skip_connections: [True, True, True, True, True]
   encoder_weights: "imagenet"
-  state_dict_path: "models/pretrained-vae.pt"
+  state_dict:
+    _target_: torch.load
+    f: /workspaces/master_thesis/code/models/pretrained-vae.pt
+  load_encoder: True
+  load_mid_block: True
+  load_decoder: False
 
 optimizer:
   lr: 1e-5
@@ -21,4 +26,3 @@ scheduler:
 general:
   batch_size: 64
   input_shape: [128, 128]
-
