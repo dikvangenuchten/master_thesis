@@ -13,12 +13,14 @@
 
 
 # Load modules or software if needed
+start=`date +%s`
 module purge
 module load Python/3.10.13-GCCcore-11.3.0
 python -m venv venv
 python -m pip install -r requirements_d.txt
 python -m pip install -r requirements.txt
-
+end=`date +%s`
+echo Installing pacakges took: `expr $end - $start` seconds.
 # Copy dataset to local
 
 start=`date +%s`
