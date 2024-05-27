@@ -62,5 +62,5 @@ def test_caching(tmp_path):
     )
     batch_1 = ds[0]
     batch_2 = ds[0]
-    assert batch_1 == batch_2
-
+    assert torch.equal(batch_1["img"], batch_2["img"])
+    assert torch.equal(batch_1["target"], batch_2["target"])
