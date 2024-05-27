@@ -1,0 +1,18 @@
+# @package _global_
+defaults:
+  - override /loss: crossentropy_loss
+  - override /model: unet
+
+dataset:
+  output_structure:
+    target: semantic_mask
+  supercategories_only: True
+
+optimizer:
+  lr: 1e-5
+scheduler:
+  eta_min: 1e-3
+
+general:
+  # batch_size: 64
+  input_shape: [128, 128]
