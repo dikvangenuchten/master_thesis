@@ -3,7 +3,7 @@
 #SBATCH --job-name=master-thesis-dik
 #SBATCH --output=results/masther-thesis_%j.txt
 #SBATCH --partition=mcs.gpu.q
-#SBATCH --time=3:00:00
+#SBATCH --time=24:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
@@ -35,4 +35,4 @@ echo "Starting Python script"
 set -o allexport
 source .env
 set +o allexport
-python src/hydra_main.py paths.datasets= +mod=tue "$@"
+python src/hydra_main.py paths.datasets=/home/mcs001/20182591/master_thesis/code/ +mod=tue "$@"
