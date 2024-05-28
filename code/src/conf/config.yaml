@@ -6,9 +6,9 @@ defaults:
   - optimizer: adamax
   - loss: recon_loss
   - .@trainer: trainer
+  - _self_
 
-general:
-  batch_size: 64
-  num_steps: 100_000
-  input_shape: [128, 128]
-  class_weights: null
+num_steps: 100_000
+input_shape: [128, 128]
+class_weights: null
+batch_size: 64

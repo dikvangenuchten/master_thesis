@@ -18,7 +18,7 @@ def main(cfg: DictConfig) -> None:
         transforms.ToDtype(torch.float32, scale=True),
     ]
 
-    input_shape = cfg.general.input_shape
+    input_shape = cfg.input_shape
     data_transforms = transforms.Compose(
         [transforms.Resize(input_shape), *image_net_transforms]
     )
@@ -30,11 +30,11 @@ def main(cfg: DictConfig) -> None:
     train_dataset = dataset_factory(
         split="train", transform=data_transforms
     )
-    cfg.general.class_weights = train_dataset.class_weights
+    cfg.class_weights = train_dataset.class_weights
     train_loader = DataLoader(
         train_dataset,
-        batch_size=cfg.general.batch_size,
-        num_workers=int(os.environ.get("SLURM_NTASKS", 4)),
+        batch_size=cfg.batch_size,
+        num_workers=int(os.environ.get("SLURM_NTASKS", 2)),
         pin_memory=True,
     )
     val_dataset = dataset_factory(
@@ -42,8 +42,8 @@ def main(cfg: DictConfig) -> None:
     )
     val_loader = DataLoader(
         val_dataset,
-        batch_size=cfg.general.batch_size,
-        num_workers=int(os.environ.get("SLURM_NTASKS", 4)),
+        batch_size=cfg.batch_size,
+        num_workers=int(os.environ.get("SLURM_NTASKS", 2)),
         pin_memory=True,
     )
 
@@ -120,10 +120,12 @@ def main(cfg: DictConfig) -> None:
     except Exception as e:
         print(f"Could not generate torchinfo.summary because: {e}")
 
-    trainer.steps(cfg.general.num_steps)
+    trainer.steps(cfg.num_steps)
     trainer.save(
         hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
     )
+    
+    # TODO Return an tuple containing the 
 
 
 if __name__ == "__main__":

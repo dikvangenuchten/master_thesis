@@ -5,7 +5,7 @@ loss_fn:
   reduction: sum
   weight: 
     _target_: "torch.as_tensor"
-    data: ${general.class_weights}
+    data: ${class_weights}
 keys:
   out: input
   target: target

@@ -16,6 +16,5 @@ model: # Disable the skip connection on the highest level, as that is the full i
 optimizer:
   lr: 1e-3
 
-general:
-  batch_size: 64
-  input_shape: [128, 128]
+batch_size: 64
+input_shape: [128, 128]

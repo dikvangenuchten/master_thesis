@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/pytorch:24.04-py3 as base
+FROM nvcr.io/nvidia/pytorch:24.05-py3 as base
 
 COPY requirements.tx[t] requirements.txt
 RUN touch requirements.txt && pip install -r requirements.txt
