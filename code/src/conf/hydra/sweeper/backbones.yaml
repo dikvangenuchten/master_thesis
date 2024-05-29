@@ -3,3 +3,4 @@ defaults:
 
 params:
   model.encoder_name: choice('mobilenetv2_100',vit_base_patch16_224,resnet50)
+  input_shape: choice([224, 224])
