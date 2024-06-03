@@ -4,5 +4,4 @@ defaults:
 params:
   +experiments: choice('segmentation_unet','segmentation_vae_pre','segmentation_vae_pre')
   +dataset.percentage: range(0.1, 1.01, 0.3)
-  +batch_size: 32
-  +hydra.sweeper.additional_parameters: {"nice": 10000}
+  ++batch_size: 32

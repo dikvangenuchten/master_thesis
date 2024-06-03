@@ -21,7 +21,7 @@ mem_per_cpu: 4G
 account: null
 signal_delay_s: 120
 max_num_timeout: 0
-additional_parameters: {}
+additional_parameters: {nice: 1000}
 array_parallelism: 256
 setup: null
 srun_args: null
