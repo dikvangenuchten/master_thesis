@@ -2,6 +2,6 @@ defaults:
   - basic
 
 params:
-  +experiments: choice('segmentation_unet','segmentation_vae_pre','segmentation_vae_pre')
-  +dataset.percentage: range(0.1, 1.01, 0.3)
+  +experiments: choice('segmentation_unet','segmentation_vae','segmentation_vae_pre')
+  +dataset.percentage: range(0.1, 1.01, 0.1)
   ++batch_size: 32

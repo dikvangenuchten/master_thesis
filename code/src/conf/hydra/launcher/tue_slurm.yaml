@@ -22,7 +22,7 @@ account: null
 signal_delay_s: 120
 max_num_timeout: 0
 additional_parameters:
-  nice: 10000
+  nice: 1000
   mail-user: "h.j.m.v.genuchten@student.tue.nl"
 array_parallelism: 256
 setup: null
