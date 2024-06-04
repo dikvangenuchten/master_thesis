@@ -11,7 +11,7 @@ _target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
 partition: mcs.gpu.q
 qos: null
 comment: null
-constraint: null
+constraint: "gforce"
 exclude: null
 gres: null
 cpus_per_gpu: null
