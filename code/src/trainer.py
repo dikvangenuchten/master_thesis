@@ -68,7 +68,7 @@ class Trainer:
         eval_metrics: List[BaseMetric] = None,
         log_with: List[str] = ["wandb"],
         clip_norm: float = 1e10,
-        init_kwargs: Dict[str, Any] = None,
+        init_kwargs: Dict[str, Any] = {},
     ) -> None:
         train_metrics = [] if train_metrics is None else train_metrics
         eval_metrics = [] if eval_metrics is None else eval_metrics
