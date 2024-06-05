@@ -2,7 +2,7 @@ import datetime
 import os
 import itertools
 import logging
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import torch
 from accelerate import Accelerator
@@ -68,6 +68,7 @@ class Trainer:
         eval_metrics: List[BaseMetric] = None,
         log_with: List[str] = ["wandb"],
         clip_norm: float = 1e10,
+        init_kwargs: Dict[str, Any] = None,
     ) -> None:
         train_metrics = [] if train_metrics is None else train_metrics
         eval_metrics = [] if eval_metrics is None else eval_metrics
@@ -77,7 +78,7 @@ class Trainer:
             # mixed_precision="fp16"
         )
         self._accelerator.init_trackers(
-            project_name="MasterThesis", config=config
+            project_name="MasterThesis", config=config, init_kwargs=init_kwargs
         )
 
         self._clip_norm = clip_norm
