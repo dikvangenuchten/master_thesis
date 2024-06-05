@@ -25,4 +25,3 @@ scheduler:
 
 batch_size: 32
 input_shape: [128, 128]
-num_steps: 100
