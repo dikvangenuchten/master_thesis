@@ -124,8 +124,8 @@ def main(cfg: DictConfig) -> None:
     trainer.save(
         hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
     )
-    
-    # TODO Return an tuple containing the 
+
+    # TODO Return an tuple containing the
 
 
 if __name__ == "__main__":

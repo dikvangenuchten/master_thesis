@@ -78,7 +78,9 @@ class Trainer:
             # mixed_precision="fp16"
         )
         self._accelerator.init_trackers(
-            project_name="MasterThesis", config=config, init_kwargs=init_kwargs
+            project_name="MasterThesis",
+            config=config,
+            init_kwargs=init_kwargs,
         )
 
         self._clip_norm = clip_norm

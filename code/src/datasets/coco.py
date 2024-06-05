@@ -8,7 +8,6 @@ from typing import (
     Literal,
     get_args,
 )
-from functools import cache
 
 import torch
 from diffusers.models.autoencoders.vae import (
@@ -16,7 +15,6 @@ from diffusers.models.autoencoders.vae import (
 )
 from PIL import Image as PImage
 from torchvision.tv_tensors import Image, Mask
-from pycocotools.coco import COCO
 import tqdm
 
 from datasets import LatentTensor
@@ -76,9 +74,13 @@ class CoCoDataset(torch.utils.data.Dataset):
             )
 
         # Ignore the percentage in validation dataset
-        percentage = 1 if percentage < 1 and split == "val" else percentage
+        percentage = (
+            1 if percentage < 1 and split == "val" else percentage
+        )
 
-        self.output_structure = self.parse_output_structure(output_structure)
+        self.output_structure = self.parse_output_structure(
+            output_structure
+        )
 
         with open(self._panoptic_root + ".json") as f:
             panoptic_anns = json.load(f)
@@ -89,7 +91,6 @@ class CoCoDataset(torch.utils.data.Dataset):
             supercategories_only=supercategories_only,
             percentage=percentage,
         )
-
 
         self._cat_id_to_semantic = {
             cat["id"]: i
@@ -109,8 +110,10 @@ class CoCoDataset(torch.utils.data.Dataset):
         self.ignore_index = ignore_index
         self._sample = sample
         self._weights = None
-        
-    def parse_output_structure(self, output_structure) -> Dict[str, str]:
+
+    def parse_output_structure(
+        self, output_structure
+    ) -> Dict[str, str]:
         unsuported_outs = {
             k: v
             for k, v in output_structure.items()
@@ -166,7 +169,9 @@ class CoCoDataset(torch.utils.data.Dataset):
             return LatentTensor(mean)
 
     def _load_image(self, idx: int) -> Image:
-        path = self._panoptic_anns["annotations"][idx]["file_name"].replace("png", "jpg")
+        path = self._panoptic_anns["annotations"][idx][
+            "file_name"
+        ].replace("png", "jpg")
         return self._open_pil_image(
             os.path.join(self._image_root, path)
         )
