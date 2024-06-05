@@ -11,7 +11,7 @@
 	},
 	"runArgs": [
 		"--gpus=all",
-		"--shm-size=256m",
+		"--shm-size=2G",
 		// For some reason it stopped working without privileged :(
 		"--privileged"
 	],

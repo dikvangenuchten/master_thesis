@@ -5,11 +5,15 @@
             "name": "Python Debugger: main",
             "type": "debugpy",
             "request": "launch",
-            "program": "src/main.py",
+            "program": "src/hydra_main.py",
+            "args": [
+                "+task=semantic"
+            ],
             "console": "integratedTerminal",
             "env": {
                 // "CUDA_LAUNCH_BLOCKING": "1",
-                // "PYTORCH_CUDA_ALLOC_CONF":"max_split_size_mb: 512",
+                "PYTORCH_CUDA_ALLOC_CONF": "max_split_size_mb: 512",
+                "HYDRA_FULL_ERROR": "1",
             },
             "justMyCode": false
         },
@@ -30,6 +34,9 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": false,
+            "env": {
+                "PYTORCH_CUDA_ALLOC_CONF": "max_split_size_mb: 512",
+            },
             "cwd": "${workspaceFolder}/src"
         },
     ],
