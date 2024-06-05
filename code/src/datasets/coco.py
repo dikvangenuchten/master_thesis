@@ -57,33 +57,8 @@ class CoCoDataset(torch.utils.data.Dataset):
         percentage: float = 1.00,
         cache_dir: Optional[str] = None,
     ):
-        self._length = length
-
-        if cache_dir is not None:
-            os.makedirs(cache_dir, exist_ok=True)
-            self._open_pil_image = _open_cache_wrapper(
-                self._open_pil_image, cache_dir
-            )
-
-        if percentage < 1 and split == "val":
-            print("Ignoring percentage for validation split")
-            percentage = 1
-
         # The absolute path to the dataset
         self.base_path = os.path.join(dataset_root, rel_path)
-
-        unsuported_outs = {
-            k: v
-            for k, v in output_structure.items()
-            if v not in get_args(OUTPUT_TYPES)
-        }
-
-        assert (
-            len(unsuported_outs) == 0
-        ), f"The following outputs are not supported: {unsuported_outs} not in {get_args(OUTPUT_TYPES)}"
-
-        self.output_structure = output_structure
-
         self._image_root = os.path.join(self.base_path, f"{split}2017/")
         self._panoptic_root = os.path.join(
             self.base_path, "annotations", f"panoptic_{split}2017"
@@ -92,23 +67,29 @@ class CoCoDataset(torch.utils.data.Dataset):
             self.base_path, f"{split}_latents"
         )
 
+        self._length = length
+
+        if cache_dir is not None:
+            os.makedirs(cache_dir, exist_ok=True)
+            self._open_pil_image = _open_cache_wrapper(
+                self._open_pil_image, cache_dir
+            )
+
+        # Ignore the percentage in validation dataset
+        percentage = 1 if percentage < 1 and split == "val" else percentage
+
+        self.output_structure = self.parse_output_structure(output_structure)
+
         with open(self._panoptic_root + ".json") as f:
-            self._panoptic_anns = json.load(f)
+            panoptic_anns = json.load(f)
 
         self._panoptic_anns = _filter_annotations(
-            self._panoptic_anns,
+            panoptic_anns,
             top_k_classes=top_k_classes,
             supercategories_only=supercategories_only,
             percentage=percentage,
         )
 
-        self._coco_path = os.path.join(
-            self.base_path, "annotations", f"instances_{split}2017.json"
-        )
-        self._coco = COCO(self._coco_path)
-        self._ids = list(sorted(self._coco.imgs.keys()))
-
-        self.transform = transform
 
         self._cat_id_to_semantic = {
             cat["id"]: i
@@ -124,9 +105,21 @@ class CoCoDataset(torch.utils.data.Dataset):
         elif ignore_index < len(self.class_map):
             print("Warning: ignore index is < the amount of classes")
 
+        self.transform = transform
         self.ignore_index = ignore_index
         self._sample = sample
         self._weights = None
+        
+    def parse_output_structure(self, output_structure) -> Dict[str, str]:
+        unsuported_outs = {
+            k: v
+            for k, v in output_structure.items()
+            if v not in get_args(OUTPUT_TYPES)
+        }
+        assert (
+            len(unsuported_outs) == 0
+        ), f"The following outputs are not supported: {unsuported_outs} not in {get_args(OUTPUT_TYPES)}"
+        return output_structure
 
     def __len__(self) -> int:
         return len(self._panoptic_anns["annotations"])
@@ -159,7 +152,6 @@ class CoCoDataset(torch.utils.data.Dataset):
             ]
         return self._weights
 
-    @cache
     def _load_latent(self, idx: int) -> torch.Tensor:
         parameters: torch.Tensor = torch.load(
             os.path.join(self._latent_root, f"vae_latent_{idx}.pt")
@@ -174,8 +166,7 @@ class CoCoDataset(torch.utils.data.Dataset):
             return LatentTensor(mean)
 
     def _load_image(self, idx: int) -> Image:
-        img_id = self._panoptic_anns["annotations"][idx]["image_id"]
-        path = self._coco.imgs[img_id]["file_name"]
+        path = self._panoptic_anns["annotations"][idx]["file_name"].replace("png", "jpg")
         return self._open_pil_image(
             os.path.join(self._image_root, path)
         )
