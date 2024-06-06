@@ -14,5 +14,5 @@ scheduler:
   eta_min: 1e-3
 
 general:
-  # batch_size: 64
+  batch_size: 64
   input_shape: [128, 128]

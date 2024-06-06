@@ -23,5 +23,5 @@ optimizer:
 scheduler:
   eta_min: 1e-3
 
-batch_size: 32
+batch_size: 96
 input_shape: [128, 128]

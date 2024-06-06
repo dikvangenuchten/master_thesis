@@ -5,3 +5,5 @@ dataset:
 paths:
   datasets: /home/mcs001/20182591/data/
   workdir: /home/mcs001/20182591/master_thesis/code/
+
+++batch_size: 128
