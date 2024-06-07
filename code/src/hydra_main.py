@@ -13,14 +13,16 @@ import metrics
 def main(cfg: DictConfig) -> None:
     print(OmegaConf.to_yaml(cfg, resolve=True))
 
-    image_net_transforms = [
-        # Rescale to [0, 1]
-        transforms.ToDtype(torch.float32, scale=True),
-    ]
-
     input_shape = cfg.input_shape
     data_transforms = transforms.Compose(
-        [transforms.Resize(input_shape), *image_net_transforms]
+        [
+            transforms.Resize(input_shape),
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomVerticalFlip(),
+            transforms.RandomGrayscale(),
+            transforms.GaussianBlur(),
+            transforms.ToDtype(torch.float32, scale=True),
+        ]
     )
 
     # Load datasets
