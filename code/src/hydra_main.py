@@ -20,7 +20,7 @@ def main(cfg: DictConfig) -> None:
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(),
             transforms.RandomGrayscale(),
-            transforms.GaussianBlur(),
+            transforms.GaussianBlur(5),
             transforms.ToDtype(torch.float32, scale=True),
         ]
     )
