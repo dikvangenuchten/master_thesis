@@ -8,7 +8,7 @@ defaults:
   - .@trainer: trainer
   - _self_
 
-num_steps: 100_000
+num_steps: 20_000
 input_shape: [128, 128]
 class_weights: null
 batch_size: 64
