@@ -30,6 +30,8 @@ class HierarchicalKLDivergenceLoss(nn.Module):
 
         loss = 0
         for posterior, prior in zip(posteriors, priors):
+            if posterior is None or prior is None:
+                continue
             _loss = (
                 torch.distributions.kl_divergence(posterior, prior)
                 .flatten(1)

@@ -143,8 +143,9 @@ class VariationalDecoderBlock(nn.Module):
             post = self._posterior_net(torch.cat((x, x_skip), dim=1))
             posterior = self._posterior_layer(post)
             dist = posterior
-            out.setdefault("priors", []).append(prior)
-            out.setdefault("posteriors", []).append(posterior)
+            if var:
+                out.setdefault("priors", []).append(prior)
+                out.setdefault("posteriors", []).append(posterior)
         else:
             dist = prior
 
