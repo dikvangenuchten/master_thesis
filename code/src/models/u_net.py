@@ -3,6 +3,7 @@ import torchseg as smp
 from torch import nn
 from torchvision.transforms import v2 as transforms
 
+
 class UNet(nn.Module):
     """Standard UNet based on"""
 
@@ -20,7 +21,7 @@ class UNet(nn.Module):
         assert (
             image_channels == 3
         ), "Currently only RGB images are supported (due to pretrained weights)"
-        
+
         # Hardcode the imagenet normalization function
         # I see no value in making this adaptable
         self._normalize = (
@@ -28,7 +29,6 @@ class UNet(nn.Module):
                 mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
             ),
         )
-
 
         self.unet = smp.Unet(
             encoder_name=encoder_name,
@@ -40,6 +40,6 @@ class UNet(nn.Module):
         )
 
     def forward(self, input):
-        x = self._normalize(x)
+        input = self._normalize(input)
         x = self.unet(input)
         return {"out": x}

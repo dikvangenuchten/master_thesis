@@ -73,7 +73,13 @@ class MobileVAE(nn.Module):
         decoder_channels: Optional[List[int]] = None,
         encoder_weights: str = "imagenet",
         skip_connections: List[bool] = [True, True, True, True, True],
-        variational_connections: List[bool] = [True, True, True,True,True],
+        variational_connections: List[bool] = [
+            True,
+            True,
+            True,
+            True,
+            True,
+        ],
         activation: nn.Module = nn.Identity(),
         state_dict: Optional[dict] = None,
         load_encoder: bool = True,
@@ -84,14 +90,14 @@ class MobileVAE(nn.Module):
 
         # Hardcode the imagenet normalization function
         # I see no value in making this adaptable
-        self._normalize = (
-            transforms.Normalize(
-                mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-            ),
+        self._normalize = transforms.Normalize(
+            mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
         )
 
         self._skip_connections = skip_connections[:encoder_depth]
-        self._variational_connections = variational_connections[:encoder_depth]
+        self._variational_connections = variational_connections[
+            :encoder_depth
+        ]
         self._activation = activation
 
         self._encoder = self._create_encoder(
@@ -205,12 +211,12 @@ class MobileVAE(nn.Module):
             )
 
     def forward(self, x):
-        # Reverse the order so we can iterate from bottom up
         x = self._normalize(x)
         skip_connections = self.encode(x)
         return self.decode(skip_connections)
 
     def encode(self, x) -> List[torch.Tensor]:
+        # Reverse the order so we can iterate from bottom up
         skip_connections = self._encoder(x)[::-1]
         skip_connections[0] = self._mid_block(skip_connections[0])
         return skip_connections
