@@ -119,15 +119,17 @@ class VariationalDecoderBlock(nn.Module):
         self,
         input: Dict[str, Tensor] | Tensor,
         x_skip: Tensor = None,
+        var: bool = True
     ) -> torch.Any:
         if isinstance(input, Tensor):
-            return super().__call__({"out": input}, x_skip)
-        return super().__call__(input, x_skip)
+            return super().__call__({"out": input}, x_skip, var)
+        return super().__call__(input, x_skip, var)
 
     def forward(
         self,
         input: Dict[str, Tensor],
         x_skip: Optional[Tensor] = None,
+        var: bool = True
     ) -> Tensor:
         internal_skip = self._unpool(input["out"])
         # Prior net is a residual block
@@ -146,9 +148,8 @@ class VariationalDecoderBlock(nn.Module):
         else:
             dist = prior
 
-        if self.training:
-            # z = dist.rsample()
-            z = dist.mean
+        if self.training and var:
+            z = dist.rsample()
         else:
             z = dist.mean
 

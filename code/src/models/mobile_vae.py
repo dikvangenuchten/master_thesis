@@ -73,6 +73,7 @@ class MobileVAE(nn.Module):
         decoder_channels: Optional[List[int]] = None,
         encoder_weights: str = "imagenet",
         skip_connections: List[bool] = [True, True, True, True, True],
+        variational_connections: List[bool] = [True, True, True,True,True],
         activation: nn.Module = nn.Identity(),
         state_dict: Optional[dict] = None,
         load_encoder: bool = True,
@@ -90,6 +91,7 @@ class MobileVAE(nn.Module):
         )
 
         self._skip_connections = skip_connections[:encoder_depth]
+        self._variational_connections = variational_connections[:encoder_depth]
         self._activation = activation
 
         self._encoder = self._create_encoder(
@@ -204,6 +206,7 @@ class MobileVAE(nn.Module):
 
     def forward(self, x):
         # Reverse the order so we can iterate from bottom up
+        x = self._normalize(x)
         skip_connections = self.encode(x)
         return self.decode(skip_connections)
 
@@ -214,13 +217,14 @@ class MobileVAE(nn.Module):
 
     def decode(self, skip_connections):
         out = skip_connections[0]
-        for layer, skip_data, skip in zip(
+        for layer, skip_data, skip, var in zip(
             self._decoder,
             skip_connections[1:],
             self._skip_connections,
+            self._variational_connections,
             strict=True,
         ):
-            out = layer(out, skip_data if skip else None)
+            out = layer(out, skip_data if skip else None, var=var)
 
         out["out"] = self._activation(out["out"])
 
