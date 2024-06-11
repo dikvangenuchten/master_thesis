@@ -9,7 +9,9 @@ dataset:
 
 model:
   encoder_depth: 5
-  skip_connections: [False, False, False, False, False]
+  skip_connections: [True, True, True, True, True]
+  variational_connections: [False, False, False, False, False]
+  encoder_name: "resnet50"
   encoder_weights: "imagenet"
   state_dict:
     _target_: torch.load
@@ -23,5 +25,5 @@ optimizer:
 scheduler:
   eta_min: 1e-3
 
-batch_size: 64
+batch_size: 8
 input_shape: [128, 128]

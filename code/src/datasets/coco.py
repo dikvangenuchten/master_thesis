@@ -95,6 +95,8 @@ class CoCoDataset(torch.utils.data.Dataset):
             supercategories_only=supercategories_only,
             percentage=percentage,
         )
+        
+        print(f"Dataset Size: {len(self)}")
 
         self._cat_id_to_semantic = {
             cat["id"]: i
@@ -114,6 +116,7 @@ class CoCoDataset(torch.utils.data.Dataset):
         self.ignore_index = ignore_index
         self._sample = sample
         self._weights = None
+        
 
     def parse_output_structure(
         self, output_structure

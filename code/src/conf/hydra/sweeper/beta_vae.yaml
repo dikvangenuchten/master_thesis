@@ -1,0 +1,8 @@
+defaults:
+  - basic
+
+params:
+  +experiments: choice('segmentation_vae')
+  +sweep: choice(10, 1, 0.1, 0.01, 0.0001)
+  loss.losses.kl_divergence.start_value: ${sweep}
+  loss.losses.kl_divergence.end_value: ${sweep}

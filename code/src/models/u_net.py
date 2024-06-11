@@ -24,11 +24,9 @@ class UNet(nn.Module):
 
         # Hardcode the imagenet normalization function
         # I see no value in making this adaptable
-        self._normalize = (
-            transforms.Normalize(
+        self._normalize = transforms.Normalize(
                 mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-            ),
-        )
+            )
 
         self.unet = smp.Unet(
             encoder_name=encoder_name,
