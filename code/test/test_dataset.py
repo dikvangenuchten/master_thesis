@@ -64,3 +64,29 @@ def test_caching(tmp_path):
     batch_2 = ds[0]
     assert torch.equal(batch_1["img"], batch_2["img"])
     assert torch.equal(batch_1["target"], batch_2["target"])
+
+def test_percentage():
+    ds_full = CoCoDataset(
+        split="train",
+        output_structure={"img": "img", "target": "semantic_mask"},
+        dataset_root="test/data",
+    )
+    
+    ds_partial = CoCoDataset(
+        split="train",
+        output_structure={"img": "img", "target": "semantic_mask"},
+        dataset_root="test/data",
+        percentage=1/16 # This should result in a length 1 dataset
+    )
+
+    assert len(ds_full) > len(ds_partial)
+    assert len(ds_full) == 16
+    assert len(ds_partial) == 1
+    
+    full_data = list(iter(ds_full))
+    partial_data = list(iter(ds_partial))
+    
+    assert len(full_data) > len(partial_data)
+    assert len(full_data) == 16
+    assert len(partial_data) == 1
+    pass

@@ -8,6 +8,7 @@ from typing import (
     Literal,
     get_args,
 )
+import warnings
 
 import torch
 from diffusers.models.autoencoders.vae import (
@@ -74,9 +75,12 @@ class CoCoDataset(torch.utils.data.Dataset):
             )
 
         # Ignore the percentage in validation dataset
-        percentage = (
-            1 if percentage < 1 and split == "val" else percentage
-        )
+        if percentage < 1:
+            if split == "val":
+                warnings.warn("Ignoring percentage for validation split")
+                percentage = 1
+            else:
+                print(f"Training will happen with a split of {percentage}")
 
         self.output_structure = self.parse_output_structure(
             output_structure
