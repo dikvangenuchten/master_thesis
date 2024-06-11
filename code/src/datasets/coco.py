@@ -77,10 +77,14 @@ class CoCoDataset(torch.utils.data.Dataset):
         # Ignore the percentage in validation dataset
         if percentage < 1:
             if split == "val":
-                warnings.warn("Ignoring percentage for validation split")
+                warnings.warn(
+                    "Ignoring percentage for validation split"
+                )
                 percentage = 1
             else:
-                print(f"Training will happen with a split of {percentage}")
+                print(
+                    f"Training will happen with a split of {percentage}"
+                )
 
         self.output_structure = self.parse_output_structure(
             output_structure
@@ -95,7 +99,7 @@ class CoCoDataset(torch.utils.data.Dataset):
             supercategories_only=supercategories_only,
             percentage=percentage,
         )
-        
+
         print(f"Dataset Size: {len(self)}")
 
         self._cat_id_to_semantic = {
@@ -116,7 +120,6 @@ class CoCoDataset(torch.utils.data.Dataset):
         self.ignore_index = ignore_index
         self._sample = sample
         self._weights = None
-        
 
     def parse_output_structure(
         self, output_structure

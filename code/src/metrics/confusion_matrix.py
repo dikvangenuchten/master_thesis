@@ -58,7 +58,9 @@ class ConfusionMetrics(BaseMetric):
         elif "out" in step_data.model_out:
             y_pred = step_data.model_out["out"]
         else:
-            raise RuntimeError("The model output did not contain the keys 'probs' or 'out' which are required")
+            raise RuntimeError(
+                "The model output did not contain the keys 'probs' or 'out' which are required"
+            )
 
         self._confusion_matrix.update(y_pred, y_true)
 
@@ -96,7 +98,9 @@ class ConfusionMetrics(BaseMetric):
             # f"{self._prefix}PQ": PQ,
             f"{self._prefix}Recall": _safe_div(tp, (tp + fn)),
             f"{self._prefix}Precision": _safe_div(tp, (tp + fp)),
-            f"{self._prefix}Jaccard Index": _safe_div(tp, (tp + fn + fp))
+            f"{self._prefix}Jaccard Index": _safe_div(
+                tp, (tp + fn + fp)
+            ),
         }
 
     def reset(self):
