@@ -1,13 +1,7 @@
-import pytest
 import torch
 from torch.utils.data.dataloader import DataLoader
 
 from metrics import MaskMetric, StepData
-
-
-@pytest.fixture()
-def class_labels():
-    return {0: "person", 1: "bicycle", 2: "car"}
 
 
 def test_mask_metric(dataset):
