@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #SBATCH --job-name=master-thesis-dik
 #SBATCH --output=results/masther-thesis_%j.txt
 #SBATCH --partition=mcs.gpu.q
