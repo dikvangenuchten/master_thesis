@@ -1,6 +1,5 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 import torch
-import torchseg
 from torchseg.base import (
     modules,
     SegmentationModel,
@@ -301,11 +300,14 @@ class VariationalUnetDecoder(nn.Module):
 
         return x
 
+
 class SegmentationHead(SegmentationHead_):
     """Wrap Segmentation head to work with dict"""
+
     def forward(self, state: Dict[str, Tensor]):
         state["out"] = super().forward(state["out"])
         return state
+
 
 class VariationalUNet(SegmentationModel):
     """Variational UNet (Also Hierachical Unet)"""
