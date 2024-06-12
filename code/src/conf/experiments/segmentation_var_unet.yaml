@@ -10,16 +10,9 @@ dataset:
 
 model:
   encoder_depth: 5
-  skip_connections: [True, True, True, True, True]
   variational_connections: [False, False, False, False, False]
   encoder_name: "resnet50"
   encoder_weights: "imagenet"
-  state_dict:
-    _target_: torch.load
-    f: ${paths.workdir}/models/pretrained-vae.pt
-  load_encoder: False
-  load_mid_block: False
-  load_decoder: False
 
 optimizer:
   lr: 1e-5
