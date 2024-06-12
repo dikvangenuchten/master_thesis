@@ -1,5 +1,5 @@
 from typing import List
-import torchseg as smp
+import torchseg
 from torch import nn
 from torchvision.transforms import v2 as transforms
 
@@ -28,7 +28,7 @@ class UNet(nn.Module):
             mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
         )
 
-        self.unet = smp.Unet(
+        self.unet = torchseg.Unet(
             encoder_name=encoder_name,
             encoder_depth=encoder_depth,
             encoder_weights=encoder_weights,
