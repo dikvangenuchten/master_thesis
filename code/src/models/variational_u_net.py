@@ -216,7 +216,9 @@ class VariationalDecoderBlock(MetadataModule):
     def forward(self, state, skip=None):
         x = state["out"]
         if skip is not None:
-            state = self._skip_projection(skip)
+            skip_state = self._skip_projection(skip)
+            state.setdefault("priors", []).extend(skip_state.get("priors", []))
+            state.setdefault("posteriors", []).extend(skip_state.get("posteriors", []))
         state["out"] = self._decoder_block(x, skip)
         return state
 
