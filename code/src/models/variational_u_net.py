@@ -325,6 +325,8 @@ class VariationalUNet(SegmentationModel):
         encoder_params: dict = {},
     ):
         super().__init__()
+        if encoder_weights.lower() == "none":
+            encoder_weights = None
 
         assert (
             image_channels == 3
