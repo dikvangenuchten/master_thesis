@@ -10,7 +10,7 @@ dataset:
 
 model:
   encoder_depth: 5
-  variational_skip_connections: [False, False, False, False, False]
+  variational_skip_connections: [True, True, True, False, False]
   encoder_name: "resnet50"
   encoder_weights: "imagenet"
 

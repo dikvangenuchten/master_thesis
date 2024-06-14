@@ -324,9 +324,7 @@ class VariationalUNet(SegmentationModel):
         activation=nn.Identity(),
         encoder_params: dict = {},
     ):
-        print("test")
         super().__init__()
-        print("test2")
 
         assert (
             image_channels == 3
