@@ -4,4 +4,4 @@ defaults:
 params:
   +experiments: choice('segmentation_unet', 'segmentation_var_unet')
   +dataset.percentage: choice(1, 0.1, 0.01, 0.001)
-  +model.encoder_weights: choice("None", "imagenet")
+  model.encoder_weights: choice("None", "imagenet")
