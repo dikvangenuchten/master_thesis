@@ -1,3 +1,4 @@
+import logging
 import os
 import hydra
 import torch
@@ -26,6 +27,8 @@ def main(cfg: DictConfig) -> None:
     )
 
     # Load datasets
+    log = logging.getLogger(__name__)
+    log.warning(cfg.dataset.dataset_root)
     dataset_factory = hydra.utils.instantiate(
         cfg.dataset, _partial_=True
     )
