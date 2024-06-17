@@ -143,11 +143,11 @@ class Trainer:
 
         # Save based on start time of run
         self._ckpt_dir = os.path.join(
-            os.environ.get("DATA_DIR", "/datasets"),
+            os.environ.get("DATA_DIR", "/home/mcs001/20182591/master_thesis/code"),
             "ckpts",
             datetime.datetime.now().strftime("%Y/%m/%d-%H:%M"),
         )
-        print(f"Model ckpts will be saved in: {self._ckpt_dir}")
+        logging.info(f"Model ckpts will be saved in: {self._ckpt_dir}")
 
     @property
     def device(self):
