@@ -13,16 +13,25 @@ import metrics
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: DictConfig) -> None:
     print(OmegaConf.to_yaml(cfg, resolve=True))
+    if os.environ.get("DATA_DIR", None) is None:
+        os.environ["DATA_DIR"] = cfg.paths.datasets
 
     input_shape = cfg.input_shape
-    data_transforms = transforms.Compose(
+
+    # These transforms need to happen before the batching
+    pre_data_transforms = transforms.Compose(
         [
             transforms.Resize(input_shape),
+        ]
+    )
+    # These transforms can be batched (on gpu)
+    post_data_transforms = transforms.Compose(
+        [
+            transforms.ToDtype(torch.float32, scale=True),
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(),
             transforms.RandomGrayscale(),
             transforms.GaussianBlur(5),
-            transforms.ToDtype(torch.float32, scale=True),
         ]
     )
 
@@ -33,22 +42,22 @@ def main(cfg: DictConfig) -> None:
         cfg.dataset, _partial_=True
     )
     train_dataset = dataset_factory(
-        split="train", transform=data_transforms
+        split="train", transform=pre_data_transforms
     )
     cfg.class_weights = train_dataset.class_weights
     train_loader = DataLoader(
         train_dataset,
         batch_size=cfg.batch_size,
-        num_workers=int(os.environ.get("SLURM_NTASKS", 2)),
+        num_workers=int(os.environ.get("SLURM_NTASKS", os.cpu_count() * 2)),
         pin_memory=True,
     )
     val_dataset = dataset_factory(
-        split="val", transform=data_transforms
+        split="val", transform=pre_data_transforms
     )
     val_loader = DataLoader(
         val_dataset,
         batch_size=cfg.batch_size,
-        num_workers=int(os.environ.get("SLURM_NTASKS", 2)),
+        num_workers=int(os.environ.get("SLURM_NTASKS", os.cpu_count() * 2)),
         pin_memory=True,
     )
 
@@ -76,14 +85,6 @@ def main(cfg: DictConfig) -> None:
         metrics.AverageMetric(
             "TrainAverageLoss", lambda step_data: step_data.loss
         ),
-        # metrics.ImageMetric("TrainReconstruction"),
-        metrics.MaskMetric("TrainMask", train_dataset.class_map),
-        metrics.ConfusionMetrics(
-            "ConfusionMetrics",
-            num_classes,
-            ignore_index=train_dataset.ignore_index,
-            prefix="Train",
-        ),
     ]
 
     eval_metrics = [
@@ -91,14 +92,36 @@ def main(cfg: DictConfig) -> None:
             "EvalAverageLoss", lambda step_data: step_data.loss
         ),
         # metrics.ImageMetric("EvalReconstruction"),
-        metrics.MaskMetric("EvalMask", train_dataset.class_map),
-        metrics.ConfusionMetrics(
-            "ConfusionMetrics",
-            num_classes,
-            ignore_index=train_dataset.ignore_index,
-            prefix="Eval",
-        ),
     ]
+
+    if cfg.dataset.output_structure.target == "img":
+        train_metrics.append(metrics.ImageMetric("TrainReconstruction"))
+        eval_metrics.append(metrics.ImageMetric("EvalReconstruction"))
+    else:
+        train_metrics.extend(
+            [
+                metrics.MaskMetric(
+                    "TrainMask", train_dataset.class_map
+                ),
+                metrics.ConfusionMetrics(
+                    "ConfusionMetrics",
+                    num_classes,
+                    ignore_index=train_dataset.ignore_index,
+                    prefix="Train",
+                ),
+            ]
+        )
+        eval_metrics.extend(
+            [
+                metrics.MaskMetric("EvalMask", train_dataset.class_map),
+                metrics.ConfusionMetrics(
+                    "ConfusionMetrics",
+                    num_classes,
+                    ignore_index=train_dataset.ignore_index,
+                    prefix="Eval",
+                ),
+            ]
+        )
 
     # Required to be able to use config as kwarg.
     trainer_factory = hydra.utils.instantiate(
@@ -114,6 +137,7 @@ def main(cfg: DictConfig) -> None:
         train_metrics=train_metrics,
         eval_metrics=eval_metrics,
         config=OmegaConf.to_container(cfg, resolve=True),
+        data_transforms=post_data_transforms,
     )
 
     try:

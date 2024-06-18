@@ -217,8 +217,12 @@ class VariationalDecoderBlock(MetadataModule):
         x = state["out"]
         if skip is not None:
             skip_state = self._skip_projection(skip)
-            state.setdefault("priors", []).extend(skip_state.get("priors", []))
-            state.setdefault("posteriors", []).extend(skip_state.get("posteriors", []))
+            state.setdefault("priors", []).extend(
+                skip_state.get("priors", [])
+            )
+            state.setdefault("posteriors", []).extend(
+                skip_state.get("posteriors", [])
+            )
         state["out"] = self._decoder_block(x, skip)
         return state
 

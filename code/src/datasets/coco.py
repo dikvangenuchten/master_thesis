@@ -1,3 +1,4 @@
+from functools import cache
 import json
 import os
 from typing import (
@@ -120,6 +121,7 @@ class CoCoDataset(torch.utils.data.Dataset):
         self.ignore_index = ignore_index
         self._sample = sample
         self._weights = None
+        self._ram_images = []
 
     def parse_output_structure(
         self, output_structure
@@ -227,15 +229,15 @@ class CoCoDataset(torch.utils.data.Dataset):
         return Image(PImage.open(path).convert("RGB"))
 
     def __getitem__(self, index) -> Dict[str, torch.Tensor]:
+        if self._length is not None:
+            # This is for some reason ~8 times faster compared to reducing the actual dataset size
+            index = index % self._length
         out = self._getitem(index)
         if self.transform is not None:
             return self.transform(out)
         return out
 
     def _getitem(self, index) -> Dict[str, torch.Tensor]:
-        if self._length is not None:
-            # This is for some reason ~8 times faster compared to reducing the actual dataset size
-            index = index % self._length
         return {
             k: self._get_type(index, v)
             for k, v in self.output_structure.items()

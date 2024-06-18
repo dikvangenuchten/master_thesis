@@ -1,0 +1,25 @@
+# @package _global_
+defaults:
+  - override /loss: recon_loss
+  - override /model: var_unet
+
+dataset:
+  output_structure:
+    target: img
+
+model:
+  encoder_depth: 5
+  variational_skip_connections: [True, True, True, False, False]
+  encoder_name: "resnet50"
+  activation:
+    _target_: torch.nn.Sigmoid
+  encoder_weights: "imagenet"
+
+optimizer:
+  lr: 1e-3
+scheduler:
+  eta_min: 1e-3
+
+
+batch_size: 256
+input_shape: [128, 128]

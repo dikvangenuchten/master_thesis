@@ -5,6 +5,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 import torch
+from torchvision.transforms import v2 as transforms
 from accelerate import Accelerator
 from torch import nn, optim
 from torch.utils import data
@@ -69,6 +70,7 @@ class Trainer:
         log_with: List[str] = ["wandb"],
         clip_norm: float = 1e10,
         init_kwargs: Dict[str, Any] = {},
+        data_transforms: Any = transforms.Identity(),
     ) -> None:
         train_metrics = [] if train_metrics is None else train_metrics
         eval_metrics = [] if eval_metrics is None else eval_metrics
@@ -115,6 +117,7 @@ class Trainer:
             train_dataloader,
             eval_dataloader,
             scheduler,
+            data_transforms,
         ) = self._accelerator.prepare(
             model,
             loss_fn,
@@ -122,6 +125,7 @@ class Trainer:
             train_dataloader,
             eval_dataloader,
             scheduler,
+            data_transforms,
         )
 
         self.train_dataloader = train_dataloader
@@ -139,12 +143,13 @@ class Trainer:
         self.eval_dataloader = eval_dataloader
         self.train_metrics = train_metrics
         self.eval_metrics = eval_metrics
+        self.data_transforms = data_transforms
         self._gradient_penalty = GradientPenalty()
 
         # Save based on start time of run
         self._ckpt_dir = os.path.join(
-            os.environ.get("DATA_DIR", "/home/mcs001/20182591/master_thesis/code"),
-            "ckpts",
+            config["paths"]["checkpoints"],
+            # os.environ.get("DATA_DIR", "/home/mcs001/20182591/master_thesis/code"),
             datetime.datetime.now().strftime("%Y/%m/%d-%H:%M"),
         )
         logging.info(f"Model ckpts will be saved in: {self._ckpt_dir}")
@@ -171,7 +176,7 @@ class Trainer:
         self.model.train()
         self.optimizer.zero_grad(set_to_none=True)
         # Forward pass
-        input = batch["input"]
+        input = self.data_transforms(batch["input"])
         model_out = self.model(input)
         # Calculate Loss
         loss = self.loss_fn(model_out, batch)
@@ -193,7 +198,8 @@ class Trainer:
     @torch.no_grad
     def eval_step(self, batch: Dict[str, torch.Tensor]) -> torch.Tensor:
         self.model.eval()
-        model_out = self.model(batch["input"])
+        input = self.data_transforms(batch["input"])
+        model_out = self.model(input)
         loss = self.loss_fn(model_out, batch)
         step_data = StepData(batch, model_out, loss)
         [metric.update(step_data) for metric in self.eval_metrics]
