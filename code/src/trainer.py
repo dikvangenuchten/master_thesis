@@ -148,7 +148,7 @@ class Trainer:
 
         # Save based on start time of run
         self._ckpt_dir = os.path.join(
-            config["paths"]["checkpoints"],
+            config.get("paths", {}).get("checkpoints", "ckpts"),
             # os.environ.get("DATA_DIR", "/home/mcs001/20182591/master_thesis/code"),
             datetime.datetime.now().strftime("%Y/%m/%d-%H:%M"),
         )
@@ -176,8 +176,8 @@ class Trainer:
         self.model.train()
         self.optimizer.zero_grad(set_to_none=True)
         # Forward pass
-        input = self.data_transforms(batch["input"])
-        model_out = self.model(input)
+        batch = self.data_transforms(batch)
+        model_out = self.model(batch["input"])
         # Calculate Loss
         loss = self.loss_fn(model_out, batch)
         # Backward
@@ -198,8 +198,8 @@ class Trainer:
     @torch.no_grad
     def eval_step(self, batch: Dict[str, torch.Tensor]) -> torch.Tensor:
         self.model.eval()
-        input = self.data_transforms(batch["input"])
-        model_out = self.model(input)
+        batch = self.data_transforms(batch)
+        model_out = self.model(batch["input"])
         loss = self.loss_fn(model_out, batch)
         step_data = StepData(batch, model_out, loss)
         [metric.update(step_data) for metric in self.eval_metrics]

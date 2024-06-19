@@ -1,0 +1,12 @@
+# @package hydra.sweeper
+defaults:
+  - ax
+
+
+scheduler.gamma:
+  type: range
+  bounds: [0.8, 1.0]
+optimizer.lr:
+  type: range
+  bounds: [1e-7, 1e-3]
+  log_scale: true

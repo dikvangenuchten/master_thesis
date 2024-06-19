@@ -48,7 +48,7 @@ def main(cfg: DictConfig) -> None:
     train_loader = DataLoader(
         train_dataset,
         batch_size=cfg.batch_size,
-        num_workers=int(os.environ.get("SLURM_NTASKS", os.cpu_count() * 2)),
+        num_workers=int(os.environ.get("SLURM_NTASKS", os.cpu_count())),
         pin_memory=True,
     )
     val_dataset = dataset_factory(
@@ -57,7 +57,7 @@ def main(cfg: DictConfig) -> None:
     val_loader = DataLoader(
         val_dataset,
         batch_size=cfg.batch_size,
-        num_workers=int(os.environ.get("SLURM_NTASKS", os.cpu_count() * 2)),
+        num_workers=int(os.environ.get("SLURM_NTASKS", os.cpu_count())),
         pin_memory=True,
     )
 

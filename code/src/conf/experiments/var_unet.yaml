@@ -1,7 +1,9 @@
 # @package _global_
 defaults:
+  - override /optimizer: sgd
   - override /loss: recon_loss
   - override /model: var_unet
+  - override /scheduler: exponential
 
 dataset:
   output_structure:
@@ -15,11 +17,6 @@ model:
     _target_: torch.nn.Sigmoid
   encoder_weights: "imagenet"
 
-optimizer:
-  lr: 1e-3
-scheduler:
-  eta_min: 1e-3
 
-
-batch_size: 256
+batch_size: 64
 input_shape: [128, 128]

@@ -1,0 +1,5 @@
+_target_: torch.optim.SGD
+lr: 1e-4
+momentum: 0.9
+dampening: 0.001
+weight_decay: 0.0001
