@@ -38,7 +38,9 @@ def main(cfg: DictConfig) -> None:
         ]
     )
 
-    with create_trainer(cfg, pre_data_transforms, post_data_transforms) as trainer:
+    with create_trainer(
+        cfg, pre_data_transforms, post_data_transforms
+    ) as trainer:
         try_print_summary(cfg.input_shape, trainer.model)
 
         last_loss = trainer.steps(cfg.num_steps)
@@ -52,6 +54,7 @@ def main(cfg: DictConfig) -> None:
             return score
         return last_loss
 
+
 def try_print_summary(input_shape, model):
     try:
         import torchinfo
@@ -62,7 +65,8 @@ def try_print_summary(input_shape, model):
     except Exception as e:
         print(f"Could not generate torchinfo.summary because: {e}")
 
-@contextmanager()
+
+@contextmanager
 def create_trainer(cfg, pre_data_transforms, post_data_transforms):
     # Load datasets
     # This needs to happen first as some settings are infered based on the dataset
@@ -81,7 +85,9 @@ def create_trainer(cfg, pre_data_transforms, post_data_transforms):
     train_metrics, eval_metrics = create_metrics(cfg)
 
     # Required to be able to use config as kwarg.
-    trainer_factory = hydra.utils.instantiate(cfg.trainer, _partial_=True)
+    trainer_factory = hydra.utils.instantiate(
+        cfg.trainer, _partial_=True
+    )
     trainer = trainer_factory(
         train_dataloader=train_loader,
         model=model,
@@ -129,7 +135,9 @@ def create_metrics(cfg):
     ]
 
     if cfg.dataset.output_structure.target == "img":
-        train_metrics.extend([metrics.ImageMetric("TrainReconstruction")])
+        train_metrics.extend(
+            [metrics.ImageMetric("TrainReconstruction")]
+        )
         eval_metrics.extend([metrics.ImageMetric("EvalReconstruction")])
     else:
         train_metrics.extend(
@@ -159,7 +167,9 @@ def create_metrics(cfg):
 
 
 def create_dataloaders(cfg, pre_data_transforms):
-    dataset_factory = hydra.utils.instantiate(cfg.dataset, _partial_=True)
+    dataset_factory = hydra.utils.instantiate(
+        cfg.dataset, _partial_=True
+    )
     train_dataset = dataset_factory(
         split="train", transform=pre_data_transforms
     )
@@ -182,6 +192,7 @@ def create_dataloaders(cfg, pre_data_transforms):
     # Set some 'global' information
     cfg.class_weights = train_dataset.class_weights
     cfg.class_map = train_dataset.class_map
+    cfg.num_classes = len(cfg.class_map)
     cfg.ignore_index = train_dataset.ignore_index
 
     return cfg, train_loader, val_loader

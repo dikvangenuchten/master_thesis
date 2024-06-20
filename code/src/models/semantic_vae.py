@@ -36,7 +36,9 @@ class SemanticVAE(nn.Module):
             str(i) for i in range(10)
         )
         if isinstance(encoder_channels, str):
-            assert all(c in allowed_characters for c in encoder_channels)
+            assert all(
+                c in allowed_characters for c in encoder_channels
+            )
             encoder_channels = eval(encoder_channels)
         if isinstance(reductions, str):
             assert all(c in allowed_characters for c in reductions)

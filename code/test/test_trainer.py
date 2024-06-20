@@ -45,9 +45,7 @@ def test_trainer_single_epoch(image_batch, trainer):
     pre2 = trainer.model.eval()(input)["out"]
     assert (
         pre == pre2
-    ).all(), (
-        "For this test to work model should be determenistic in eval mode"
-    )
+    ).all(), "For this test to work model should be determenistic in eval mode"
     pre_loss = trainer.epoch()
     for i in range(10):
         trainer.epoch(i)
@@ -65,9 +63,7 @@ def test_trainer_eval_epoch(image_batch, trainer):
     pre2 = trainer.model.eval()(input)["out"]
     assert (
         pre == pre2
-    ).all(), (
-        "For this test to work model should be determenistic in eval mode"
-    )
+    ).all(), "For this test to work model should be determenistic in eval mode"
     trainer.model.train()  # This ensures eval must be called in trainer eval epoch
     _ = trainer.eval_epoch()
     post = trainer.model(input)["out"]

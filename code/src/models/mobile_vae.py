@@ -150,7 +150,8 @@ class MobileVAE(nn.Module):
         decoder_channels: Optional[List[int]] = None,
     ) -> nn.ModuleList:
         expansions = [
-            int(b / a) for a, b in itertools.pairwise(encoder_reductions)
+            int(b / a)
+            for a, b in itertools.pairwise(encoder_reductions)
         ]
 
         if decoder_channels is None:

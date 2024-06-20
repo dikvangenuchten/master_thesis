@@ -5,11 +5,15 @@ from metrics import MaskMetric, StepData
 
 
 def test_mask_metric(dataset):
-    metric = MaskMetric(name="MaskMetric", class_labels=dataset.class_map)
+    metric = MaskMetric(
+        name="MaskMetric", class_labels=dataset.class_map
+    )
 
     dataloader = DataLoader(dataset, batch_size=4)
     batch = next(iter(dataloader))
-    perfect_out = torch.nn.functional.one_hot(batch["target"])[..., :133]
+    perfect_out = torch.nn.functional.one_hot(batch["target"])[
+        ..., :133
+    ]
     # Model output shape is [B, C, H, W]
     perfect_out = perfect_out.permute(0, 3, 1, 2)
 

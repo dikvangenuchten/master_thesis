@@ -185,7 +185,9 @@ class Trainer:
         loss = self.loss_fn(model_out, batch)
         # Backward
         self._accelerator.backward(loss)
-        nn.utils.clip_grad_norm_(self.model.parameters(), self._clip_norm)
+        nn.utils.clip_grad_norm_(
+            self.model.parameters(), self._clip_norm
+        )
         self.optimizer.step()
         self.scheduler.step()
         self._accelerator.log(
@@ -265,7 +267,9 @@ class Trainer:
         #     self.train_dataloader,
         #     os.path.join(dir, "train_dataloader.pt"),
         # )
-        torch.save(self.model.state_dict(), os.path.join(dir, "model.pt"))
+        torch.save(
+            self.model.state_dict(), os.path.join(dir, "model.pt")
+        )
         torch.save(
             self.loss_fn.state_dict(), os.path.join(dir, "loss_fn.pt")
         )
@@ -301,7 +305,9 @@ class Trainer:
         eval_dataloader = torch.load(
             os.path.join(dir, "eval_dataloader.pt")
         )
-        train_metrics = torch.load(os.path.join(dir, "train_metrics.pt"))
+        train_metrics = torch.load(
+            os.path.join(dir, "train_metrics.pt")
+        )
         eval_metrics = torch.load(os.path.join(dir, "eval_metrics.pt"))
 
         config = {}
@@ -332,7 +338,9 @@ class Trainer:
         stop = False
         pbar = tqdm(self.train_dataloader, leave=False, desc="training")
         for batch_idx, batch in enumerate(pbar):
-            loss = self.train_step(**batch, step=batch_idx + step_offset)
+            loss = self.train_step(
+                **batch, step=batch_idx + step_offset
+            )
 
             # Keep track of average loss
             loss_d = loss.detach()
@@ -358,7 +366,9 @@ class Trainer:
 
         with torch.no_grad():
             for batch_idx, batch in enumerate(
-                tqdm(self.eval_dataloader, leave=False, desc="evaluation")
+                tqdm(
+                    self.eval_dataloader, leave=False, desc="evaluation"
+                )
             ):
                 loss = self.eval_step(batch)
 

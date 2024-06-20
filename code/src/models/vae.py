@@ -50,7 +50,9 @@ class VAE(nn.Module):
 
 
 class ConvHead(nn.Module):
-    def __init__(self, in_channels, num_classes, *args, **kwargs) -> None:
+    def __init__(
+        self, in_channels, num_classes, *args, **kwargs
+    ) -> None:
         super().__init__(*args, **kwargs)
         self._conv = nn.Conv2d(in_channels, num_classes, 1)
         self._act_fn = lambda x: torch.softmax(x, 1)
@@ -58,5 +60,7 @@ class ConvHead(nn.Module):
 
     def forward(self, x) -> ModelOutput:
         if self.use_model_out:
-            return ModelOutput(logits=self._conv(x), act_fn=self._act_fn)
+            return ModelOutput(
+                logits=self._conv(x), act_fn=self._act_fn
+            )
         return self._act_fn(self._conv(x))

@@ -8,7 +8,9 @@ def calculate_std_loss(p: torch.Tensor, q: torch.Tensor):
     p_std = p[1]
     term1 = (p[0] - q[0]) / q_std
     term2 = p_std / q_std
-    loss = 0.5 * (term1 * term1 + term2 * term2) - 0.5 - torch.log(term2)
+    loss = (
+        0.5 * (term1 * term1 + term2 * term2) - 0.5 - torch.log(term2)
+    )
     return loss
 
 

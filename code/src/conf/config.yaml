@@ -15,4 +15,5 @@ batch_size: 64
 # These values are set by the dataloader
 class_weights: null
 class_map: null
+num_classes: null
 ignore_index: null

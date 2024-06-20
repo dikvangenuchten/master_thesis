@@ -12,10 +12,14 @@ def test_loss_is_minimal_for_correct():
     shape = 16, 8, 2, 2
     model_out = {
         "priors": [
-            distributions.Normal(torch.zeros(*shape), torch.ones(*shape))
+            distributions.Normal(
+                torch.zeros(*shape), torch.ones(*shape)
+            )
         ],
         "posteriors": [
-            distributions.Normal(torch.zeros(*shape), torch.ones(*shape))
+            distributions.Normal(
+                torch.zeros(*shape), torch.ones(*shape)
+            )
         ],
     }
 
