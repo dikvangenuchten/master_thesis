@@ -37,7 +37,7 @@ class WrappedLoss(nn.Module):
         #       this 'state' be the interface.
         state = {**batch, **model_out}
         kwargs = {v: state[k] for k, v in self._keys.items()}
-        return self._loss_fn(**kwargs).mean()
+        return self._loss_fn(**kwargs)
 
     def add_log_callback(self, fn: Callable[[str, torch.Tensor], None]):
         """Adds a logging callback

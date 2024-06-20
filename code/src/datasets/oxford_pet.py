@@ -100,9 +100,7 @@ class OxfordPetDataset(torch.utils.data.Dataset):
         image_path = os.path.join(
             self.images_directory, filename + ".jpg"
         )
-        mask_path = os.path.join(
-            self.masks_directory, filename + ".png"
-        )
+        mask_path = os.path.join(self.masks_directory, filename + ".png")
 
         image = Image.open(image_path).convert("RGB")
 

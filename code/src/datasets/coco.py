@@ -1,4 +1,3 @@
-from functools import cache
 import json
 import os
 from typing import (
@@ -78,9 +77,7 @@ class CoCoDataset(torch.utils.data.Dataset):
         # Ignore the percentage in validation dataset
         if percentage < 1:
             if split == "val":
-                warnings.warn(
-                    "Ignoring percentage for validation split"
-                )
+                warnings.warn("Ignoring percentage for validation split")
                 percentage = 1
             else:
                 print(
@@ -123,9 +120,7 @@ class CoCoDataset(torch.utils.data.Dataset):
         self._weights = None
         self._ram_images = []
 
-    def parse_output_structure(
-        self, output_structure
-    ) -> Dict[str, str]:
+    def parse_output_structure(self, output_structure) -> Dict[str, str]:
         unsuported_outs = {
             k: v
             for k, v in output_structure.items()
@@ -155,9 +150,7 @@ class CoCoDataset(torch.utils.data.Dataset):
                 self._panoptic_anns["annotations"][: len(self)]
             ):
                 for segment in annotation["segments_info"]:
-                    id = self._cat_id_to_semantic[
-                        segment["category_id"]
-                    ]
+                    id = self._cat_id_to_semantic[segment["category_id"]]
                     frequencies[id] += segment["area"]
             self._weights = [
                 sum(frequencies) / (freq * len(frequencies))
@@ -184,9 +177,7 @@ class CoCoDataset(torch.utils.data.Dataset):
         path = self._panoptic_anns["annotations"][idx][
             "file_name"
         ].replace("png", "jpg")
-        return self._open_pil_image(
-            os.path.join(self._image_root, path)
-        )
+        return self._open_pil_image(os.path.join(self._image_root, path))
 
     def _load_panoptic_mask(self, idx: int) -> Mask:
         """Load the panoptic mask for `id`
@@ -349,9 +340,7 @@ def rgb2id(color: torch.Tensor):
     """
     color = color.to(dtype=torch.long)
     return (
-        color[0, :, :]
-        + 256 * color[1, :, :]
-        + 256 * 256 * color[2, :, :]
+        color[0, :, :] + 256 * color[1, :, :] + 256 * 256 * color[2, :, :]
     )
 
 

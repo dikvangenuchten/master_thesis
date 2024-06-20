@@ -5,17 +5,3 @@ defaults:
 dataset:
   output_structure:
     target: img
-
-model: # Disable the skip connection on the highest few levels to force better encoding
-  encoder_depth: 5
-  skip_connections: [True, True, False, False, False]
-  activation:
-    _target_: torch.nn.Sigmoid
-  encoder_weights: imagenet
-
-optimizer:
-  lr: 1e-3
-
-general:
-  batch_size: 64
-  input_shape: [128, 128]

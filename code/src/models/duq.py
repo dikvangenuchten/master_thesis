@@ -51,9 +51,7 @@ class DUQHead(nn.Module):
         )
 
         # Sigma in the paper
-        self.register_buffer(
-            "length_scale", torch.tensor([length_scale])
-        )
+        self.register_buffer("length_scale", torch.tensor([length_scale]))
 
         self.register_buffer("gamma", torch.tensor([gamma]))
 
@@ -149,9 +147,7 @@ def _update_centroids(
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     b, e, c_e, *shape_e = embeddings.shape
     b, c_l, *shape_l = labels.shape
-    assert (
-        c_e == c_l
-    ), f"Number of classes do not match ({c_e}  == {c_l})"
+    assert c_e == c_l, f"Number of classes do not match ({c_e}  == {c_l})"
     assert (
         shape_e == shape_l
     ), f"Remaining shape does not match ({shape_e}  == {shape_l})"

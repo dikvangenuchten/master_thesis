@@ -2,6 +2,6 @@ defaults:
  - kl_divergence@loss_fn
 
 _target_: "losses.AnnealingWeightedLoss"
-start_value: 0.01
-end_value: 0.1
+start_value: 0.001
+end_value: 0.01
 max_step: 1000

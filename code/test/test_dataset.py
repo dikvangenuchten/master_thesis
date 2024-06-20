@@ -20,8 +20,7 @@ def test_toy_transform(image: Image):
         img.shape[1:] == mask.shape[1:]
     ), "Mask does not have the same W,H dimensions"
     assert (
-        torch.where(mask == 0, img, 0)
-        == torch.where(mask == 0, image, 0)
+        torch.where(mask == 0, img, 0) == torch.where(mask == 0, image, 0)
     ).all(), "The image was modified outside of the mask"
     assert (
         torch.where(mask == 1, img[0:1], 255) == 255

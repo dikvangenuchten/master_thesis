@@ -85,9 +85,7 @@ class VariationalDecoderBlock(nn.Module):
             "bottleneck_ratio": bottleneck_ratio,
             "expansion": expansion,
         }
-        self._unpool = UnpoolLayer(
-            in_channels, skip_channels, expansion
-        )
+        self._unpool = UnpoolLayer(in_channels, skip_channels, expansion)
 
         self._prior_net = ResBlock(
             in_channels=skip_channels, out_channels=skip_channels

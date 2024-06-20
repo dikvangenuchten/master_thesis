@@ -31,9 +31,7 @@ class SampleConvLayer(nn.Module):
         """Only added for type-hinting"""
         return super().__call__(*args, **kwds)
 
-    def forward(
-        self, x, distribution=True
-    ) -> distributions.Distribution:
+    def forward(self, x, distribution=True) -> distributions.Distribution:
         x = self._conv(x)
         mean, std = torch.chunk(x, chunks=2, dim=1)
         std = self._softplus(std) + self._eps

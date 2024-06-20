@@ -98,9 +98,7 @@ class ConfusionMetrics(BaseMetric):
             # f"{self._prefix}PQ": PQ,
             f"{self._prefix}Recall": _safe_div(tp, (tp + fn)),
             f"{self._prefix}Precision": _safe_div(tp, (tp + fp)),
-            f"{self._prefix}Jaccard Index": _safe_div(
-                tp, (tp + fn + fp)
-            ),
+            f"{self._prefix}Jaccard Index": _safe_div(tp, (tp + fn + fp)),
         }
 
     def reset(self):

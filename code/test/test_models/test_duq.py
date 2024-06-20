@@ -54,9 +54,9 @@ def conv_duq_single_value(
     assert (
         f == f_
     ), f"Weight matrix is incompatible with feature matrix ({f} != {f_})"
-    return conv_duq_last_layer_channels_last(
-        features_, weights
-    ).reshape(b, e, c)
+    return conv_duq_last_layer_channels_last(features_, weights).reshape(
+        b, e, c
+    )
 
 
 @given(
@@ -71,21 +71,15 @@ def test_native_implementation(
     embedding_size: int,
     num_classes: int,
 ):
-    feature_matrix = torch.randint(
-        -256, 256, (batch_size, num_features)
-    )
+    feature_matrix = torch.randint(-256, 256, (batch_size, num_features))
     weight_matrix = torch.randint(
         -256, 256, (embedding_size, num_classes, num_features)
     )
 
     reference = reference_duq_last_layer(feature_matrix, weight_matrix)
-    implementation = conv_duq_single_value(
-        feature_matrix, weight_matrix
-    )
+    implementation = conv_duq_single_value(feature_matrix, weight_matrix)
 
-    assert (
-        reference.shape == implementation.shape
-    ), "Shapes are incorrect"
+    assert reference.shape == implementation.shape, "Shapes are incorrect"
     assert torch.allclose(
         reference, implementation
     ), f"Reference and implementation are not equal for {feature_matrix =}, {weight_matrix =}"
@@ -147,9 +141,7 @@ def test_conv_implementation_of_last_layer(
         device=device,
     )
 
-    reference = reference_duq_conv(
-        feature_matrix, weight_matrix
-    ).detach()
+    reference = reference_duq_conv(feature_matrix, weight_matrix).detach()
     implementation = conv_duq_last_layer_channels_last(
         feature_matrix, weight_matrix
     ).detach()
@@ -389,9 +381,7 @@ def test_reference_update_centroid():
 
 @pytest.mark.parametrize("batch_size", [1, 2, 8])
 @pytest.mark.parametrize("gamma", np.linspace(1, 0, 10, endpoint=False))
-def test_update_centroid_against_reference(
-    batch_size: int, gamma: float
-):
+def test_update_centroid_against_reference(batch_size: int, gamma: float):
     embedding_size = 8
     num_classes = batch_size * 16
 
@@ -431,9 +421,7 @@ def test_update_centroid_against_reference(
 
 @pytest.mark.parametrize("embedding_size", [1, 2, 8])
 @pytest.mark.parametrize("num_classes", [1, 2, 8])
-def test_update_centroid_indepent(
-    embedding_size: int, num_classes: int
-):
+def test_update_centroid_indepent(embedding_size: int, num_classes: int):
     """Each centroid is independent of each other centroid"""
     # When size > 1 this test might fail due to the same label being assigned multiple times in a batch
     batch_size = height = width = 1

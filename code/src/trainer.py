@@ -158,6 +158,9 @@ class Trainer:
     def device(self):
         return self._accelerator.device
 
+    def end_training(self):
+        return self._accelerator.end_training()
+
     def _log_and_reset_metrics(self, step: Optional[int] = None):
         log_dict = {}
         for metric in itertools.chain(
@@ -182,9 +185,7 @@ class Trainer:
         loss = self.loss_fn(model_out, batch)
         # Backward
         self._accelerator.backward(loss)
-        nn.utils.clip_grad_norm_(
-            self.model.parameters(), self._clip_norm
-        )
+        nn.utils.clip_grad_norm_(self.model.parameters(), self._clip_norm)
         self.optimizer.step()
         self.scheduler.step()
         self._accelerator.log(
@@ -204,6 +205,16 @@ class Trainer:
         step_data = StepData(batch, model_out, loss)
         [metric.update(step_data) for metric in self.eval_metrics]
         return loss.detach()
+
+    @torch.no_grad
+    def full_eval(self, metric: BaseMetric) -> torch.Tensor:
+        vals = []
+        for batch in tqdm(self.eval_dataloader, desc="Evaluating"):
+            model_out = self.model(batch["input"])
+            val = metric(model_out, batch)
+            vals.append(val.flatten().cpu())
+        vals = torch.concatenate(vals)
+        return vals.mean(), vals.var()
 
     def steps(
         self,
@@ -254,9 +265,7 @@ class Trainer:
         #     self.train_dataloader,
         #     os.path.join(dir, "train_dataloader.pt"),
         # )
-        torch.save(
-            self.model.state_dict(), os.path.join(dir, "model.pt")
-        )
+        torch.save(self.model.state_dict(), os.path.join(dir, "model.pt"))
         torch.save(
             self.loss_fn.state_dict(), os.path.join(dir, "loss_fn.pt")
         )
@@ -292,9 +301,7 @@ class Trainer:
         eval_dataloader = torch.load(
             os.path.join(dir, "eval_dataloader.pt")
         )
-        train_metrics = torch.load(
-            os.path.join(dir, "train_metrics.pt")
-        )
+        train_metrics = torch.load(os.path.join(dir, "train_metrics.pt"))
         eval_metrics = torch.load(os.path.join(dir, "eval_metrics.pt"))
 
         config = {}
@@ -325,9 +332,7 @@ class Trainer:
         stop = False
         pbar = tqdm(self.train_dataloader, leave=False, desc="training")
         for batch_idx, batch in enumerate(pbar):
-            loss = self.train_step(
-                **batch, step=batch_idx + step_offset
-            )
+            loss = self.train_step(**batch, step=batch_idx + step_offset)
 
             # Keep track of average loss
             loss_d = loss.detach()
@@ -353,9 +358,7 @@ class Trainer:
 
         with torch.no_grad():
             for batch_idx, batch in enumerate(
-                tqdm(
-                    self.eval_dataloader, leave=False, desc="evaluation"
-                )
+                tqdm(self.eval_dataloader, leave=False, desc="evaluation")
             ):
                 loss = self.eval_step(batch)
 

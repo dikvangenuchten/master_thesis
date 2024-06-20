@@ -1,22 +1,29 @@
 # @package _global_
 defaults:
+  - /loss@eval_metric: l1_loss
   - override /optimizer: sgd
   - override /loss: recon_loss
   - override /model: var_unet
-  - override /scheduler: exponential
+  - override /scheduler: step
 
 dataset:
   output_structure:
     target: img
 
+eval_metric:
+  loss_fn:
+    reduction: "none" # null results in an error in pytorch
+
 model:
   encoder_depth: 5
-  variational_skip_connections: [True, True, True, False, False]
+  skip_connections: [True, True, False, False, False]
+  variational_skip_connections: [True, True, False, False, False]
   encoder_name: "resnet50"
   activation:
     _target_: torch.nn.Sigmoid
-  encoder_weights: "imagenet"
+  encoder_weights: null
 
 
 batch_size: 64
 input_shape: [128, 128]
+num_steps: 1

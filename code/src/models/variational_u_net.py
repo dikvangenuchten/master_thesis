@@ -234,6 +234,7 @@ class VariationalUnetDecoder(nn.Module):
         decoder_channels,
         n_blocks=5,
         center_variational: bool = True,
+        skip_connections: List[bool] = [True] * 5,
         variational_skip_connections: List[bool] = [True] * 5,
         use_batchnorm=True,
         attention_type=None,
@@ -243,6 +244,9 @@ class VariationalUnetDecoder(nn.Module):
 
         if n_blocks != len(decoder_channels):
             err = f"Model depth is {n_blocks}, but you provide `decoder_channels` for {len(decoder_channels)} blocks."  # noqa: E501
+            raise ValueError(err)
+        if n_blocks != len(skip_connections):
+            err = f"Model depth is {n_blocks}, but you provide `skip_connections` for {len(skip_connections)} blocks."  # noqa: E501
             raise ValueError(err)
         if n_blocks != len(variational_skip_connections):
             err = f"Model depth is {n_blocks}, but you provide `variational` for {len(variational_skip_connections)} blocks."  # noqa: E501
@@ -289,6 +293,7 @@ class VariationalUnetDecoder(nn.Module):
             )
         ]
         self.blocks = nn.ModuleList(blocks)
+        self._skip_connections = skip_connections
 
     def forward(self, *features):
         # remove first skip with same spatial resolution
@@ -301,9 +306,13 @@ class VariationalUnetDecoder(nn.Module):
 
         x = self.center(head)
         for i, decoder_block in enumerate(self.blocks):
-            skip = skips[i] if i < len(skips) else None
+            if len(skips) > i:
+                skip = skips[i]
+                if not self._skip_connections[i]:
+                    skip = skip * 0
+            else:
+                skip = None
             x = decoder_block(x, skip)
-
         return x
 
 
@@ -324,6 +333,7 @@ class VariationalUNet(SegmentationModel):
         label_channels: int,
         encoder_depth: int = 5,
         decoder_channels: List[int] = (256, 128, 64, 32, 16),
+        skip_connections: List[bool] = [True] * 5,
         variational_skip_connections: List[bool] = [True] * 5,
         encoder_name="mobilenetv2_100",
         encoder_weights="imagenet",
@@ -331,7 +341,7 @@ class VariationalUNet(SegmentationModel):
         encoder_params: dict = {},
     ):
         super().__init__()
-        if encoder_weights.lower() == "none":
+        if encoder_weights is None or encoder_weights.lower() == "none":
             encoder_weights = None
 
         assert (
@@ -361,6 +371,7 @@ class VariationalUNet(SegmentationModel):
             use_batchnorm=True,
             center=True if encoder_name.startswith("vgg") else False,
             attention_type=None,
+            skip_connections=skip_connections,
             variational_skip_connections=variational_skip_connections,
         )
 
