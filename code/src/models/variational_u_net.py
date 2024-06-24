@@ -1,4 +1,5 @@
-from typing import Any, Dict, List, Union
+import logging
+from typing import Any, Dict, List, Mapping, Union
 import torch
 from torchseg.base import (
     modules,
@@ -340,6 +341,9 @@ class VariationalUNet(SegmentationModel):
         activation=nn.Identity(),
         encoder_params: dict = {},
         state_dict: Union[None, str, dict] = None,
+        load_encoder: bool = True,
+        load_decoder: bool = True,
+        load_segmentation_head: bool = True,
     ):
         super().__init__()
         if encoder_weights is None or encoder_weights.lower() == "none":
@@ -392,4 +396,48 @@ class VariationalUNet(SegmentationModel):
         if state_dict is not None:
             if isinstance(state_dict, str):
                 state_dict = torch.load(state_dict)
-            self.load_state_dict(state_dict)
+            self.load_partial_state_dict(
+                state_dict,
+                encoder=load_encoder,
+                decoder=load_decoder,
+                segmentation_head=load_segmentation_head,
+            )
+
+    def load_partial_state_dict(
+        self,
+        state_dict: Mapping[str, Any],
+        strict: bool = False,
+        assign: bool = False,
+        encoder: bool = True,
+        decoder: bool = True,
+        segmentation_head: bool = False,
+    ):
+        if not encoder:
+            state_dict = {
+                k: v
+                for k, v in state_dict.items()
+                if "encoder" not in k
+            }
+        if not decoder:
+            state_dict = {
+                k: v
+                for k, v in state_dict.items()
+                if "decoder" not in k
+            }
+        if not segmentation_head:
+            state_dict = {
+                k: v
+                for k, v in state_dict.items()
+                if "segmentation_head" not in k
+            }
+        missing, unexpected = self.load_state_dict(
+            state_dict, strict=strict, assign=assign
+        )
+        if missing:
+            logging.warning(
+                f"During the loading of the state_dict, the following keys were missing: {missing}. This is to be expected if the state_dict is only partially loaded"
+            )
+        if unexpected:
+            logging.warning(
+                f"During the loading of the state_dict, the following keys were unexpected: {unexpected}."
+            )

@@ -1,7 +1,10 @@
 # @package _global_
 defaults:
+  - /loss@eval_metric: crossentropy_loss
+  - override /optimizer: sgd
   - override /loss: semantic_loss
   - override /model: var_unet
+  - override /scheduler: step
 
 dataset:
   output_structure:
@@ -10,9 +13,12 @@ dataset:
 
 model:
   encoder_depth: 5
-  variational_skip_connections: [True, True, True, False, False]
+  skip_connections: [True, True, False, False, False]
+  variational_skip_connections: [True, True, False, False, False]
   encoder_name: "resnet50"
-  encoder_weights: "imagenet"
+  encoder_weights: null
+  state_dict: "models/pretrained-var-unet.pt"
+  load_segmentation_head: False
 
 optimizer:
   lr: 1e-5
