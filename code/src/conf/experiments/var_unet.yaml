@@ -22,6 +22,7 @@ model:
   activation:
     _target_: torch.nn.Sigmoid
   encoder_weights: null
+  state_dict: "models/pretrained-var-unet.pt"
 
 
 batch_size: 64

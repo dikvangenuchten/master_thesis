@@ -150,7 +150,7 @@ class Trainer:
         self._ckpt_dir = os.path.join(
             config.get("paths", {}).get("checkpoints", "ckpts"),
             # os.environ.get("DATA_DIR", "/home/mcs001/20182591/master_thesis/code"),
-            datetime.datetime.now().strftime("%Y/%m/%d-%H:%M"),
+            datetime.datetime.now().strftime("%Y/%m/%d/%H:%M"),
         )
         logging.info(f"Model ckpts will be saved in: {self._ckpt_dir}")
 
@@ -216,7 +216,10 @@ class Trainer:
             val = metric(model_out, batch)
             vals.append(val.flatten().cpu())
         vals = torch.concatenate(vals)
-        return vals.mean(), vals.var()
+        mu = vals.mean()
+        var = vals.var()
+        print(f"Evaluation score: {mu} (+- {var.sqrt()})")
+        return mu, var
 
     def steps(
         self,
