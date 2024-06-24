@@ -339,7 +339,7 @@ class VariationalUNet(SegmentationModel):
         encoder_weights="imagenet",
         activation=nn.Identity(),
         encoder_params: dict = {},
-        state_dict: Union[None, str, dict] = None
+        state_dict: Union[None, str, dict] = None,
     ):
         super().__init__()
         if encoder_weights is None or encoder_weights.lower() == "none":
@@ -388,7 +388,7 @@ class VariationalUNet(SegmentationModel):
 
         self.name = f"variational-u-{encoder_name}"
         self.initialize()
-        
+
         if state_dict is not None:
             if isinstance(state_dict, str):
                 state_dict = torch.load(state_dict)
