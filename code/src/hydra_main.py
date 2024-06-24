@@ -142,7 +142,7 @@ def create_metrics(cfg):
     else:
         train_metrics.extend(
             [
-                metrics.MaskMetric("TrainMask", cfg.class_map),
+                metrics.MaskMetric("TrainMask", dict(cfg.class_map)),
                 metrics.ConfusionMetrics(
                     "ConfusionMetrics",
                     num_labels=cfg.num_classes,
@@ -153,7 +153,7 @@ def create_metrics(cfg):
         )
         eval_metrics.extend(
             [
-                metrics.MaskMetric("EvalMask", cfg.class_map),
+                metrics.MaskMetric("EvalMask", dict(cfg.class_map)),
                 metrics.ConfusionMetrics(
                     "ConfusionMetrics",
                     num_labels=cfg.num_classes,
