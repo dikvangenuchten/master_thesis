@@ -8,6 +8,7 @@ from torchvision.transforms import v2 as transforms
 
 from omegaconf import DictConfig, OmegaConf
 
+import losses
 import metrics
 
 
@@ -34,7 +35,7 @@ def main(cfg: DictConfig) -> None:
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(),
             transforms.RandomGrayscale(),
-            transforms.GaussianBlur(5),
+            transforms.GaussianBlur(5, (0.01, 2.0)),
         ]
     )
 
@@ -49,7 +50,22 @@ def main(cfg: DictConfig) -> None:
 
         # Run the final evaluation
         if cfg.get("eval_metric") is not None:
-            eval_metric = hydra.utils.instantiate(cfg.eval_metric)
+            if cfg.dataset.output_structure.target == "img":
+                l1_loss = losses.WrappedLoss(
+                    torch.nn.L1Loss,
+                    keys={"out": "input", "input": "target"}
+                )
+                eval_metric = metrics.AverageMetric(
+                    "L1-Loss",
+                    lambda step_data: l1_loss(step_data.model_out, step_data.batch)
+                )
+            else:
+                eval_metric = metrics.ConfusionMetrics(
+                    "ConfusionMetrics",
+                    num_labels=cfg.num_classes,
+                    ignore_index=cfg.ignore_index,
+                    include="Jaccard Index"
+                )
             score = trainer.full_eval(eval_metric)
             return score
         return last_loss

@@ -211,16 +211,13 @@ class Trainer:
     @torch.no_grad
     def full_eval(self, metric: BaseMetric) -> torch.Tensor:
         metric = self._accelerator.prepare(metric)
-        vals = []
         for batch in tqdm(self.eval_dataloader, desc="Evaluating"):
             model_out = self.model(batch["input"])
-            val = metric(model_out, batch)
-            vals.append(val.flatten().cpu())
-        vals = torch.concatenate(vals)
-        mu = vals.mean()
-        var = vals.var()
-        print(f"Evaluation score: {mu} (+- {var.sqrt()})")
-        return mu, var
+            loss = self.loss_fn(model_out, batch)
+            metric.update(StepData(batch=batch, model_out=model_out, loss=loss))
+        result = metric.compute()
+        print(f"result: {result}")
+        return result
 
     def steps(
         self,

@@ -1,4 +1,4 @@
-from typing import Optional, Dict
+from typing import List, Optional, Dict
 from torch import Tensor
 import torch
 from torchmetrics.classification import MulticlassConfusionMatrix
@@ -35,6 +35,7 @@ class ConfusionMetrics(BaseMetric):
         ignore_index: Optional[int] = None,
         device: Optional[torch.device] = "cuda",
         prefix: Optional[str] = None,
+        include: Optional[List[str]] = None
     ):
         super().__init__(name)
         prefix = "" if prefix is None else prefix
@@ -50,6 +51,7 @@ class ConfusionMetrics(BaseMetric):
             validate_args=False,
         ).to(device=device if torch.cuda.is_available else None)
         self._prefix = prefix
+        self._include = include if include is not None else []
 
     def update(self, step_data: StepData):
         y_true = step_data.batch["target"]
@@ -88,7 +90,7 @@ class ConfusionMetrics(BaseMetric):
         # SQ = _safe_div(1, (fp + tp + fn))
         # PQ = SQ * RQ
 
-        return {
+        out = {
             f"{self._prefix}False positives": fp,
             f"{self._prefix}True positives": tp,
             f"{self._prefix}False negatives": fn,
@@ -102,6 +104,11 @@ class ConfusionMetrics(BaseMetric):
                 tp, (tp + fn + fp)
             ),
         }
+        if len(self._include) > 0:
+            if len(self._include) == 1:
+                return out[self._include[0]]
+            return {k: out[k] for k in self._include}
+        return out
 
     def reset(self):
         return self._confusion_matrix.reset()
