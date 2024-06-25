@@ -10,15 +10,20 @@ class AverageMetric(BaseMetric):
         super().__init__(name)
         self._fn = fn
         self._sum = 0
+        self._sum_squared = 0
         self._count = 0
 
     def update(self, step_data: StepData):
         self._count += step_data.batch["input"].shape[0]
         self._sum += self._fn(step_data).sum()
+        self._sum_squared += self._fn(step_data).pow(2).sum()
 
     def compute(self) -> Tensor:
-        return {self.name: self._sum / self._count}
+        mean = self._sum / self._count
+        var = (mean.pow(2) - (self._sum_squared / self._count)).abs()
+        return {self.name: mean, f"{self.name}-var": var}
 
     def reset(self):
         self._sum = 0
+        self._sum_squared = 0
         self._count = 0

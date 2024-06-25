@@ -32,6 +32,20 @@ def test_average_of_single_sample(batch_size: int, val: int):
         log_dict[average_metric.name] == val
     ), "Average was not calculated correctly"
 
+@pytest.mark.parametrize("n", [1000])
+@pytest.mark.parametrize("mean", [0, 0.5, 1, 2, 16])
+@pytest.mark.parametrize("var", [1, 2, 16])
+def test_mean_variance(n: int, mean: float, var: float):
+    values = torch.normal(mean, var, size=(n, 16))
+    name = "AverageTestConstant"
+    average_metric = AverageMetric(name, loss_fn())
+    
+    for val in values:
+        average_metric.update(StepData({"input": torch.rand(16)}, ModelOutput(), val))
+    
+    log_dict = average_metric.compute()
+    assert torch.allclose(log_dict[name], values.mean(), rtol=0.001), f"Mean is calculated incorrectly: {log_dict[name]} vs {values.mean()}"
+    assert torch.allclose(log_dict[f"{name}-var"], values.var(), rtol=0.001), f"Var is calculated incorrectly: {log_dict[f'{name}-var']} vs {values.var()}"
 
 def test_reset(batch_size: int):
     average_metric = AverageMetric("AverageTestConstant", loss_fn())
