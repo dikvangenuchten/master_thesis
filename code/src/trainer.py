@@ -210,6 +210,7 @@ class Trainer:
 
     @torch.no_grad
     def full_eval(self, metric: BaseMetric) -> torch.Tensor:
+        metric = self._accelerator.prepare(metric)
         vals = []
         for batch in tqdm(self.eval_dataloader, desc="Evaluating"):
             model_out = self.model(batch["input"])
