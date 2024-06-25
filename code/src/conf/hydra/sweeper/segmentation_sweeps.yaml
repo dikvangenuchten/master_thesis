@@ -1,0 +1,8 @@
+defaults:
+  - basic
+
+params:
+  +experiments: "segmentation_var_unet"
+  model.skip_connections: choice([True, False, False, False, False], [True, True, True, True, True])
+  model.variational_skip_connections: choice([True, False, False, False, False], [False, False, False, False, False])
+  model.encoder_weights: choice("None", "imagenet")

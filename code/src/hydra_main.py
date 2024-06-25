@@ -64,7 +64,7 @@ def main(cfg: DictConfig) -> None:
                     "ConfusionMetrics",
                     num_labels=cfg.num_classes,
                     ignore_index=cfg.ignore_index,
-                    include="Jaccard Index"
+                    include=["Jaccard Index"]
                 )
             score = trainer.full_eval(eval_metric)
             return score
