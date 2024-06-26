@@ -19,6 +19,8 @@ class HierarchicalKLDivergenceLoss(nn.Module):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+        # Small hack to ensure accelerate works automagically
+        self._zero = nn.Parameter(torch.zeros(1), requires_grad=False)
 
     def forward(
         self,
@@ -28,7 +30,7 @@ class HierarchicalKLDivergenceLoss(nn.Module):
         posteriors = model_out["posteriors"]
         priors = model_out["priors"]
 
-        loss = 0
+        loss = torch.zeros_like(self._zero)
         for posterior, prior in zip(posteriors, priors):
             if posterior is None or prior is None:
                 continue
