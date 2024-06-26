@@ -403,6 +403,10 @@ class VariationalUNet(SegmentationModel):
                 segmentation_head=load_segmentation_head,
             )
 
+    def prepare_input(self, x) -> torch.Tensor:
+        """Preprocesses the input"""
+        return self._normalize(x)
+
     def load_partial_state_dict(
         self,
         state_dict: Mapping[str, Any],
@@ -441,3 +445,7 @@ class VariationalUNet(SegmentationModel):
             logging.warning(
                 f"During the loading of the state_dict, the following keys were unexpected: {unexpected}."
             )
+
+    def forward(self, x):
+        x = self.prepare_input(x)
+        return super().forward(x)

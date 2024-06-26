@@ -10,6 +10,7 @@ from omegaconf import DictConfig, OmegaConf
 
 import losses
 import metrics
+import datasets
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
@@ -53,18 +54,20 @@ def main(cfg: DictConfig) -> None:
             if cfg.dataset.output_structure.target == "img":
                 l1_loss = losses.WrappedLoss(
                     torch.nn.L1Loss,
-                    keys={"out": "input", "input": "target"}
+                    keys={"out": "input", "input": "target"},
                 )
                 eval_metric = metrics.AverageMetric(
                     "L1-Loss",
-                    lambda step_data: l1_loss(step_data.model_out, step_data.batch)
+                    lambda step_data: l1_loss(
+                        step_data.model_out, step_data.batch
+                    ),
                 )
             else:
                 eval_metric = metrics.ConfusionMetrics(
                     "ConfusionMetrics",
                     num_labels=cfg.num_classes,
                     ignore_index=cfg.ignore_index,
-                    include=["Jaccard Index"]
+                    include=["Jaccard Index"],
                 )
             score = trainer.full_eval(eval_metric)
             return score
@@ -86,7 +89,7 @@ def try_print_summary(input_shape, model):
 def create_trainer(cfg, pre_data_transforms, post_data_transforms):
     # Load datasets
     # This needs to happen first as some settings are infered based on the dataset
-    cfg, train_loader, val_loader = create_dataloaders(
+    cfg, train_loader, val_loader = datasets.create_dataloaders(
         cfg, pre_data_transforms
     )
 
@@ -180,38 +183,6 @@ def create_metrics(cfg):
         )
 
     return train_metrics, eval_metrics
-
-
-def create_dataloaders(cfg, pre_data_transforms):
-    dataset_factory = hydra.utils.instantiate(
-        cfg.dataset, _partial_=True
-    )
-    train_dataset = dataset_factory(
-        split="train", transform=pre_data_transforms
-    )
-    train_loader = DataLoader(
-        train_dataset,
-        batch_size=cfg.batch_size,
-        num_workers=int(os.environ.get("SLURM_NTASKS", os.cpu_count())),
-        pin_memory=True,
-    )
-    val_dataset = dataset_factory(
-        split="val", transform=pre_data_transforms
-    )
-    val_loader = DataLoader(
-        val_dataset,
-        batch_size=cfg.batch_size,
-        num_workers=int(os.environ.get("SLURM_NTASKS", os.cpu_count())),
-        pin_memory=True,
-    )
-
-    # Set some 'global' information
-    cfg.class_weights = train_dataset.class_weights
-    cfg.class_map = train_dataset.class_map
-    cfg.num_classes = len(cfg.class_map)
-    cfg.ignore_index = train_dataset.ignore_index
-
-    return cfg, train_loader, val_loader
 
 
 if __name__ == "__main__":

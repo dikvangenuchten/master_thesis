@@ -210,11 +210,14 @@ class Trainer:
 
     @torch.no_grad
     def full_eval(self, metric: BaseMetric) -> torch.Tensor:
+        self.model.eval()
         metric = self._accelerator.prepare(metric)
         for batch in tqdm(self.eval_dataloader, desc="Evaluating"):
             model_out = self.model(batch["input"])
             loss = self.loss_fn(model_out, batch)
-            metric.update(StepData(batch=batch, model_out=model_out, loss=loss))
+            metric.update(
+                StepData(batch=batch, model_out=model_out, loss=loss)
+            )
         result = metric.compute()
         print(f"result: {result}")
         return result

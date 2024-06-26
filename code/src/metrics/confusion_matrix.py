@@ -35,7 +35,7 @@ class ConfusionMetrics(BaseMetric):
         ignore_index: Optional[int] = None,
         device: Optional[torch.device] = "cuda",
         prefix: Optional[str] = None,
-        include: Optional[List[str]] = None
+        include: Optional[List[str]] = None,
     ):
         super().__init__(name)
         prefix = "" if prefix is None else prefix
