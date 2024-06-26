@@ -1,4 +1,5 @@
-from typing import List
+from typing import Any, List, Mapping, Optional, Union
+import torch
 import torchseg
 from torch import nn
 from torchvision.transforms import v2 as transforms
@@ -16,6 +17,7 @@ class UNet(nn.Module):
         encoder_name="mobilenetv2_100",
         encoder_weights="imagenet",
         activation=nn.Identity(),
+        state_dict: Optional[Union[str, dict]] = None
     ):
         super().__init__()
         assert (
@@ -36,6 +38,24 @@ class UNet(nn.Module):
             classes=label_channels,
             activation=activation,
         )
+        
+        if state_dict is not None:
+            if isinstance(state_dict, str):
+                state_dict = torch.load(state_dict)
+            self._load_encoder(state_dict)
+    
+
+    def _load_encoder(
+        self,
+        state_dict: Mapping[str, Any],
+        strict: bool = False,
+        assign: bool = False,
+    ):
+        prefix = "encoder."
+        encoder_state_dict = {
+            k.lstrip(prefix): v for k, v in state_dict.items() if k.startswith(prefix)
+        }
+        return self.unet.encoder.load_state_dict(encoder_state_dict, strict, assign)
 
     def forward(self, input):
         input = self._normalize(input)
