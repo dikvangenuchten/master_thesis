@@ -493,3 +493,6 @@ outputs
 poster
 planning
 notes
+multirun
+ckpts
+evaluation-graphs

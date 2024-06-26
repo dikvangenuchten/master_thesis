@@ -21,14 +21,6 @@ python -m pip install -r requirements_d.txt
 python -m pip install -r requirements.txt
 end=`date +%s`
 echo Installing pacakges took: `expr $end - $start` seconds.
-# Copy dataset to local
-
-# start=`date +%s`
-# echo "Transfering Dataset"
-# mkdir -p /local/20182591/dataset/coco
-# rsync -zqr /home/mcs001/20182591/master_thesis/code/coco/ /local/20182591/dataset/coco/
-# end=`date +%s`
-# echo Transfering took: `expr $end - $start` seconds.
 
 # Execute the script or command
 echo "Starting Python script"
