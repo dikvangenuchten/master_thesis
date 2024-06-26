@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import Tuple
 
 from omegaconf import DictConfig
 from torch.utils.data import DataLoader

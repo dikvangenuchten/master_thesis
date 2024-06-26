@@ -3,7 +3,6 @@ import logging
 import os
 import hydra
 import torch
-from torch.utils.data import DataLoader
 from torchvision.transforms import v2 as transforms
 
 from omegaconf import DictConfig, OmegaConf
