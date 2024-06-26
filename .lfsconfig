@@ -1,2 +1,2 @@
 [lfs]
-	url = https://gitea.vangenuchten.dev/DikvanGenuchten/master_thesis.git
+	url = git@gitea.vangenuchten.dev:DikvanGenuchten/master_thesis.git
