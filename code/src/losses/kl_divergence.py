@@ -20,7 +20,7 @@ class HierarchicalKLDivergenceLoss(nn.Module):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         # Small hack to ensure accelerate works automagically
-        self._zero = nn.Parameter(torch.zeros(1), requires_grad=False)
+        self.register_buffer("_zero", torch.zeros(1), persistent=False)
 
     def forward(
         self,
