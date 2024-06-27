@@ -60,7 +60,7 @@ def test_very_simple_model(device, target_mu, target_var):
         nn.Linear(hidden, hidden * 2),
     ).to(device=device)
 
-    loss_fn = HierarchicalKLDivergenceLoss()
+    loss_fn = HierarchicalKLDivergenceLoss().to(device=device)
 
     optim = torch.optim.Adam(model.parameters(), lr=1e-1)
     input_ = torch.ones([batch_size, 1], device=device)
