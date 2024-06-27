@@ -82,7 +82,10 @@ def visualize_posteriors(model, batch, dir: str) -> List[plt.Figure]:
 
 @torch.no_grad()
 def visualize_encoder_features(model, batch, dir: str):
-    input = model.prepare_input(batch["input"])
+    if hasattr(model, "prepare_input"):
+        input = model.prepare_input(batch["input"])
+    else:
+        input = batch["input"]
     features = model.encoder(input)
     os.makedirs(dir, exist_ok=True)
     all_figs = []
