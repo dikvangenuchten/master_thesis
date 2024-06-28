@@ -1,6 +1,6 @@
 # @package hydra.launcher
 submitit_folder: ${hydra.sweep.dir}/.submitit/%j
-timeout_min: 480 #(8 * 60)
+timeout_min: 600 #(10 * 60)
 cpus_per_task: 7
 gpus_per_node: 1
 tasks_per_node: 1
@@ -11,13 +11,13 @@ _target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
 partition: mcs.gpu.q
 qos: null
 comment: null
-constraint: "gforce"
+constraint: null
 exclude: null
 gres: null
-cpus_per_gpu: null
+cpus_per_gpu: 7
 gpus_per_task: null
 mem_per_gpu: null
-mem_per_cpu: 4G
+mem_per_cpu: 32G
 account: null
 signal_delay_s: 120
 max_num_timeout: 0
