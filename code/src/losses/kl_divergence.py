@@ -27,8 +27,9 @@ class HierarchicalKLDivergenceLoss(nn.Module):
         model_out: Dict[str, torch.Tensor],
         batch: Dict[str, torch.Tensor],
     ) -> torch.Tensor:
-        posteriors = model_out["posteriors"]
-        priors = model_out["priors"]
+        # TODO warn once when unused
+        posteriors = model_out.get("posteriors", [])
+        priors = model_out.get("priors", [])
 
         loss = torch.zeros_like(self._zero)
         for posterior, prior in zip(posteriors, priors):

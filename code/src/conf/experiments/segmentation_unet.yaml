@@ -1,6 +1,6 @@
 # @package _global_
 defaults:
-  - override /loss: crossentropy_loss
+  - override /loss: semantic_loss
   - override /model: unet
 
 dataset:
@@ -8,16 +8,15 @@ dataset:
     target: semantic_mask
   supercategories_only: True
 
-model:
-  encoder_depth: 5
-  encoder_name: "resnet50"
-  encoder_weights: "imagenet"
-
 optimizer:
   lr: 1e-5
 scheduler:
   eta_min: 1e-3
 
-
 # batch_size: 64
 input_shape: [128, 128]
+
+model:
+  encoder_depth: 5
+  encoder_name: "resnet50"
+  encoder_weights: "imagenet"
