@@ -59,6 +59,7 @@ class MaskMetric(BaseMetric):
 
         images = []
         imgs, gt_masks, pr_masks = self._first_batch
+        imgs = imgs.clip(0, 1)
 
         images = [
             wandb.Image(
