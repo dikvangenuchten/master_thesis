@@ -1,6 +1,6 @@
 # @package _global_
 dataset:
-  cache_dir: /local/20182591/dataset/coco/
+  cache_dir: in_memory
 
 paths:
   datasets: /home/mcs001/20182591/data/
