@@ -1,7 +1,7 @@
-import collections
 import json
 import os
 import io
+import time
 from typing import (
     Callable,
     Dict,
@@ -11,7 +11,6 @@ from typing import (
     get_args,
 )
 import warnings
-
 import torch
 from diffusers.models.autoencoders.vae import (
     DiagonalGaussianDistribution,
@@ -74,12 +73,16 @@ class CoCoDataset(torch.utils.data.Dataset):
         ignore_index=None,
         percentage: float = 1.00,
         cache_dir: Optional[str] = None,
+        prefetch: bool = False,
     ):
         # The absolute path to the dataset
         self.base_path = os.path.join(dataset_root, rel_path)
         self._image_root = os.path.join(self.base_path, f"{split}2017/")
         self._panoptic_root = os.path.join(
             self.base_path, "annotations", f"panoptic_{split}2017"
+        )
+        self._semantic_root = os.path.join(
+            self.base_path, "annotations", f"semantic_{split}2017"
         )
         self._latent_root = os.path.join(
             self.base_path, f"{split}_latents"
@@ -145,6 +148,7 @@ class CoCoDataset(torch.utils.data.Dataset):
         self._sample = sample
         self._weights = None
         self._ram_images = []
+        self._sem_mask_cache = {}
 
     def parse_output_structure(
         self, output_structure
@@ -211,6 +215,19 @@ class CoCoDataset(torch.utils.data.Dataset):
             os.path.join(self._image_root, path)
         )
 
+    def _load_semantic_mask(self, idx: int) -> Mask:
+        if (sem_mask_buf := self._sem_mask_cache.get(idx)) is not None:
+            # When loading from buffer it is converted to a 3d (grayscale),
+            # but we need a 2d array. Calling squeeze converts it back to
+            # a tensor. Hence the 2 calls to Mask
+            return Mask(Mask(PImage.open(sem_mask_buf)).squeeze())
+        sem_mask = self._load_panoptic_mask(idx)
+        img = PImage.fromarray(sem_mask.numpy())
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        self._sem_mask_cache[idx] = buf
+        return sem_mask
+
     def _load_panoptic_mask(self, idx: int) -> Mask:
         """Load the panoptic mask for `id`
 
@@ -231,14 +248,12 @@ class CoCoDataset(torch.utils.data.Dataset):
         # Decode the mask
         instance_mask = rgb2id(enc_mask)
         # Unlabeled places are given the 'ignore_index' class
-        sem_mask = torch.full_like(
-            instance_mask, self.ignore_index, dtype=torch.long
+        sem_mask = self._id2sem(
+            ann,
+            instance_mask,
+            self.ignore_index,
+            self._cat_id_to_semantic,
         )
-
-        for segment_info in ann["segments_info"]:
-            sem_mask[
-                instance_mask == segment_info["id"]
-            ] = self._cat_id_to_semantic[segment_info["category_id"]]
 
         # 'Temporarily' only load semantic mask
         return Mask(sem_mask)
@@ -247,6 +262,18 @@ class CoCoDataset(torch.utils.data.Dataset):
         for new_id, old_id in enumerate(instance_mask.unique()):
             ins_mask[instance_mask == old_id] = new_id
         return Mask(torch.stack([sem_mask, ins_mask]))
+
+    @staticmethod
+    def _id2sem(ann, instance_mask, ignore_index, cat_id_to_semantic):
+        sem_mask = torch.full_like(
+            instance_mask, ignore_index, dtype=torch.uint8
+        )
+
+        for segment_info in ann["segments_info"]:
+            sem_mask[
+                instance_mask == segment_info["id"]
+            ] = cat_id_to_semantic[segment_info["category_id"]]
+        return sem_mask
 
     def _open_pil_image(self, path) -> Image:
         return Image(PImage.open(path).convert("RGB"))
@@ -272,6 +299,8 @@ class CoCoDataset(torch.utils.data.Dataset):
         elif type_ == "latent":
             return self._load_latent(index)
         elif type_ == "semantic_mask":
+            return self._load_semantic_mask(index)
+        elif type_ == "panoptic_mask":
             return self._load_panoptic_mask(index)
         else:
             raise RuntimeError(
