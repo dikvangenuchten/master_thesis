@@ -12,6 +12,11 @@ import metrics
 import datasets
 
 
+def uint8_to_long(batch):
+    batch["target"] = batch["target"].to(dtype=torch.long)
+    return batch
+
+
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: DictConfig) -> None:
     print(OmegaConf.to_yaml(cfg, resolve=True))
@@ -29,6 +34,11 @@ def main(cfg: DictConfig) -> None:
             transforms.ToDtype(torch.float32, scale=True),
         ]
     )
+    extra = (
+        [uint8_to_long]
+        if cfg.dataset.output_structure.target == "semantic_mask"
+        else []
+    )
     # These transforms can be batched (on gpu)
     post_data_transforms = transforms.Compose(
         [
@@ -36,6 +46,7 @@ def main(cfg: DictConfig) -> None:
             transforms.RandomVerticalFlip(),
             transforms.RandomGrayscale(),
             transforms.GaussianBlur(5, (0.01, 2.0)),
+            *extra,
         ]
     )
 
