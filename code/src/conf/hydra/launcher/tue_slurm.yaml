@@ -24,6 +24,6 @@ max_num_timeout: 0
 additional_parameters:
   nice: 1000
   mail-user: "h.j.m.v.genuchten@student.tue.nl"
-array_parallelism: 3
+# array_parallelism: 3
 setup: null
 srun_args: null
