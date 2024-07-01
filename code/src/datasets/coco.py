@@ -1,5 +1,7 @@
+import collections
 import json
 import os
+import io
 from typing import (
     Callable,
     Dict,
@@ -21,6 +23,23 @@ import tqdm
 from datasets import LatentTensor
 
 OUTPUT_TYPES = Literal["img", "latent", "semantic_mask"]
+
+
+def _memory_cache(fn):
+    def load_new(path):
+        with open(path, mode="rb") as f:
+            in_memory = io.BytesIO(f.read())
+        return in_memory
+
+    cache_dict = {}
+
+    def _inner(path):
+        if (file := cache_dict.get(path, None)) is None:
+            file = load_new(path)
+            cache_dict[path] = file
+        return fn(file)
+
+    return _inner
 
 
 def _open_cache_wrapper(fn, cache_dir):
@@ -69,10 +88,15 @@ class CoCoDataset(torch.utils.data.Dataset):
         self._length = length
 
         if cache_dir is not None:
-            os.makedirs(cache_dir, exist_ok=True)
-            self._open_pil_image = _open_cache_wrapper(
-                self._open_pil_image, cache_dir
-            )
+            if cache_dir == "in_memory":
+                self._open_pil_image = _memory_cache(
+                    self._open_pil_image
+                )
+            else:
+                os.makedirs(cache_dir, exist_ok=True)
+                self._open_pil_image = _open_cache_wrapper(
+                    self._open_pil_image, cache_dir
+                )
 
         # Ignore the percentage in validation dataset
         if percentage < 1:

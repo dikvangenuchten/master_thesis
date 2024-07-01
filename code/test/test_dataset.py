@@ -1,3 +1,5 @@
+import time
+import pytest
 import torch
 from torchvision.tv_tensors import Image
 
@@ -6,6 +8,7 @@ from datasets.toy_data import (
     ToySegmentationTransform,
 )
 from datasets.coco import CoCoDataset
+import timeit
 
 
 def test_toy_dataset_initialization():
@@ -52,18 +55,88 @@ def test_coco_dataset():
     ), "Semantic and image shape do not match."
 
 
-def test_caching(tmp_path):
-    # This test is terrible, but stepping through the code shows it works
+@pytest.mark.usefixtures("instant_sleep")
+def test_caching(monkeypatch, tmp_path):
+    sleep_time = 1
+    old_open = open
+    slow_calls = [0]  # Use a list to pass by reference
+
+    def slow_open(file, *args, _hidden=slow_calls, **kwargs):
+        # Pretend to be a slow disk
+        # With the 'instant_sleep' fixture this manipulates the
+        # builtin time function, and does not actually sleep
+        if not file.startswith(str(tmp_path)):
+            _hidden[0] += 1
+            time.sleep(sleep_time)
+        return old_open(file, *args, **kwargs)
+
+    # This will redirect all calls from open to `slow_open`
+    monkeypatch.setitem(__builtins__, "open", slow_open)
+
     cache_dir = tmp_path / "cache"
     ds = CoCoDataset(
         output_structure={"img": "img", "target": "semantic_mask"},
         dataset_root="test/data",
         cache_dir=cache_dir,
     )
+    start_calls = slow_calls[0]
+    start = time.time()
     batch_1 = ds[0]
+    mid_calls = slow_calls[0]
+    mid = time.time()
     batch_2 = ds[0]
+    end = time.time()
+    end_calls = slow_calls[0]
+
     assert torch.equal(batch_1["img"], batch_2["img"])
     assert torch.equal(batch_1["target"], batch_2["target"])
+
+    assert (mid - start) > sleep_time
+    assert (
+        start_calls < mid_calls
+    ), "During generating the batch, no calls to open were made."
+    assert (mid - start) > (end - mid)
+    assert (
+        mid_calls == end_calls
+    ), "A call to open was made after loading the batch for the second time"
+
+
+@pytest.mark.usefixtures("instant_sleep")
+def test_in_memory_caching(monkeypatch):
+    sleep_time = 1
+    old_open = open
+
+    def slow_open(*args, **kwargs):
+        # Pretend to be a slow disk
+        # With the 'instant_sleep' fixture this manipulates the
+        # builtin time function, and does not actually sleep
+        time.sleep(sleep_time)
+        return old_open(*args, **kwargs)
+
+    # This will redirect all calls from open to `slow_open`
+    monkeypatch.setitem(__builtins__, "open", slow_open)
+
+    cache_dir = "in_memory"
+    ds = CoCoDataset(
+        output_structure={"img": "img", "target": "semantic_mask"},
+        dataset_root="test/data",
+        cache_dir=cache_dir,
+    )
+    start = time.time()
+    batch_1 = ds[0]
+    mid = time.time()
+    batch_2 = ds[0]
+    end = time.time()
+    batch_3 = ds[0]
+
+    assert torch.equal(batch_1["img"], batch_2["img"])
+    assert torch.equal(batch_1["target"], batch_2["target"])
+    assert torch.equal(batch_3["img"], batch_2["img"])
+    assert torch.equal(batch_3["target"], batch_2["target"])
+
+    # In memory should be much faster then not in memory
+    assert (mid - start) > sleep_time
+    assert (mid - start) > (end - mid)
 
 
 def test_percentage():
