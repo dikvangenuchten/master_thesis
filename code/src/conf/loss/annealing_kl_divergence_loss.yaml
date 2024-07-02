@@ -3,5 +3,5 @@ defaults:
 
 _target_: "losses.AnnealingWeightedLoss"
 start_value: 1
-end_value: 1
+end_value: null
 max_step: 1000

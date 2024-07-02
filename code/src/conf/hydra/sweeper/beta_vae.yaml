@@ -6,6 +6,6 @@ params:
   model.encoder_weights: choice("imagenet", "None")
   # +sweep: choice(10, 1, 0.1, 0.01)
   loss.losses.kl_divergence.start_value: choice(10, 1, 0.1, 0.01)
-  loss.losses.kl_divergence.end_value: null
+  # loss.losses.kl_divergence.end_value: null
   +trainer.init_kwargs.wandb.group: "beta_vae"
   +trainer.init_kwargs.wandb.notes: "Sweep to check the various features layers of various beta values"

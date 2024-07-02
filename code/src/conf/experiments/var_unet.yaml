@@ -19,12 +19,10 @@ model:
   skip_connections: [True, True, False, False, False]
   variational_skip_connections: [True, True, False, False, False]
   encoder_name: "resnet50"
+  encoder_weights: null
   activation:
     _target_: torch.nn.Sigmoid
-  encoder_weights: null
-  state_dict: "models/pretrained-var-unet.pt"
 
 
 batch_size: 64
 input_shape: [128, 128]
-num_steps: 1
