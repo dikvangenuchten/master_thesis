@@ -1,3 +1,4 @@
+from typing import Optional
 from torch import nn
 import torch
 import math
@@ -8,12 +9,17 @@ class AnnealingWeightedLoss(nn.Module):
         self,
         loss_fn: nn.Module,
         start_value: float,
-        end_value: float,
+        end_value: Optional[float],
         max_step: int,
         *args,
         **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
+        
+        if end_value is None or end_value == start_value:
+            self.forward = loss_fn
+            end_value = start_value
+            return
 
         self._eta_min = start_value
         self._half_range = 0.5 * (end_value - start_value)
