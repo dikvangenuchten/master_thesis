@@ -32,6 +32,9 @@ def main(cfg: DictConfig) -> None:
         [
             transforms.Resize(cfg.input_shape),
             transforms.ToDtype(torch.float32, scale=True),
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomVerticalFlip(),
+            transforms.RandomGrayscale(),
         ]
     )
     extra = (
@@ -42,9 +45,6 @@ def main(cfg: DictConfig) -> None:
     # These transforms can be batched (on gpu)
     post_data_transforms = transforms.Compose(
         [
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomVerticalFlip(),
-            transforms.RandomGrayscale(),
             transforms.GaussianBlur(5, (0.01, 2.0)),
             *extra,
         ]
