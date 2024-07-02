@@ -395,7 +395,12 @@ class VariationalUNet(SegmentationModel):
 
         if state_dict is not None:
             if isinstance(state_dict, str):
-                state_dict = torch.load(state_dict)
+                try:
+                    state_dict = torch.load(state_dict)
+                except FileNotFoundError as e:
+                    logging.warning(f"Could not find state dict in: {state_dict}. Trying parent directory")
+                    state_dict = torch.load("../" + state_dict)
+                        
             self.load_partial_state_dict(
                 state_dict,
                 encoder=load_encoder,
