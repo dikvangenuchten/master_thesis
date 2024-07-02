@@ -16,8 +16,8 @@ exclude: null
 gres: null
 cpus_per_gpu: 7
 gpus_per_task: 1
-mem_per_gpu: null
-mem_per_cpu: 32G
+mem_per_gpu: 32G
+mem_per_cpu: null
 account: null
 signal_delay_s: 120
 max_num_timeout: 0
