@@ -9,6 +9,6 @@ params:
   +model.state_dict: "models/pretrained-vae.pt"
   +model.load_decoder: False
   +model.load_segmentation_head: False
-  +trainer.init_kwargs.wandb.group: "SkipImportance-24-01-06"
+  +trainer.init_kwargs.wandb.group: "SkipImportance-24-06-02"
   +trainer.init_kwargs.wandb.magic: True
   num_steps: 15_000
