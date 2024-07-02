@@ -19,6 +19,10 @@ input_shape: [128, 128]
 model:
   encoder_depth: 5
   encoder_name: "resnet50"
-  encoder_weights: "imagenet"
+  encoder_weights: None
   skip_connections: [True, True, True, True, True]
   variational_skip_connections: [False, False, False, False, False]
+  state_dict: "models/pretrained-var-unet.pt"
+  load_encoder: True
+  load_decoder: False
+  load_segmentation_head: False

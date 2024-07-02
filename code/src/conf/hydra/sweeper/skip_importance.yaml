@@ -6,7 +6,7 @@ params:
   model.skip_connections: choice([True, False, False, False, False], [True, True, True, True, True])
   model.variational_skip_connections: choice([True, False, False, False, False], [False, False, False, False, False])
 
-  +model.state_dict: "models/pretrained-var-unet.pt"
+  +model.state_dict: "models/pretrained-vae.pt"
   +model.load_decoder: False
   +model.load_segmentation_head: False
   +trainer.init_kwargs.wandb.group: "SkipImportance-24-01-06"
