@@ -4,7 +4,7 @@ defaults:
 params:
   +experiments: "segmentation_var_unet"
   model.skip_connections: choice([True, False, False, False, False], [True, True, True, True, True])
-  model.variational_skip_connections: choice([True, False, False, False, False], [False, False, False, False, False])
+  model.variational_skip_connections: choice([True, True, True, True, True], [False, False, False, False, False])
 
   +model.state_dict: "models/pretrained-vae.pt"
   +model.load_decoder: False
