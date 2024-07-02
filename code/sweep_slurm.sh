@@ -14,4 +14,4 @@ echo "Starting Python script"
 set -o allexport
 source .env
 set +o allexport
-python hydra_main.py -m +mod=tue hydra/launcher=tue_slurm "@"
+python src/hydra_main.py -m +mod=tue hydra/launcher=tue_slurm "@"
