@@ -1,5 +1,6 @@
 #!/bin/bash
 
+echo Preloading packages
 start=`date +%s`
 module purge
 module load Python/3.10.13-GCCcore-11.3.0
@@ -14,4 +15,5 @@ echo "Starting Python script"
 set -o allexport
 source .env
 set +o allexport
-python src/hydra_main.py -m +mod=tue hydra/launcher=tue_slurm "$@"
+cd src
+python hydra_main.py -m +mod=tue hydra/launcher=tue_slurm "$@"
