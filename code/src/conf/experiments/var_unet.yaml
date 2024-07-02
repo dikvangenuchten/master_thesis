@@ -16,8 +16,8 @@ eval_metric:
 
 model:
   encoder_depth: 5
-  skip_connections: [True, True, False, False, False]
-  variational_skip_connections: [True, True, False, False, False]
+  skip_connections: [True, False, False, False, False]
+  variational_skip_connections: [True, False, False, False, False]
   encoder_name: "resnet50"
   encoder_weights: null
   activation:
