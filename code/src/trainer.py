@@ -150,7 +150,7 @@ class Trainer:
         self._ckpt_dir = os.path.join(
             config.get("paths", {}).get("checkpoints", "ckpts"),
             # os.environ.get("DATA_DIR", "/home/mcs001/20182591/master_thesis/code"),
-            datetime.datetime.now().strftime("%Y/%m/%d/%H:%M"),
+            datetime.datetime.now().strftime("%Y/%m/%d/%H:%M:%S.%f"),
         )
         logging.info(f"Model ckpts will be saved in: {self._ckpt_dir}")
 
