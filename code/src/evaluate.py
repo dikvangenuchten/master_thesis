@@ -19,15 +19,21 @@ import losses
 import metrics
 from metrics.base_metric import StepData
 from utils.visualize_feature_maps import (
+    visualize_filters,
     visualize_posteriors,
     visualize_encoder_features,
 )
 
 
+def uint8_to_long(batch):
+    batch["target"] = batch["target"].to(dtype=torch.long)
+    return batch
+
+
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: DictConfig) -> None:
     # TODO make sure these are somewhat unique
-    output_dir = "evaluation-graphs"
+    output_dir = "evaluation-graphs/vae"
     os.makedirs(output_dir, exist_ok=True)
     print(OmegaConf.to_yaml(cfg, resolve=True))
 
@@ -41,6 +47,7 @@ def main(cfg: DictConfig) -> None:
         [
             transforms.Resize((128, 128)),
             transforms.ToDtype(torch.float32, scale=True),
+            uint8_to_long,
         ]
     )
 
@@ -78,14 +85,22 @@ def main(cfg: DictConfig) -> None:
     model, val_dataloader, metric, loss_fn = accel.prepare(
         model, val_dataloader, metric, loss_fn
     )
+
+    visualize_filters(model, 1)
+
     with torch.no_grad():
-        for batch in tqdm(val_dataloader, desc="Evaluating"):
-            _posterior_visualizations = visualize_posteriors(
-                model, batch, f"{output_dir}/posteriors/"
-            )
-            _encoder_feature_visualizations = visualize_encoder_features(
-                model, batch, f"{output_dir}/features/"
-            )
+        for i, batch in enumerate(
+            tqdm(val_dataloader, desc="Evaluating")
+        ):
+            if i == 0:
+                _posterior_visualizations = visualize_posteriors(
+                    model, batch, f"{output_dir}/posteriors/"
+                )
+                _encoder_feature_visualizations = (
+                    visualize_encoder_features(
+                        model, batch, f"{output_dir}/features/"
+                    )
+                )
             model_out = model(batch["input"])
             loss = loss_fn(model_out, batch)
             metric.update(
@@ -93,6 +108,7 @@ def main(cfg: DictConfig) -> None:
             )
         result = metric.compute()
     log.info(f"Evaluation result: {result}")
+
 
 if __name__ == "__main__":
     main()

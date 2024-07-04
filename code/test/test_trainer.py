@@ -2,6 +2,7 @@ import pytest
 import torch
 from torch import nn, optim, utils
 
+from hydra_main import uint8_to_long
 import losses
 from models import MobileVAE
 import hydra
@@ -34,6 +35,7 @@ def trainer(dataset, device):
             # Default log_with is ["wandb"], but that needs to
             # be a singleton, which causes trouble in testing
             "log_with": None,
+            "data_transforms": uint8_to_long,
         }
     )
 

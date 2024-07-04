@@ -2,7 +2,12 @@ import math
 import os
 from typing import List
 import torch
+from accelerate import Accelerator
+import torch.random
 from torchvision import utils
+from torchvision.models.feature_extraction import (
+    create_feature_extractor,
+)
 from torchvision.transforms import functional as F
 import matplotlib.pyplot as plt
 import numpy as np
@@ -106,3 +111,59 @@ def visualize_encoder_features(model, batch, dir: str):
         )
         all_figs.append(mean_activations)
     return all_figs
+
+
+def visualize_filters(
+    model: torch.nn.Module, steps=1000, lr=1e-2, device="cpu"
+):
+    """Visualize the filters by optimizing the input, such that the filter output"""
+    model = model.to(device)
+
+    def simple_forward(x):
+        # nonlocal model
+        features = model.encoder.model(x)
+        features = [x] + features
+        return features
+
+    model.encoder.forward = simple_forward
+
+    for layer in range(4):
+        fe = create_feature_extractor(
+            model, {f"encoder.model.layer{layer + 1}": "out"}
+        )
+
+        fe = fe.eval()
+        out = fe(torch.rand((1, 3, 128, 128), device=device))["out"]
+
+        canvas_history = []
+        num_filters = out.shape[1]
+
+        for filter in range(16):
+            canvas = torch.rand(
+                (1, 3, 128, 128), device=device, requires_grad=True
+            )
+            optimizer = torch.optim.Adam(
+                [canvas], lr=lr, weight_decay=1e-6
+            )
+            for i in (pbar := tqdm.trange(steps)):
+                optimizer.zero_grad()
+                out = fe(canvas)["out"][:, filter]
+                loss = -torch.mean(out)
+                loss.backward()
+                optimizer.step()
+                pbar.set_description(f"{i} {loss} {canvas[0, 0, 0, 0]}")
+            canvas_history.append(canvas.detach().cpu().numpy())
+
+        utils.save_image(canvas, f"filter_l{layer}.png", normalize=True)
+    model
+
+
+def visualize_gradient_per_class(model, batch, dir: str):
+    if hasattr(model, "prepare_input"):
+        input = model.prepare_input(batch["input"])
+    else:
+        input = batch["input"]
+    features = model.encoder(input)
+
+    os.makedirs(dir, exist_ok=True)
+    all_figs = []

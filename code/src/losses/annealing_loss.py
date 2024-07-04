@@ -15,7 +15,7 @@ class AnnealingWeightedLoss(nn.Module):
         **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
-        
+
         if end_value is None or end_value == start_value:
             end_value = start_value
 
