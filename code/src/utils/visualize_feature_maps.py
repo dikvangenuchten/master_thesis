@@ -1,3 +1,4 @@
+import copy
 import math
 import os
 from typing import List
@@ -114,10 +115,10 @@ def visualize_encoder_features(model, batch, dir: str):
 
 
 def visualize_filters(
-    model: torch.nn.Module, steps=1000, lr=1e-2, device="cpu"
+    model: torch.nn.Module, steps=1000, lr=1e-1, device="cuda"
 ):
     """Visualize the filters by optimizing the input, such that the filter output"""
-    model = model.to(device)
+    model = copy.deepcopy(model).to(device)
 
     def simple_forward(x):
         # nonlocal model
@@ -133,12 +134,12 @@ def visualize_filters(
         )
 
         fe = fe.eval()
-        out = fe(torch.rand((1, 3, 128, 128), device=device))["out"]
+        out = fe(torch.rand((1, 3, 256, 256), device=device))["out"]
 
         canvas_history = []
         num_filters = out.shape[1]
 
-        for filter in range(16):
+        for filter in range(num_filters):
             canvas = torch.rand(
                 (1, 3, 128, 128), device=device, requires_grad=True
             )
@@ -154,7 +155,7 @@ def visualize_filters(
                 pbar.set_description(f"{i} {loss} {canvas[0, 0, 0, 0]}")
             canvas_history.append(canvas.detach().cpu().numpy())
 
-        utils.save_image(canvas, f"filter_l{layer}.png", normalize=True)
+        utils.save_image(torch.tensor(canvas_history).squeeze(), f"filter_l{layer}.png", normalize=True)
     model
 
 

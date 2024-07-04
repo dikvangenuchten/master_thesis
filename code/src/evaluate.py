@@ -86,7 +86,7 @@ def main(cfg: DictConfig) -> None:
         model, val_dataloader, metric, loss_fn
     )
 
-    visualize_filters(model, 1)
+    visualize_filters(model, 30)
 
     with torch.no_grad():
         for i, batch in enumerate(
