@@ -33,6 +33,7 @@ def _memory_cache(fn):
     cache_dict = {}
 
     def _inner(path):
+        nonlocal cache_dict
         if (file := cache_dict.get(path, None)) is None:
             file = load_new(path)
             cache_dict[path] = file
