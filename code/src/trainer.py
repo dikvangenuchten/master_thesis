@@ -153,6 +153,7 @@ class Trainer:
             datetime.datetime.now().strftime("%Y/%m/%d/%H:%M:%S.%f"),
         )
         logging.info(f"Model ckpts will be saved in: {self._ckpt_dir}")
+        wandb.log({"ckpt_dir": self._ckpt_dir}, commit=False)
 
     @property
     def device(self):
