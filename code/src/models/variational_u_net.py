@@ -25,8 +25,8 @@ class MetadataModule(nn.Module):
     def __init__(self):
         super().__init__()
 
-    def __call__(self, state, *args: Any, **kwds: Any) -> Any:
-        if isinstance(state, Tensor):
+    def __call__(self, state: Any, *args: Any, **kwds: Any) -> Any:
+        if torch.jit.isinstance(state, Tensor):
             return super().__call__({"out": state}, *args, **kwds)
         return super().__call__(state, *args, **kwds)
 
@@ -51,8 +51,13 @@ class Conv2d(MetadataModule):
             bias=bias,
         )
 
-    def forward(self, state):
-        state["out"] = self._conv(state["out"])
+    def forward(self, state: Dict[str, Union[Tensor, List[Tensor]]]):
+        state = {
+            "out": self._conv(state["out"]),
+            "priors": state.get("priors", []),
+            "posteriors": state.get("posteriors", []),
+        }
+        # state["out"] = self._conv(state["out"])
         return state
 
 
@@ -91,11 +96,16 @@ class VariationalConv2d(MetadataModule):
         )
         state.setdefault("priors", []).append(prior)
         state.setdefault("posteriors", []).append(posterior)
-        state["out"] = (
+        out = (
             posterior.rsample()
             if self.training or self.always_sample
             else posterior.mean
         )
+        state = {
+            "out": out,
+            "priors": state.get("priors", []),
+            "posteriors": state.get("posteriors", []),
+        }
         return state
 
 
@@ -224,7 +234,12 @@ class VariationalDecoderBlock(MetadataModule):
             state.setdefault("posteriors", []).extend(
                 skip_state.get("posteriors", [])
             )
-        state["out"] = self._decoder_block(x, skip)
+        out = self._decoder_block(x, skip)
+        state = {
+            "out": out,
+            "priors": state.get("priors", []),
+            "posteriors": state.get("posteriors", []),
+        }
         return state
 
 
@@ -239,7 +254,7 @@ class VariationalUnetDecoder(nn.Module):
         variational_skip_connections: List[bool] = [True] * 5,
         use_batchnorm=True,
         attention_type=None,
-        center=False,
+        center=True,
     ):
         super().__init__()
 
@@ -398,9 +413,11 @@ class VariationalUNet(SegmentationModel):
                 try:
                     state_dict = torch.load(state_dict)
                 except FileNotFoundError as e:
-                    logging.warning(f"Could not find state dict in: {state_dict}. Trying parent directory")
+                    logging.warning(
+                        f"Could not find state dict in: {state_dict}. Trying parent directory"
+                    )
                     state_dict = torch.load("../" + state_dict)
-                        
+
             self.load_partial_state_dict(
                 state_dict,
                 encoder=load_encoder,
@@ -411,6 +428,14 @@ class VariationalUNet(SegmentationModel):
     def prepare_input(self, x) -> torch.Tensor:
         """Preprocesses the input"""
         return self._normalize(x)
+
+    def check_input_shape(self, x):
+        # Skip the check input as it cannot be traced
+        return
+        h, w = x.shape[-2:]
+        output_stride = self.encoder.output_stride
+        assert h % output_stride == 0
+        assert w % output_stride == 0
 
     def load_partial_state_dict(
         self,
