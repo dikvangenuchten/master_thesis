@@ -1,0 +1,7 @@
+- +experiments=var_unet
+- model.encoder_weights=imagenet
+- loss.losses.kl_divergence.start_value=0.01
+- +trainer.init_kwargs.wandb.group=beta_vae
+- +trainer.init_kwargs.wandb.notes=Sweep\ to\ check\ the\ various\ features\ layers\
+  of\ various\ beta\ values
+- +mod=tue
