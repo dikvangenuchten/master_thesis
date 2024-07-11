@@ -63,7 +63,7 @@ def main(cfg: DictConfig) -> None:
         if cfg.get("eval_metric") is not None:
             if cfg.dataset.output_structure.target == "img":
                 l1_loss = losses.WrappedLoss(
-                    torch.nn.L1Loss,
+                    torch.nn.L1Loss(),
                     keys={"out": "input", "input": "target"},
                 )
                 eval_metric = metrics.AverageMetric(

@@ -99,6 +99,13 @@ class Trainer:
             )
             eval_dataloader = train_dataloader
 
+            # Save based on start time of run
+        self._ckpt_dir = os.path.join(
+            config.get("paths", {}).get("checkpoints", "ckpts"),
+            datetime.datetime.now().strftime("%Y/%m/%d/%H:%M:%S.%f"),
+        )
+        logging.info(f"Model ckpts will be saved in: {self._ckpt_dir}")
+
         if log_with is not None and "wandb" in log_with:
             import wandb
 
@@ -109,6 +116,7 @@ class Trainer:
                 log_freq=100,
                 log_graph=True,
             )
+            wandb.log({"ckpt_dir": self._ckpt_dir}, commit=False)
 
         (
             model,
@@ -145,15 +153,6 @@ class Trainer:
         self.eval_metrics = eval_metrics
         self.data_transforms = data_transforms
         self._gradient_penalty = GradientPenalty()
-
-        # Save based on start time of run
-        self._ckpt_dir = os.path.join(
-            config.get("paths", {}).get("checkpoints", "ckpts"),
-            # os.environ.get("DATA_DIR", "/home/mcs001/20182591/master_thesis/code"),
-            datetime.datetime.now().strftime("%Y/%m/%d/%H:%M:%S.%f"),
-        )
-        logging.info(f"Model ckpts will be saved in: {self._ckpt_dir}")
-        wandb.log({"ckpt_dir": self._ckpt_dir}, commit=False)
 
     @property
     def device(self):

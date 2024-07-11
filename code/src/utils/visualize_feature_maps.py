@@ -3,8 +3,10 @@ import math
 import os
 from typing import List
 import torch
-from accelerate import Accelerator
+from torch import nn
+
 import torch.random
+import torchvision
 from torchvision import utils
 from torchvision.models.feature_extraction import (
     create_feature_extractor,
@@ -115,48 +117,142 @@ def visualize_encoder_features(model, batch, dir: str):
 
 
 def visualize_filters(
-    model: torch.nn.Module, steps=1000, lr=1e-1, device="cuda"
+    model: torch.nn.Module,
+    dir: str,
+    steps=10000,
+    lr=1e-1,
+    device="cuda",
+    layers=list(range(4)),
 ):
     """Visualize the filters by optimizing the input, such that the filter output"""
-    model = copy.deepcopy(model).to(device)
 
-    def simple_forward(x):
-        # nonlocal model
-        features = model.encoder.model(x)
-        features = [x] + features
-        return features
-
-    model.encoder.forward = simple_forward
-
-    for layer in range(4):
-        fe = create_feature_extractor(
-            model, {f"encoder.model.layer{layer + 1}": "out"}
-        )
-
-        fe = fe.eval()
-        out = fe(torch.rand((1, 3, 256, 256), device=device))["out"]
+    for layer in layers:
+        fe = make_feature_extractor(model, layer, device=device)
+        out = fe(torch.rand((1, 3, 128, 128), device=device))["out"]
 
         canvas_history = []
         num_filters = out.shape[1]
+        rand_input = torch.rand(
+            (num_filters, 3, 64, 64), device=device
+        )
+        out = fe(rand_input)["out"]
 
-        for filter in range(num_filters):
+        for filter in tqdm.trange(
+            num_filters, desc=f"Processing layer: {layer + 1}"
+        ):
             canvas = torch.rand(
                 (1, 3, 128, 128), device=device, requires_grad=True
             )
             optimizer = torch.optim.Adam(
                 [canvas], lr=lr, weight_decay=1e-6
             )
-            for i in (pbar := tqdm.trange(steps)):
+            for i in (pbar := tqdm.trange(steps, leave=False)):
                 optimizer.zero_grad()
                 out = fe(canvas)["out"][:, filter]
                 loss = -torch.mean(out)
                 loss.backward()
                 optimizer.step()
                 pbar.set_description(f"{i} {loss} {canvas[0, 0, 0, 0]}")
-            canvas_history.append(canvas.detach().cpu().numpy())
+            canvas_history.append(canvas.mean(0).detach().cpu().numpy())
 
-        utils.save_image(torch.tensor(canvas_history).squeeze(), f"filter_l{layer}.png", normalize=True)
-    model
+        utils.save_image(
+            torch.tensor(canvas_history).squeeze(),
+            f"{dir}/filter_l{layer}.png",
+            normalize=True,
+            nrow=32,
+        )
+
+
+def visualize_filters_batched(
+    model: torch.nn.Module,
+    dir: str,
+    steps=1000,
+    lr=1e-0,
+    device="cuda",
+    layers=list(range(4)),
+):
+    for layer in layers:
+        fe = make_feature_extractor(model, layer, device=device)
+        canvas = visualize_layer(fe, device=device, lr=lr, steps=steps)
+        utils.save_image(
+            canvas.squeeze().clone().detach(),
+            f"{dir}/filter_l{layer}.png",
+            normalize=True,
+            scale_each=True,
+            nrow=32,
+        )
+        pass
+
+
+def visualize_layer(
+    fe: nn.Module, lr: float, steps: int, device="cuda"
+) -> torch.Tensor:
+    out = fe(torch.rand((1, 3, 128, 128), device=device))["out"]
+    num_filters = out.shape[1]
+
+    canvas = torch.tensor(
+        np.random.normal(0.5, 0.1, (num_filters, 3, 128, 128)),
+        dtype=torch.float32,
+        device=device,
+        requires_grad=True,
+    )
+
+    # optimizer = torch.optim.Adam([canvas], lr=lr, weight_decay=1e-5)
+    for i in (pbar := tqdm.trange(steps, leave=False)):
+        canvas, loss = gradient_ascent_step(fe, canvas, lr=lr)
+        # optimizer.zero_grad()
+        # out = fe(canvas)["out"]
+        # Ensure each output matches exactly one filter
+        # eye = torch.eye(num_filters, device=device).reshape(
+        # num_filters, num_filters, 1, 1
+        # )
+        # out_ = eye * out
+        # loss = -torch.mean(out_, (1, 2, 3)).sum()
+        # loss.backward()
+        # optimizer.step()
+        with torch.no_grad():
+            # canvas.clamp_(-2, 2)
+            mean = float(canvas.numpy(force=True).mean())
+            min = float(canvas.numpy(force=True).min())
+            std = float(canvas.numpy(force=True).std())
+        pbar.set_description(
+            f"{i} {loss=:.2f} {canvas[0, 0, 0, 0]} {mean=:.2f} {min=:.2f} {std=:.2f}"
+        )
+    return canvas.detach()
+
+
+def gradient_ascent_step(fe, canvas, lr):
+    out = fe(canvas)["out"]
+    # Ensure each output matches exactly one filter
+    eye = torch.eye(canvas.shape[0], device=canvas.device).reshape(
+        canvas.shape[0], canvas.shape[0], 1, 1
+    )
+    out_ = eye * out
+    loss = torch.mean(out_, (1, 2, 3)).sum()
+    loss.backward()
+    grad = nn.functional.normalize(canvas.grad, p=2)
+    with torch.no_grad():
+        canvas += grad * lr
+        # canvas.clamp_(0, 1)
+        canvas.grad.zero_()
+    return canvas, loss.detach()
+
+
+def make_feature_extractor(model, layer: int, device):
+    model = copy.deepcopy(model).to(device)
+
+    def simple_forward(x):
+        features = model.encoder.model(x)
+        features = [x] + features
+        return features
+
+    model.encoder.forward = simple_forward
+    fe = create_feature_extractor(
+        model, {f"encoder.model.layer{layer + 1}": "out"}
+    )
+
+    fe = fe.eval()
+    return fe
 
 
 def visualize_gradient_per_class(model, batch, dir: str):

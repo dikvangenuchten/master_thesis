@@ -2,3 +2,4 @@ _target_: models.VariationalUNet
 image_channels: 3
 encoder_depth: 5
 encoder_weights: "imagenet"
+center_variational: True

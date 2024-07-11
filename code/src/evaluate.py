@@ -20,6 +20,7 @@ import metrics
 from metrics.base_metric import StepData
 from utils.visualize_feature_maps import (
     visualize_filters,
+    visualize_filters_batched,
     visualize_posteriors,
     visualize_encoder_features,
 )
@@ -31,7 +32,17 @@ def uint8_to_long(batch):
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
-def main(cfg: DictConfig) -> None:
+def hydra_main(cfg: DictConfig) -> None:
+    import glob
+
+    for model in glob.glob(
+        "/workspaces/master_thesis/code/models/beta-vae-experiment/**/model.pt",
+        recursive=True,
+    ):
+        main(cfg, model)
+
+
+def main(cfg: DictConfig, state_dict):
     # TODO make sure these are somewhat unique
     output_dir = "evaluation-graphs/vae"
     os.makedirs(output_dir, exist_ok=True)
@@ -56,15 +67,24 @@ def main(cfg: DictConfig) -> None:
     )
     model = hydra.utils.instantiate(
         cfg.model,
+        state_dict=state_dict,
+        load_encoder=True,
+        load_decoder=False,
+        load_segmentation_head=False,
         label_channels=cfg.num_classes,
     )
     model.eval()
+    dir = os.path.dirname(state_dict)[1:]
+    os.makedirs(dir, exist_ok=True)
+    visualize_filters_batched(
+        model, dir=dir, lr=1, steps=100, layers=list(range(1))
+    )
 
     loss_fn = hydra.utils.instantiate(cfg.loss)
 
     if cfg.dataset.output_structure.target == "img":
         l1_loss = losses.WrappedLoss(
-            torch.nn.L1Loss,
+            torch.nn.L1Loss(),
             keys={"out": "input", "input": "target"},
         )
         metric = metrics.AverageMetric(
@@ -85,8 +105,6 @@ def main(cfg: DictConfig) -> None:
     model, val_dataloader, metric, loss_fn = accel.prepare(
         model, val_dataloader, metric, loss_fn
     )
-
-    visualize_filters(model, 30)
 
     with torch.no_grad():
         for i, batch in enumerate(
@@ -111,4 +129,4 @@ def main(cfg: DictConfig) -> None:
 
 
 if __name__ == "__main__":
-    main()
+    hydra_main()

@@ -349,6 +349,7 @@ class VariationalUNet(SegmentationModel):
         label_channels: int,
         encoder_depth: int = 5,
         decoder_channels: List[int] = (256, 128, 64, 32, 16),
+        center_variational: bool = True,
         skip_connections: List[bool] = [True] * 5,
         variational_skip_connections: List[bool] = [True] * 5,
         encoder_name="mobilenetv2_100",
@@ -388,6 +389,7 @@ class VariationalUNet(SegmentationModel):
             encoder_channels=self.encoder.out_channels,
             decoder_channels=decoder_channels,
             n_blocks=encoder_depth,
+            center_variational=center_variational,
             use_batchnorm=True,
             center=True if encoder_name.startswith("vgg") else False,
             attention_type=None,
@@ -423,6 +425,9 @@ class VariationalUNet(SegmentationModel):
                 encoder=load_encoder,
                 decoder=load_decoder,
                 segmentation_head=load_segmentation_head,
+                warn=load_encoder
+                and load_decoder
+                and load_segmentation_head,
             )
 
     def prepare_input(self, x) -> torch.Tensor:
@@ -445,6 +450,7 @@ class VariationalUNet(SegmentationModel):
         encoder: bool = True,
         decoder: bool = True,
         segmentation_head: bool = False,
+        warn: bool = True,
     ):
         if not encoder:
             state_dict = {
@@ -467,11 +473,11 @@ class VariationalUNet(SegmentationModel):
         missing, unexpected = self.load_state_dict(
             state_dict, strict=strict, assign=assign
         )
-        if missing:
+        if missing and warn:
             logging.warning(
                 f"During the loading of the state_dict, the following keys were missing: {missing}. This is to be expected if the state_dict is only partially loaded"
             )
-        if unexpected:
+        if unexpected and warn:
             logging.warning(
                 f"During the loading of the state_dict, the following keys were unexpected: {unexpected}."
             )
