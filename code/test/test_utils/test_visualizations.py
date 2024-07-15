@@ -18,7 +18,7 @@ def test_visualize_filters(device, tmp_path):
     visualize_filters(model, tmp_path, steps=1, device=device)
 
 
-def test_visualize_filters_batch(tmp_path):
+def test_visualize_filters_batch(tmp_path, device):
     model = VariationalUNet(
         3,
         3,
@@ -28,4 +28,4 @@ def test_visualize_filters_batch(tmp_path):
         variational_skip_connections=[False] * 5,
     )
 
-    visualize_filters_batched(model, dir=tmp_path, steps=1)
+    visualize_filters_batched(model, dir=tmp_path, steps=1, device=device)
