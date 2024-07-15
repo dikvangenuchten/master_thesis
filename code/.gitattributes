@@ -1,4 +1,1 @@
-models/pretrained-vae.pt filter=lfs diff=lfs merge=lfs -text
-models/pretrained-var-unet-seg-enc-dec.pt filter=lfs diff=lfs merge=lfs -text
-models/pretrained-var-unet-seg-enc.pt filter=lfs diff=lfs merge=lfs -text
-models/pretrained-var-unet.pt filter=lfs diff=lfs merge=lfs -text
+models/*.pt filter=lfs diff=lfs merge=lfs -text
