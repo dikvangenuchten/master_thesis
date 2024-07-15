@@ -131,7 +131,7 @@ def visualize_filters(
 
         canvas_history = []
         num_filters = out.shape[1]
-        rand_input = torch.rand((num_filters, 3, 64, 64), device=device)
+        rand_input = torch.rand((num_filters, 3, 32, 32), device=device)
         out = fe(rand_input)["out"]
 
         for filter in tqdm.trange(
@@ -188,7 +188,7 @@ def visualize_layer(
     num_filters = out.shape[1]
 
     canvas = torch.tensor(
-        np.random.normal(0.5, 0.1, (num_filters, 3, 128, 128)),
+        np.random.normal(0.5, 0.1, (num_filters, 3, 32, 32)),
         dtype=torch.float32,
         device=device,
         requires_grad=True,
@@ -238,14 +238,8 @@ def gradient_ascent_step(fe, canvas, lr):
 def make_feature_extractor(model, layer: int, device):
     model = copy.deepcopy(model).to(device)
 
-    def simple_forward(x):
-        features = model.encoder.model(x)
-        features = [x] + features
-        return features
-
-    model.encoder.forward = simple_forward
     fe = create_feature_extractor(
-        model, {f"encoder.model.layer{layer + 1}": "out"}
+        model.encoder.model, {f"layer{layer + 1}": "out"}
     )
 
     fe = fe.eval()
