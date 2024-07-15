@@ -2,6 +2,8 @@ import time
 import pytest
 import torch
 from torchvision.tv_tensors import Image
+from torch.utils.data import DataLoader
+from torchvision.transforms import v2 as transforms
 
 from datasets.toy_data import (
     SegmentationToyDataset,
@@ -137,6 +139,38 @@ def test_in_memory_caching(monkeypatch):
     assert (mid - start) > sleep_time
     assert (mid - start) > (end - mid)
 
+
+def test_in_memory_caching_dataloader():
+    cache_dir = "in_memory"
+    ds = CoCoDataset(
+        split="train",
+        output_structure={"img": "img", "target": "semantic_mask"},
+        dataset_root="test/data",
+        cache_dir=cache_dir,
+        transform=transforms.Resize((128, 128)),
+        percentage=0.25
+    )
+
+    loader = DataLoader(ds, batch_size=2)
+    all_batch_1, times_1 = zip(*[(b, time.time()) for b in loader])
+    all_batch_2, times_2 = zip(*[(b, time.time()) for b in loader])
+    all_batch_3, times_3 = zip(*[(b, time.time()) for b in loader])
+
+    # Ensure all samples that are generated are equal
+    # This is only the case because transform is deterministic
+    assert all(torch.equal(batch_1["img"], batch_2["img"]) for (batch_1, batch_2) in zip(all_batch_1, all_batch_2))
+    assert all(torch.equal(batch_1["target"], batch_2["target"]) for (batch_1, batch_2) in zip(all_batch_1, all_batch_2))
+    assert all(torch.equal(batch_3["img"], batch_2["img"]) for (batch_3, batch_2) in zip(all_batch_3, all_batch_2))
+    assert all(torch.equal(batch_3["target"], batch_2["target"]) for (batch_3, batch_2) in zip(all_batch_3, all_batch_2))
+
+    # In memory should be much faster then not in memory
+    # Calculate the timedifference between each new sample
+    diff_1 = [b - a for (a, b) in zip(times_1[:-1], times_1[1:])]
+    diff_2 = [b - a for (a, b) in zip(times_2[:-1], times_2[1:])]
+    diff_3 = [b - a for (a, b) in zip(times_3[:-1], times_3[1:])]
+    # Ensure the second (and third) pass are all quicker then the first
+    assert all(d1 > d2 for (d1, d2) in zip(diff_1, diff_2))
+    assert all(d1 > d3 for (d1, d3) in zip(diff_1, diff_3))
 
 def test_percentage():
     ds_full = CoCoDataset(
