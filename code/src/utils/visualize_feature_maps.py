@@ -1,4 +1,5 @@
 import copy
+import itertools
 import math
 import os
 from typing import List
@@ -15,6 +16,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tqdm
 
+def batched(iterable, n):
+    # From: https://docs.python.org/3/library/itertools.html#itertools.batched
+    # batched('ABCDEFG', 3) → ABC DEF G
+    if n < 1:
+        raise ValueError('n must be at least one')
+    iterator = iter(iterable)
+    while batch := tuple(itertools.islice(iterator, n)):
+        yield batch
 
 def _visualize_3d_tensor(
     input_img, tensor: torch.Tensor, title: str
@@ -184,46 +193,41 @@ def visualize_filters_batched(
 def visualize_layer(
     fe: nn.Module, lr: float, steps: int, device="cuda"
 ) -> torch.Tensor:
-    out = fe(torch.rand((1, 3, 128, 128), device=device))["out"]
+    torch.cuda.reset_peak_memory_stats(device=None)
+    pre = torch.cuda.max_memory_allocated(device=None)
+    out = fe(torch.rand((1, 3, 256, 256), device=device))["out"]
+    post = torch.cuda.max_memory_allocated(device=None)
+    free, _ = torch.cuda.mem_get_info()
+    _, exp = math.frexp(free / (post - pre))
+    max_batch_size = 2 ** (exp - 2)
     num_filters = out.shape[1]
 
-    canvas = torch.tensor(
-        np.random.normal(0.5, 0.1, (num_filters, 3, 32, 32)),
-        dtype=torch.float32,
-        device=device,
-        requires_grad=True,
-    )
-
-    # optimizer = torch.optim.Adam([canvas], lr=lr, weight_decay=1e-5)
-    for i in (pbar := tqdm.trange(steps, leave=False)):
-        canvas, loss = gradient_ascent_step(fe, canvas, lr=lr)
-        # optimizer.zero_grad()
-        # out = fe(canvas)["out"]
-        # Ensure each output matches exactly one filter
-        # eye = torch.eye(num_filters, device=device).reshape(
-        # num_filters, num_filters, 1, 1
-        # )
-        # out_ = eye * out
-        # loss = -torch.mean(out_, (1, 2, 3)).sum()
-        # loss.backward()
-        # optimizer.step()
-        with torch.no_grad():
-            # canvas.clamp_(-2, 2)
-            mean = float(canvas.numpy(force=True).mean())
-            min = float(canvas.numpy(force=True).min())
-            std = float(canvas.numpy(force=True).std())
-        pbar.set_description(
-            f"{i} {loss=:.2f} {canvas[0, 0, 0, 0]} {mean=:.2f} {min=:.2f} {std=:.2f}"
+    tot_canvas = []
+    for index in batched(range(num_filters), n=max_batch_size):
+        canvas = torch.tensor(
+            np.random.normal(0.5, 0.1, (len(index), 3, 256, 256)),
+            dtype=torch.float32,
+            device=device,
+            requires_grad=True,
         )
-    return canvas.detach()
+        for i in (pbar := tqdm.trange(steps, leave=False)):
+            canvas, loss = gradient_ascent_step(fe, canvas, lr=lr, index=index)
+            pbar.set_description(
+                f"{i} {loss=:.2f}"
+            )
+        tot_canvas.append(canvas.detach().cpu())
+    return torch.cat(tot_canvas, 0)
 
 
-def gradient_ascent_step(fe, canvas, lr):
+def gradient_ascent_step(fe, canvas, lr, index=None):
     out = fe(canvas)["out"]
     # Ensure each output matches exactly one filter
     eye = torch.eye(canvas.shape[0], device=canvas.device).reshape(
         canvas.shape[0], canvas.shape[0], 1, 1
     )
+    if index is not None:
+        # Shape of out is: [batch, filters, h', w']
+        out = out[:, index]
     out_ = eye * out
     loss = torch.mean(out_, (1, 2, 3)).sum()
     loss.backward()
