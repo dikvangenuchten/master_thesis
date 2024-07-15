@@ -1,1 +1,17 @@
 /code/models/pretrained-vae.pt filter=lfs diff=lfs merge=lfs -text
+/code/models/vae/beta-vae-experiment/0/model.pt filter=lfs diff=lfs merge=lfs -text
+/code/models/vae/beta-vae-experiment/0/optimizer.pt filter=lfs diff=lfs merge=lfs -text
+/code/models/vae/beta-vae-experiment/1/model.pt filter=lfs diff=lfs merge=lfs -text
+/code/models/vae/beta-vae-experiment/1/optimizer.pt filter=lfs diff=lfs merge=lfs -text
+/code/models/vae/beta-vae-experiment/2/model.pt filter=lfs diff=lfs merge=lfs -text
+/code/models/vae/beta-vae-experiment/2/optimizer.pt filter=lfs diff=lfs merge=lfs -text
+/code/models/vae/beta-vae-experiment/3/model.pt filter=lfs diff=lfs merge=lfs -text
+/code/models/vae/beta-vae-experiment/3/optimizer.pt filter=lfs diff=lfs merge=lfs -text
+/code/models/vae/beta-vae-experiment/4/model.pt filter=lfs diff=lfs merge=lfs -text
+/code/models/vae/beta-vae-experiment/4/optimizer.pt filter=lfs diff=lfs merge=lfs -text
+/code/models/vae/beta-vae-experiment/5/model.pt filter=lfs diff=lfs merge=lfs -text
+/code/models/vae/beta-vae-experiment/5/optimizer.pt filter=lfs diff=lfs merge=lfs -text
+/code/models/vae/beta-vae-experiment/6/model.pt filter=lfs diff=lfs merge=lfs -text
+/code/models/vae/beta-vae-experiment/6/optimizer.pt filter=lfs diff=lfs merge=lfs -text
+/code/models/vae/beta-vae-experiment/7/model.pt filter=lfs diff=lfs merge=lfs -text
+/code/models/vae/beta-vae-experiment/7/optimizer.pt filter=lfs diff=lfs merge=lfs -text
