@@ -18,6 +18,7 @@
 	"shutdownAction": "none",
 	"mounts": [
 		"source=${localEnv:HOME}${localEnv:USERPROFILE}/data,target=/datasets,type=bind,consistency=cached",
+		"source=${localEnv:HOME}/.ssh,target=/home/dev-user/.ssh,type=bind,consistency=cached",
 	],
 	"features": {
 		// "ghcr.io/devcontainers/features/github-cli:1": {}
