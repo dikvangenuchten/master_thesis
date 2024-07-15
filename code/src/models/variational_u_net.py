@@ -9,6 +9,7 @@ from torchseg.base import (
 from torchseg.encoders import get_encoder
 from torchseg.decoders.unet.decoder import DecoderBlock
 from torch import Tensor, nn, distributions
+from torch.nn.common_types import _size_2_t  # Import some typings
 from torchvision.transforms import v2 as transforms
 
 
@@ -67,9 +68,9 @@ class VariationalConv2d(MetadataModule):
         in_channels,
         out_channels,
         kernel_size,
-        stride,
-        padding,
-        bias,
+        stride: _size_2_t = 1,
+        padding: Union[str, _size_2_t] = 0,
+        bias: bool = True,
     ) -> None:
         super().__init__()
         self._conv = nn.Conv2d(
@@ -286,6 +287,10 @@ class VariationalUnetDecoder(nn.Module):
                 use_batchnorm=use_batchnorm,
                 variational=center_variational,
             )
+        elif center_variational:
+            self.center = VariationalConv2d(
+                head_channels, head_channels, kernel_size=1, padding=0
+            )
         else:
             self.center = nn.Identity()
 
@@ -414,7 +419,7 @@ class VariationalUNet(SegmentationModel):
             if isinstance(state_dict, str):
                 try:
                     state_dict = torch.load(state_dict)
-                except FileNotFoundError as e:
+                except FileNotFoundError:
                     logging.warning(
                         f"Could not find state dict in: {state_dict}. Trying parent directory"
                     )
