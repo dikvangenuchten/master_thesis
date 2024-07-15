@@ -19,7 +19,6 @@ import losses
 import metrics
 from metrics.base_metric import StepData
 from utils.visualize_feature_maps import (
-    visualize_filters,
     visualize_filters_batched,
     visualize_posteriors,
     visualize_encoder_features,

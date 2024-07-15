@@ -8,7 +8,6 @@ from datasets.toy_data import (
     ToySegmentationTransform,
 )
 from datasets.coco import CoCoDataset
-import timeit
 
 
 def test_toy_dataset_initialization():

@@ -6,7 +6,6 @@ import torch
 from torch import nn
 
 import torch.random
-import torchvision
 from torchvision import utils
 from torchvision.models.feature_extraction import (
     create_feature_extractor,
@@ -132,9 +131,7 @@ def visualize_filters(
 
         canvas_history = []
         num_filters = out.shape[1]
-        rand_input = torch.rand(
-            (num_filters, 3, 64, 64), device=device
-        )
+        rand_input = torch.rand((num_filters, 3, 64, 64), device=device)
         out = fe(rand_input)["out"]
 
         for filter in tqdm.trange(
@@ -260,7 +257,6 @@ def visualize_gradient_per_class(model, batch, dir: str):
         input = model.prepare_input(batch["input"])
     else:
         input = batch["input"]
-    features = model.encoder(input)
+    model.encoder(input)
 
     os.makedirs(dir, exist_ok=True)
-    all_figs = []
