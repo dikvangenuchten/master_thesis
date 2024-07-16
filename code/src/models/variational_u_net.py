@@ -154,7 +154,7 @@ class VariationalConv2dReLU(MetadataModule):
         return state
 
 
-class VariationalCenterBlock(MetadataModule):
+class VariationalCenterBlock(nn.Module):
     """Variational variant of torchseg.decoders.CenterBlock"""
 
     def __init__(
@@ -189,9 +189,9 @@ class VariationalCenterBlock(MetadataModule):
                 use_batchnorm=use_batchnorm,
             )
 
-    def forward(self, state):
-        state = self._conv1(state["out"])
-        state["out"] = self._conv2(state)
+    def forward(self, x):
+        x = self._conv1(x)
+        state = self._conv2(x)
         return state
 
 
@@ -211,12 +211,15 @@ class VariationalDecoderBlock(MetadataModule):
         variational: bool = True,
     ):
         super().__init__()
-        self._skip_projection = VariationalConv2dReLU(
-            in_channels=skip_channels,
-            out_channels=skip_channels,
-            kernel_size=1,
-            variational=variational,
-        )
+        self._use_skip = False
+        if skip_channels > 0:
+            self._skip_projection = VariationalConv2dReLU(
+                in_channels=skip_channels,
+                out_channels=skip_channels,
+                kernel_size=1,
+                variational=variational,
+            )
+            self._use_skip = True
         self._decoder_block = DecoderBlock(
             in_channels=in_channels,
             skip_channels=skip_channels,
@@ -227,7 +230,7 @@ class VariationalDecoderBlock(MetadataModule):
 
     def forward(self, state, skip=None):
         x = state["out"]
-        if skip is not None:
+        if self._use_skip and skip is not None:
             skip_state = self._skip_projection(skip)
             state.setdefault("priors", []).extend(
                 skip_state.get("priors", [])
@@ -235,6 +238,7 @@ class VariationalDecoderBlock(MetadataModule):
             state.setdefault("posteriors", []).extend(
                 skip_state.get("posteriors", [])
             )
+            skip = skip_state["out"]
         out = self._decoder_block(x, skip)
         state = {
             "out": out,
