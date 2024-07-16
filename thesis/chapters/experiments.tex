@@ -1,8 +1,48 @@
 \chapter{Experimental Setup}\label{chapter:second_real_chapter}
 
-\subsection*{In distribution}
-We will take a fully labeled dataset $\{\mathcal{X}, \mathcal{Y} \} \in \mathcal{D}$. First the "classic" H-VAE is trained, following Efficient-VDVAE \cite{hazami2022efficientvdvae}, on the the full set $\mathcal{X}$. After convergence, the pretrained $p_\theta$ is used to finetune $q_\xi$, on a (sub)set of $\mathcal{D}$.
-Subsets of various sizes will be tested. Definitely  10, 50 and 100 percent of the (training) dataset will be tested, and if time allows more sizes will be tried.
+
+\subsection*{Comparative study with discriminative methods}
+The following semantic segmentation models will be tested
+UNet (\cite{ronneberger2015u}, no pretraining)
+UNet (With pretrained backbone (e.g. resnet))
+VAE (No pretraining, various backbones can be tested)
+VAE (Pretraining on images, various backbones can be tested)
+
+One of the benefits of using VAE as basic architecture, is the possibility of pretraining using the reconstruction task. This could allow for a better initialization of the starting weigths, which in turn could lead to either faster or better convergence. However, in practice this was not the case. Looking at the first few convolutional layers might give insight in what the differenc tasks are prioritizing. Hence, a comparative study is done between the visualized filters.
+
+To better understand the effects of the following reducing the amount of labeled data, the following questions should be answered.
+\begin{itemize}
+    \item What is the influence of a reduced amount of labeled data on the baseline network?
+    \item What is the influence of a reduced amount of labeled data on the VAE network?
+    \item What is the influence of a reduced amount of labeled data on the pretrained VAE network?
+\end{itemize}
+To do this, each model will be trained with a subset of the data and the performance degredation will be compared.
+
+
+Furthermore, it might be nice to investigate if the dataset can contain non-overlapping data
+\begin{itemize}
+    \item 90 percent of training data for VAE training, other 10 percent for VASegm
+    \item A subset of classes in training data to train VAE, then a few unseen classes for the VAsegm
+\end{itemize}
+
+Another possible experiment is, to view the uncertainty/variance of unseen classes. Take N samples from the latent space, to see if the variance of unknown objects have a higher variance then seen/known objects.
+
+The three 'variables'
+(not) seen in VAE training
+(not) seen in VAEseg training
+What is the variance for these objects in a test set.
+
+
+Also try to make some of the skip connection not variational
+
+
+
+
+
+
+% \subsection*{In distribution}
+% We will take a fully labeled dataset $\{\mathcal{X}, \mathcal{Y} \} \in \mathcal{D}$. First the "classic" H-VAE is trained, following Efficient-VDVAE \cite{hazami2022efficientvdvae}, on the the full set $\mathcal{X}$. After convergence, the pretrained $p_\theta$ is used to finetune $q_\xi$, on a (sub)set of $\mathcal{D}$.
+% Subsets of various sizes will be tested. Definitely  10, 50 and 100 percent of the (training) dataset will be tested, and if time allows more sizes will be tried.
 
 \subsection*{Out of distribution}
 A good foundation model should be able to be trained on a generic dataset, to be subsequently finetuned on a specific dataset. To understand if this is also the case for our method, we will first train the H-VAE on one dataset. This model will then be finetuned using a different dataset.

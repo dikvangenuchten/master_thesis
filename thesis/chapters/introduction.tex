@@ -1,10 +1,41 @@
 \chapter{Introduction}\label{chapter:introduction}
 
+
+\subsection*{Problem statement}
+The training of machine learning models requires a lot of data, of which especially the labeling is often costly and labor intensive. Furthermore, when the data domain changes, previously labeled data is not always useful anymore. This is also the case for mobile robotic systems, which are often deployed in specific environments that benefit from finetuning. Current methods often use a generic task specific dataset on which a base model is trained, after which it is finetuned using an environment specific smaller dataset. However, the pretraining 
+
+
+
+\subsection*{Research Questions}
+\begin{itemize}
+    \item Can VAEs be adapted to generate (semantic) segmentation masks?
+    \item Can the encoder of VAEs reduce the required amount of labeled data for semantic segmentation?
+\end{itemize}
+
+\subsection*{Hypothesis}
+The hypothesis is that by training a VAE on a dataset, we can achieve similar results while requiring less labeled data. As a baseline we will use an UNet, proposed \cite{ronneberger2015u} and it's successor \cite{zhou2018unet++}
+
+\subsection*{Experiments}
+To answer the questions above we will run the following experiments:
+
+\subsubsection*{Finding best backbone}
+Although in the ideal world we will run all experiments with all of the backbones, it might not be feasible timewise. At the very least we will train each of the models using the full structure
+
+
+
+
+
+
+
+
+
+
+
 \subsection*{Mobile Robotics}
 Explain the context of the thesis, Mobile robotics. Reference and explain (high level) semantic slam.
 Here I will explain the main problems: Novel environments and Real Time (latency, ram and flops) requirement (+ limited computational power although this is more a flops vs accuracy trade-off).
 
-Introduce the problem of the costly labeling process, especially in-distribution data as driving the robot manually is hard (bring robot, drive around manually), whereas walking around with a (similar) camera is easier. Reason to have foundational models, however the currently used foundational models are often stil trained on labeled data. (Or are based on transformers and require the same power to train as an average american household need a year (DINOv2))
+Introduce the problem of the costly labeling process, especially in-distribution data as driving the robot manually is hard (bring robot, drive around manually), whereas walking around with a (similar) camera is easier. Reason to have foundational models, however the currently used foundational models are often stil trained on labeled data. (Or are based on transformers and require the same power to train as an average american household need a year (DINOv2)).
 
 \subsection*{Uncertainty Quantification}
 Why do we want it?
@@ -15,7 +46,7 @@ Why do we want it?
 \subsection*{VAE}
 Explain why we chose for a VAE:
 - Due to its probabilstic formulation can easily be used for bootstrapping
-- 
+- Unlabeled pretraining of the encoder part of the network
 
 
 \section*{OLD PARAGRAPH}
@@ -65,3 +96,20 @@ Metrics:
 Quality: e.g. accuracy, iou, \dots
 UQ metrics: e.g. ECE,
 Computational: e.g. latency, memory, Flops
+First experiment: Compare on accuracy/metrics:
+1. Our Method: V'AE' + CELoss (Very basic version of our method)
+2. Basic: Resnet (scratch) + UNet + CELoss (Segmentation Models)
+3. VAE + Recon -> Pretrained backbone
+
+Further experiments
+1. OoD (Uncertainty higher/well callibrated)
+2. Does pretrained VAE require less labeled data?
+
+Experiment for OoD
+The following setting:
+We have a lot of unlabeled in distribution data (e.g. robot that drives around)
+Followed by a human that takes pictures of specific elements (Other angle then robot)
+
+An example use case that would be intresting for Avular -> One object is not recognized good enough or is of high importance that it should be recognized. Making images from the robot from various angles is tedious, however taking pictures with your phone (or handheld camera) is easier to do from various angles + you know that all pictures contain useful objects.
+
+Do these human made pictures prove to be useful for making the unlabeled data
