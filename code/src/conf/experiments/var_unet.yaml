@@ -4,7 +4,7 @@ defaults:
   - override /optimizer: sgd
   - override /loss: recon_loss
   - override /model: var_unet
-  - override /scheduler: step
+  - override /scheduler: constant
 
 dataset:
   output_structure:
