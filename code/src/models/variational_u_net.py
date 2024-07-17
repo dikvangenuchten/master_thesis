@@ -1,12 +1,12 @@
 import logging
-from typing import Any, Dict, List, Mapping, Union
+from typing import Any, Dict, List, Mapping, Optional, Tuple, Union
 import torch
 from torchseg.base import (
     modules,
     SegmentationModel,
     SegmentationHead as SegmentationHead_,
 )
-from torchseg.encoders import get_encoder
+from torchseg.encoders import get_encoder, TIMM_VIT_ENCODERS
 from torchseg.decoders.unet.decoder import DecoderBlock
 from torch import Tensor, nn, distributions
 from torch.nn.common_types import _size_2_t  # Import some typings
@@ -369,6 +369,7 @@ class VariationalUNet(SegmentationModel):
         load_encoder: bool = True,
         load_decoder: bool = True,
         load_segmentation_head: bool = True,
+        img_size: Optional[Tuple[int, int]] = None
     ):
         super().__init__()
         if encoder_weights is None or encoder_weights.lower() == "none":
@@ -383,6 +384,10 @@ class VariationalUNet(SegmentationModel):
         self._normalize = transforms.Normalize(
             mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
         )
+        
+        if encoder_name in TIMM_VIT_ENCODERS and img_size is not None:
+            assert img_size[0] == img_size[1], "Input must be square"
+            encoder_params["img_size"] = img_size[0]
 
         self.encoder = get_encoder(
             encoder_name,
