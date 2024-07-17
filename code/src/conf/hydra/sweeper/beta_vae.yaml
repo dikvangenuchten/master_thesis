@@ -3,7 +3,7 @@ defaults:
 
 params:
   +experiments: choice('var_unet')
-  model.encoder_weights: choice("imagenet", "None")
+  model.encoder_weights: choice("None")
   loss.losses.kl_divergence.start_value: choice(10, 1, 0.1, 0.01)
-  +trainer.init_kwargs.wandb.group: "beta_vae_3"
+  +trainer.init_kwargs.wandb.group: "beta_vae_4"
   +trainer.init_kwargs.wandb.notes: "Sweep to check the various features layers of various beta values"

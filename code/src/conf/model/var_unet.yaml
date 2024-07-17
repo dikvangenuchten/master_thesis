@@ -3,3 +3,4 @@ image_channels: 3
 encoder_depth: 5
 encoder_weights: "imagenet"
 center_variational: True
+img_size: ${input_shape}

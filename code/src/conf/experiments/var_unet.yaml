@@ -1,10 +1,10 @@
 # @package _global_
 defaults:
   - /loss@eval_metric: l1_loss
-  - override /optimizer: sgd
+  - override /optimizer: adamax
   - override /loss: recon_loss
   - override /model: var_unet
-  - override /scheduler: constant
+  - override /scheduler: cosine_annealing
 
 dataset:
   output_structure:
