@@ -10,6 +10,11 @@ defaults:
  run:
   working-directory: ./code
 
+concurrency:
+  # Stop runs when a newer commit is pushed
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   pytest:
     runs-on: ubuntu-latest
