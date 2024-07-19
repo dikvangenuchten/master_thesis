@@ -1,5 +1,37 @@
 \chapter{Experimental Setup}\label{chapter:second_real_chapter}
 
+\section{Dataset}
+\paragraph{COCO.} COCO \cite{lin2015microsoftcococommonobjects} is a publicly available dataset and has a multitude of labels. The semantic mask are extrated from the 2017 Panoptic annotations. This set contains more then 100k images that are densly annotated with both the semantic class and instance. There are a total of 133 different classes which belong to 27 'supercategories'. To reduce the complexity and speed up convergence, only the supercategories are used.
+
+\paragraph{CamVid}
+
+
+
+
+\section{Ablation Study}
+
+\subsection{Backbone}
+Trying various backbones for VAE
+
+\subsection{Beta}
+Trying various Beta values for the loss, higher will likely result in a worse VAE model. However it may lead to a better VAsegm model.
+
+\subsection{Freezing}
+Trying to freeze the encoder part. An added benefit to this is that we still have our original $P(z | x)$ model, which can then be used to potentially detect distribution drift. Furthermore, it makes the switch to an multimodal VAE, such as proposed in \cite{vasco2020mhvae}, possible.
+
+\subsection{Skip Connection}
+To understand the importance of the skip connections which are added after the 
+
+\subsection{Probabilistic Inference}
+Another potential benefit of the VAEseg is the probabilistic nature of the model. Using bootstrapping, an uncertainty measure can be created. To understand if this certainty measure is a useful predictor of the actual certainty of the output. The ECE is reported for various sizes of bootstrapping.
+
+\section{Understanding potential benefits of VAE}
+\subsection*{ImageNet Bias}
+\#TODO provide some examples of the (racial) bias problems of Imagenet. Might be able to generalize it to human made labels, hence benefit of VAE.
+
+As previous research already has shown (TODO link research), models that use a pretrained backbone which is trained on the ImageNet dataset, contain various biases. As our backbone is not trained on ImageNet a small qualitative research will be done on the 2 models. To detect wheter the bias differs between the VASegm and an UNet-segmentation model. This is done by training two models, one using a frozen encoder which is trained on ImageNet, and one that is trained using the VAE. Based on some initial datavisualization it was suggested that ImageNet contained some racial biases in which it depicted persons of color more often as animals in comparison to the wrongly predicted caucasians people.
+
+\subsection{}
 
 \subsection*{Comparative study with discriminative methods}
 The following semantic segmentation models will be tested
