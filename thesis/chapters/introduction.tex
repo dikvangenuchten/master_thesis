@@ -1,115 +1,18 @@
 \chapter{Introduction}\label{chapter:introduction}
 
+Mobile robotics is a rapidly growing field that has numerous applications in industries such as logistics, agriculture, and healthcare \cite{cognominal2021evolving,kebede2024review,clark2023amazon}. With the increasing demand for efficient and autonomous mobile robots, researchers have been exploring various techniques to improve their performance. However, one of the major challenges faced by these robots is their limited ability to generalize to new environments and scenarios \cite{alatise2020review}.This can lead to poor performance and limited adaptability, highlighting the need for more effective unsupervised pretraining methods.
 
-\subsection*{Problem statement}
-The training of machine learning models requires a lot of data, of which especially the labeling is often costly and labor intensive. Furthermore, when the data domain changes, previously labeled data is not always useful anymore. This is also the case for mobile robotic systems, which are often deployed in specific environments that benefit from finetuning. Current methods often use a generic task specific dataset on which a base model is trained, after which it is finetuned using an environment specific smaller dataset. However, the pretraining 
-
-
+In recent years, machine learning is increasingly used in mobile robotics \cite{almeida2018localization,yu2018ds}. The current state of the art models are often pretrained on large-scale datasets and subsequently fine-tunded for the specific task and environment at hand \cite{Goodfellow-et-al-2016}. However, the data distribution encountered by robots in real-world scenarios is often vastly different from the one they were trained on, which can lead to poor performance and limited adaptability.
 
 \subsection*{Research Questions}
+This research aims to investigate whether unsupervised pretraining methods can be used to improve the performance of mobile robotics. It will explore how Variational AutoEncoders (VAEs) \cite{kingma2014autoencodingvariationalbayes} can be used to pretrain good feature extractors for semantic segmentation and the benefits the bayesian structure of the network has in terms of safety and robustness.
+
+Specifically, it will answer the following questions
 \begin{itemize}
-    \item Can VAEs be adapted to generate (semantic) segmentation masks?
-    \item Can the encoder of VAEs reduce the required amount of labeled data for semantic segmentation?
-\end{itemize}
-
-\subsection*{Hypothesis}
-The hypothesis is that by training a VAE on a dataset, we can achieve similar results while requiring less labeled data. As a baseline we will use an UNet, proposed \cite{ronneberger2015u} and it's successor \cite{zhou2018unet++}
-
-\subsection*{Experiments}
-To answer the questions above we will run the following experiments:
-
-\subsubsection*{Finding best backbone}
-Although in the ideal world we will run all experiments with all of the backbones, it might not be feasible timewise. At the very least we will train each of the models using the full structure
-
-
-
-
-
-
-
-
-
-
-
-\subsection*{Mobile Robotics}
-Explain the context of the thesis, Mobile robotics. Reference and explain (high level) semantic slam.
-Here I will explain the main problems: Novel environments and Real Time (latency, ram and flops) requirement (+ limited computational power although this is more a flops vs accuracy trade-off).
-
-Introduce the problem of the costly labeling process, especially in-distribution data as driving the robot manually is hard (bring robot, drive around manually), whereas walking around with a (similar) camera is easier. Reason to have foundational models, however the currently used foundational models are often stil trained on labeled data. (Or are based on transformers and require the same power to train as an average american household need a year (DINOv2)).
-
-\subsection*{Uncertainty Quantification}
-Why do we want it?
-- It allows the model to show when it is unfamiliar with a situation and is incapable of providing robust predictions. This inturn can be used to ensure that the robot takes proper precautions as to not endanger its environment or itself.
-- It allows for a smarter way of labeling new data. Saving a (hd) stream, takes a lot of bandwith, storage and is not effective. There exist various active learning strategies that can select the subset of images which should result in the most improvement.
-
-
-\subsection*{VAE}
-Explain why we chose for a VAE:
-- Due to its probabilstic formulation can easily be used for bootstrapping
-- Unlabeled pretraining of the encoder part of the network
-
-
-\section*{OLD PARAGRAPH}
-Deep learning models require a lot of (labeled) data, and are often computationally intensive. Although data is easily acquirable, the labeling process is labor intensive and thus expensive. Thus if the unlabeled data can be used to prime a model, it will require less labeled data to finetune on the specific task required. In the context of mobile robotics it is furthermore important to have a low computational cost for inference, such that the inference can happen on the edge. Finally, it is important that the robotic devices can handle unexpected situations safely. The first step towards that is recognizing model failures. When the uncertainty of our model can be correctly estimated, it can be used as a proxy for unknown situations, which then can be used to take precautions, such as a preemptive emergency stop.
-
-This thesis will investigate if VAEs are a suitable solution for semantic segmentation in mobile robotics. The following research questions are defined to investigate if this is the case.
-
-\paragraph*{Does bootstrapping give an accurate estimation of the error compared to state of the art solutions?} One of the main benefits of VAEs is that, by using batched inference, bootstrapping can be efficiently applied. Furthermore, bootstrapping has been proven to be useful for uncertainty quantification by several previous works \cite{chen2018use,kohl2018probabilistic,edupuganti2021uq_mri}. To measure this quantitavely the Expected Callibration Error, as proposed by ..., will be used. Furthermore, it should not reduce the accuracy of the segmenation significantly.
-
-\paragraph*{What is the computational efficientcy of VAEs?} Due to the limited available computing power on mobile robotics it is important to measure the computational efficiency of the proposed model during inference. However, due to constant advancements in (mobile) hardware [\#Cite NVIDIA?], this is not a stationary goal. Furthermore, it is important to compare this with current State of the Art (SOTA) models with comparable computational efficiency.
-
-
-\subsubsection{Self-Supervised Foundation Models}
-It is well known that in the field of machine learning more data leads to better models. However, acquiring (quality) data is often expensive, especially when humans are required for labeling.
-
-The labeling of data by humans is very costly, and often the bottleneck of improving models. Because the encoder of a VAE can be pretrained with unlabeled data, we hypothesis that this will reduce the amount of data that needs to be labeled. We take special intrest for the two possible cases:
-\begin{itemize}
-    \item Unlabeled data from the same data distribution (Simulated by taking the entire dataset for pretraining and a subset for finetuning). The goal is to achieve the same accuracy compared
-    \item Unlabeled data from a different data distribution (Simulated by taking a different dataset for the pretraining)
+    \item Does the encoder of a VAE produce useful features for the semantic segmenation task?
+    \item Can VAEs be adapted to generate (semantic) segmentation masks from images, leveraging the unsupervised pretraining process?
+    \item Does bootstrapping from the latent space of a variational encoder provide a reliable estimate of the confidence of the network for semantic segmentation tasks?
 \end{itemize}
 
 
-Mobile Robotics (Semantic SLAM):
-- Comes into contact with novel environments
-UQ is required
-- Real-time (No time for Human in the loop)
-
-
-Constraints/subproblems
-- Limited computational power
-Accuracy/Flops trade-off
-- Data labeling is costly, especially if a sensor breaks and is not produced anymore -> new data distribution
-Can we use pretraining of VAE?
-
-Personal Constraints
-- VAE as foundation model
-Why:
-- Unsupervised pretraining
-- Allows bootstrapping
-- Can do semantic segmentation
-
-Benefits of UQ
-- Smarter labeling/sampling
-
-Not really introduction material
-Metrics:
-Quality: e.g. accuracy, iou, \dots
-UQ metrics: e.g. ECE,
-Computational: e.g. latency, memory, Flops
-First experiment: Compare on accuracy/metrics:
-1. Our Method: V'AE' + CELoss (Very basic version of our method)
-2. Basic: Resnet (scratch) + UNet + CELoss (Segmentation Models)
-3. VAE + Recon -> Pretrained backbone
-
-Further experiments
-1. OoD (Uncertainty higher/well callibrated)
-2. Does pretrained VAE require less labeled data?
-
-Experiment for OoD
-The following setting:
-We have a lot of unlabeled in distribution data (e.g. robot that drives around)
-Followed by a human that takes pictures of specific elements (Other angle then robot)
-
-An example use case that would be intresting for Avular -> One object is not recognized good enough or is of high importance that it should be recognized. Making images from the robot from various angles is tedious, however taking pictures with your phone (or handheld camera) is easier to do from various angles + you know that all pictures contain useful objects.
-
-Do these human made pictures prove to be useful for making the unlabeled data
+% An example use case that would be intresting for Avular -> One object is not recognized good enough or is of high importance that it should be recognized. Making images from the robot from various angles is tedious, however taking pictures with your phone (or handheld camera) is easier to do from various angles + you know that all pictures contain useful objects.
