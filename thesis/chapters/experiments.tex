@@ -1,28 +1,35 @@
 \chapter{Experimental Setup}\label{chapter:second_real_chapter}
 
-\section{Dataset}
-\paragraph{COCO.} COCO \cite{lin2015microsoftcococommonobjects} is a publicly available dataset and has a multitude of labels. The semantic mask are extrated from the 2017 Panoptic annotations. This set contains more then 100k images that are densly annotated with both the semantic class and instance. There are a total of 133 different classes which belong to 27 'supercategories'. To reduce the complexity and speed up convergence, only the supercategories are used.
+\section{Implementation details}
+\subsection{Dataset}
+\paragraph{COCO\cite{lin2015microsoftcococommonobjects}} is a publicly available dataset and has a multitude of labels. The semantic mask are extrated from the 2017 Panoptic annotations. This set contains more then 100k images that are densly annotated with both the semantic class and instance. There are a total of 133 different classes which belong to 27 'supercategories'. To reduce the complexity and speed up convergence, only the supercategories are used. The images are scaled to 128x128 to allow for a bigger batch-size.
 
-\paragraph{CamVid}
+\paragraph{NOTE: Not yet sure if I will use this. CamVid\cite{BrostowFC:PRL2008,BrostowSFC:ECCV08}} is a high quality video database of driving data. It contains 702 frames with a resolution of 960x720, which are semantically labeled with 32 classes. It is often used as benchmark in real-time semantic segmentation tasks.
 
 
+\subsection{Training Settings}
+All models are implemented in PyTorch \cite{Ansel_PyTorch_2_Faster_2024} using an adapted version of the segmentation models repository \cite{Iakubovskii:2019}. All code and configs required to train the models and reproduce the experiments can be found on github \footnote[1]{\url{https://github.com/Generative-AI-TUe/msc-project-1297333}}. All models are trained on the NVIDIA Geforce RTX 2080 TI. The gradients are clipped using the norm, with a max value of 10. The AdaMax\cite{kingma2017adammethodstochasticoptimization} is used with a cosine annealing learning rate. Each model is trained on 20.000 minibatches.
+
+\section{Comparison against the baseline models}
+We compare our method against the two baseline methods, UNet and FPN. Each method is trained from scratch and using a pretrained encoder on ImageNet \cite{deng2009imagenet}. The mIoU is reported, aswell as the FLOPs and inference speed on the NVIDIA RTX 1070. 
+TODO Add the results here. I am not yet finished with the ablation study to determine the best model setup. I will try to keep the UNet and FPN settings as close as possible to the VAE settings.
 
 
 \section{Ablation Study}
+\subsection{Influence of the backbone}
+We first analyze the influence of the backbone on the performance of the VAE task by comparing the following backbones, MobilenetV2 \cite{sandler2019mobilenetv2invertedresidualslinear}, EfficientNet \cite{tan2020efficientnetrethinkingmodelscaling} and Resnet50 \cite{he2015deep}.
 
-\subsection{Backbone}
-Trying various backbones for VAE
+\subsection{Influence of the Beta factor}
+We also analyze the effect of increasing the beta factor on the quality of the encoder. 
 
-\subsection{Beta}
-Trying various Beta values for the loss, higher will likely result in a worse VAE model. However it may lead to a better VAsegm model.
-
-\subsection{Freezing}
-Trying to freeze the encoder part. An added benefit to this is that we still have our original $P(z | x)$ model, which can then be used to potentially detect distribution drift. Furthermore, it makes the switch to an multimodal VAE, such as proposed in \cite{vasco2020mhvae}, possible.
+\subsection{Unfreezing}
+To show the impact of freezing the encoder, we finetune a model that does not change the encoder model and compare it to one that is not frozen. The benefit of freezing the encoder is that the original $p(z |x)$ is preserved which can be used for anomaly detection. Furthermore, it makes the switch to an multimodal VAE, such as proposed in \cite{vasco2020mhvae}, possible.
 
 \subsection{Skip Connection}
-To understand the importance of the skip connections which are added after the 
+To understand the importance of the skip connections which are added after the pretraining. We will show the effect of this by incrementally removing more skip connections.
 
 \subsection{Probabilistic Inference}
+TODO not entirely sure if I have enough time for this
 Another potential benefit of the VAEseg is the probabilistic nature of the model. Using bootstrapping, an uncertainty measure can be created. To understand if this certainty measure is a useful predictor of the actual certainty of the output. The ECE is reported for various sizes of bootstrapping.
 
 \section{Understanding potential benefits of VAE}
@@ -31,69 +38,19 @@ Another potential benefit of the VAEseg is the probabilistic nature of the model
 
 As previous research already has shown (TODO link research), models that use a pretrained backbone which is trained on the ImageNet dataset, contain various biases. As our backbone is not trained on ImageNet a small qualitative research will be done on the 2 models. To detect wheter the bias differs between the VASegm and an UNet-segmentation model. This is done by training two models, one using a frozen encoder which is trained on ImageNet, and one that is trained using the VAE. Based on some initial datavisualization it was suggested that ImageNet contained some racial biases in which it depicted persons of color more often as animals in comparison to the wrongly predicted caucasians people.
 
-\subsection{}
 
-\subsection*{Comparative study with discriminative methods}
-The following semantic segmentation models will be tested
-UNet (\cite{ronneberger2015u}, no pretraining)
-UNet (With pretrained backbone (e.g. resnet))
-VAE (No pretraining, various backbones can be tested)
-VAE (Pretraining on images, various backbones can be tested)
+% \subsection*{General Metrics}
+% For all of the above experiments the following metrics will be tracked to get insight in the quality of the model.
 
-One of the benefits of using VAE as basic architecture, is the possibility of pretraining using the reconstruction task. This could allow for a better initialization of the starting weigths, which in turn could lead to either faster or better convergence. However, in practice this was not the case. Looking at the first few convolutional layers might give insight in what the differenc tasks are prioritizing. Hence, a comparative study is done between the visualized filters.
+% \begin{table}[]
+%     \begin{tabular}{l|l|l}
+%         Metric                      & Formula                                   & Reason                                     \\
+%         \hline
+%         Precision                   & $\frac{TP}{TP + FP}$                      & Standard practice                          \\
+%         Recall                      & $\frac{TP}{TP + FN}$                      & Standard practice                          \\
+%         Segmentation quality        & $\frac{\|TP\|}{\|FP\| + \|TP\| + \|FN\|}$ & Quantifly compare accuracy of the model    \\
+%         Expected Callibration Error &                                           & Check uncertainty prediction is reliable.
+%     \end{tabular}
+% \end{table}
 
-To better understand the effects of the following reducing the amount of labeled data, the following questions should be answered.
-\begin{itemize}
-    \item What is the influence of a reduced amount of labeled data on the baseline network?
-    \item What is the influence of a reduced amount of labeled data on the VAE network?
-    \item What is the influence of a reduced amount of labeled data on the pretrained VAE network?
-\end{itemize}
-To do this, each model will be trained with a subset of the data and the performance degredation will be compared.
-
-
-Furthermore, it might be nice to investigate if the dataset can contain non-overlapping data
-\begin{itemize}
-    \item 90 percent of training data for VAE training, other 10 percent for VASegm
-    \item A subset of classes in training data to train VAE, then a few unseen classes for the VAsegm
-\end{itemize}
-
-Another possible experiment is, to view the uncertainty/variance of unseen classes. Take N samples from the latent space, to see if the variance of unknown objects have a higher variance then seen/known objects.
-
-The three 'variables'
-(not) seen in VAE training
-(not) seen in VAEseg training
-What is the variance for these objects in a test set.
-
-
-Also try to make some of the skip connection not variational
-
-
-
-
-
-
-% \subsection*{In distribution}
-% We will take a fully labeled dataset $\{\mathcal{X}, \mathcal{Y} \} \in \mathcal{D}$. First the "classic" H-VAE is trained, following Efficient-VDVAE \cite{hazami2022efficientvdvae}, on the the full set $\mathcal{X}$. After convergence, the pretrained $p_\theta$ is used to finetune $q_\xi$, on a (sub)set of $\mathcal{D}$.
-% Subsets of various sizes will be tested. Definitely  10, 50 and 100 percent of the (training) dataset will be tested, and if time allows more sizes will be tried.
-
-\subsection*{Out of distribution}
-A good foundation model should be able to be trained on a generic dataset, to be subsequently finetuned on a specific dataset. To understand if this is also the case for our method, we will first train the H-VAE on one dataset. This model will then be finetuned using a different dataset.
-
-\subsection*{Novel Objects}
-To understand the ability of the model to generalize over novel object, first we will remove all images that contain segmentations of a specific class. The foundation and segmentation model will be trained on the partial dataset first. During testing we expect to have a high uncertainty for the locations with the novel objects present.
-
-\subsection*{General Metrics}
-For all of the above experiments the following metrics will be tracked to get insight in the quality of the model.
-
-\begin{table}[]
-    \begin{tabular}{l|l|l}
-        Metric                      & Formula                                   & Reason                                     \\
-        \hline
-        Precision                   & $\frac{TP}{TP + FP}$                      & Standard practice                          \\
-        Recall                      & $\frac{TP}{TP + FN}$                      & Standard practice                          \\
-        Segmentation quality        & $\frac{\|TP\|}{\|FP\| + \|TP\| + \|FN\|}$ & Quantifly compare accuracy of the model    \\
-        Expected Callibration Error &                                           & Check uncertainty prediction is reliable.
-    \end{tabular}
-\end{table}
-
-\footnote[1]{ECE is taken from \cite{guo2017calibration}}
+% \footnote[1]{ECE is taken from \cite{guo2017calibration}}
