@@ -18,7 +18,7 @@ def uint8_to_long(batch):
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
-def hydr_entrypoint(cfg: DictConfig) -> None:
+def hydra_entrypoint(cfg: DictConfig) -> None:
     return main(cfg)
 
 
@@ -64,7 +64,7 @@ def main(cfg: DictConfig) -> None:
         trainer.save(hydra_config.runtime.output_dir)
 
         # Run the final evaluation
-        if cfg.get("eval_metric") is not None:
+        if cfg.get("eval_metric") is not None and cfg.num_steps >0:
             if cfg.dataset.output_structure.target == "img":
                 l1_loss = losses.WrappedLoss(
                     torch.nn.L1Loss(),
@@ -86,7 +86,7 @@ def main(cfg: DictConfig) -> None:
             score = trainer.full_eval(eval_metric)
             score = cast_nested_tensor(score, device="cpu")
             return score
-        cast_nested_tensor(score, device="cpu")
+        cast_nested_tensor(last_loss, device="cpu")
         return last_loss
 
 
@@ -224,4 +224,4 @@ def cast_nested_tensor(value, device: str):
 
 
 if __name__ == "__main__":
-    main()
+    hydra_entrypoint()
