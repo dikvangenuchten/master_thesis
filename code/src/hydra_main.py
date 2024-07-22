@@ -10,6 +10,7 @@ from torchvision.transforms import v2 as transforms
 import losses
 import metrics
 import datasets
+import wandb
 
 
 def uint8_to_long(batch):
@@ -64,7 +65,7 @@ def main(cfg: DictConfig) -> None:
         trainer.save(hydra_config.runtime.output_dir)
 
         # Run the final evaluation
-        if cfg.get("eval_metric") is not None and cfg.num_steps >0:
+        if cfg.get("eval_metric") is not None and cfg.num_steps > 0:
             if cfg.dataset.output_structure.target == "img":
                 l1_loss = losses.WrappedLoss(
                     torch.nn.L1Loss(),
@@ -121,7 +122,7 @@ def create_trainer(cfg, pre_data_transforms, post_data_transforms):
 
     optimizer, scheduler = create_optimizer(cfg, model)
     logging.info("Created optimizer")
-    
+
     train_metrics, eval_metrics = create_metrics(cfg)
     logging.info("Created metrics")
 

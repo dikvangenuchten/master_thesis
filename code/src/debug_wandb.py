@@ -2,9 +2,13 @@
 """
 
 import logging
+logging.info("Imported: logging")
 from accelerate import Accelerator
+logging.info("Imported: Accelerator")
 import hydra
+logging.info("Imported: hydra")
 from omegaconf import DictConfig
+logging.info("Imported: DictConfig")
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
@@ -23,4 +27,5 @@ def hydra_entrypoint(cfg: DictConfig) -> None:
 
 
 if __name__ == "__main__":
+    logging.warning("Reached main")
     hydra_entrypoint()

@@ -7,8 +7,9 @@
             "request": "launch",
             "program": "src/hydra_main.py",
             "args": [
-                "+experiments=var_unet",
-                "model.encoder_name=flexivit_base"
+                "-m",
+                "hydra/sweeper=beta_vae_finetune",
+                "num_steps=0"
             ],
             "console": "integratedTerminal",
             "env": {
