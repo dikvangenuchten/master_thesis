@@ -114,10 +114,16 @@ def create_trainer(cfg, pre_data_transforms, post_data_transforms):
         cfg.model,
         label_channels=cfg.num_classes,
     )
+    logging.info("Created model")
+
     loss_fn = hydra.utils.instantiate(cfg.loss)
+    logging.info("Created loss_fn")
 
     optimizer, scheduler = create_optimizer(cfg, model)
+    logging.info("Created optimizer")
+    
     train_metrics, eval_metrics = create_metrics(cfg)
+    logging.info("Created metrics")
 
     # Required to be able to use config as kwarg.
     trainer_factory = hydra.utils.instantiate(
@@ -135,6 +141,7 @@ def create_trainer(cfg, pre_data_transforms, post_data_transforms):
         config=OmegaConf.to_container(cfg, resolve=True),
         data_transforms=post_data_transforms,
     )
+    logging.info("Created trainer")
 
     yield trainer
     # Clean up trackers

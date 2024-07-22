@@ -79,11 +79,13 @@ class Trainer:
             log_with=log_with,
             # mixed_precision="fp16"
         )
+        logging.info("Created accelerator")
         self._accelerator.init_trackers(
             project_name="MasterThesis",
             config=config,
             init_kwargs=init_kwargs,
         )
+        logging.info("Initialised trackers")
 
         self._clip_norm = clip_norm
 
@@ -135,6 +137,7 @@ class Trainer:
             scheduler,
             data_transforms,
         )
+        logging.info("Moved data to the GPU")
 
         self.train_dataloader = train_dataloader
         self.model = model
