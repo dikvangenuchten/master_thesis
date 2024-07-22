@@ -9,4 +9,5 @@ params:
   model.load_decoder: choice(True, False)
   model.load_segmentation_head: choice(False)
   state_dict: choice("models/beta-vae-4/b0.01", "models/beta-vae-4/b0.1", "models/beta-vae-4/b1", "models/beta-vae-4/b10")
-  
+  +trainer.init_kwargs.wandb.group: "beta_vae_finetune_1"
+  +trainer.init_kwargs.wandb.notes: "Sweep to check the finetuning of various beta values"
