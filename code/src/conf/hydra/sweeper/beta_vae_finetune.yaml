@@ -9,7 +9,7 @@ params:
   model.load_encoder: choice(True)
   model.load_decoder: choice(True, False)
   model.load_segmentation_head: choice(False)
-  model.freeze_encoder: choice(True)
+  model.freeze_encoder: choice(True, False)
   model.state_dict: choice("models/beta-vae-4/b0.01/model.pt", "models/beta-vae-4/b0.1/model.pt", "models/beta-vae-4/b1/model.pt", "models/beta-vae-4/b10/model.pt")
   +trainer.init_kwargs.wandb.group: "beta_vae_finetune_1"
   +trainer.init_kwargs.wandb.notes: "Sweep to check the finetuning of various beta values"
