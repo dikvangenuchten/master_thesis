@@ -367,6 +367,7 @@ class VariationalUNet(SegmentationModel):
         encoder_params: dict = {},
         state_dict: Union[None, str, dict] = None,
         load_encoder: bool = True,
+        freeze_encoder: bool = False,
         load_decoder: bool = True,
         load_segmentation_head: bool = True,
         img_size: Optional[Tuple[int, int]] = None
@@ -443,6 +444,10 @@ class VariationalUNet(SegmentationModel):
                 and load_decoder
                 and load_segmentation_head,
             )
+            
+        if freeze_encoder is True:
+            for layer in self.encoder.parameters():
+                layer.requires_grad = False
 
     def prepare_input(self, x) -> torch.Tensor:
         """Preprocesses the input"""
