@@ -1,0 +1,12 @@
+defaults:
+  - basic
+
+params:
+  +experiments: "segmentation_var_unet"
+  model.skip_connections: choice([True, True, True, True, True])
+  model.variational_skip_connections: choice([True, True, True, True, False])
+  model.load_encoder: choice(True)
+  model.load_decoder: choice(True, False)
+  model.load_segmentation_head: choice(False)
+  state_dict: choice("models/beta-vae-4/b0.01", "models/beta-vae-4/b0.1", "models/beta-vae-4/b1", "models/beta-vae-4/b10")
+  
