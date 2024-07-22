@@ -326,10 +326,10 @@ class VariationalUnetDecoder(nn.Module):
         # reverse channels to start from head of encoder
         features = features[::-1]
 
-        head = features[0]
+        x = features[0]
         skips = features[1:]
 
-        x = self.center(head)
+        x = self.center(x)
         for i, decoder_block in enumerate(self.blocks):
             if len(skips) > i:
                 skip = skips[i]
@@ -425,7 +425,7 @@ class VariationalUNet(SegmentationModel):
         self.name = f"variational-u-{encoder_name}"
         self.initialize()
 
-        if state_dict is not None:
+        if state_dict is not None and len(state_dict) > 0:
             if isinstance(state_dict, str):
                 try:
                     state_dict = torch.load(state_dict)
@@ -447,6 +447,10 @@ class VariationalUNet(SegmentationModel):
             
         if freeze_encoder is True:
             for layer in self.encoder.parameters():
+                layer.requires_grad = False
+            # Due to the code structure the center is in the decoder
+            # But it is part of the 'encoder'
+            for layer in self.decoder.center.parameters():
                 layer.requires_grad = False
 
     def prepare_input(self, x) -> torch.Tensor:
@@ -478,11 +482,16 @@ class VariationalUNet(SegmentationModel):
                 if "encoder" not in k
             }
         if not decoder:
+            center = {k: v for k, v in state_dict.items() if "center" in k}
             state_dict = {
                 k: v
                 for k, v in state_dict.items()
                 if "decoder" not in k
             }
+            if encoder:
+                # Due to the code structure the center is in the decoder
+                # But it is part of the 'encoder'. Thus read center if is should be loaded
+                state_dict.update(center)
         if not segmentation_head:
             state_dict = {
                 k: v

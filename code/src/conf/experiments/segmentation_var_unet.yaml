@@ -19,8 +19,9 @@ model:
   encoder_weights: imagenet
   skip_connections: [True, True, True, True, True]
   variational_skip_connections: [False, False, False, False, False]
-  # state_dict: "models/pretrained-var-unet.pt"
+  state_dict: ""
   load_encoder: True
+  freeze_encoder: False
   load_decoder: False
   load_segmentation_head: False
 

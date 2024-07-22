@@ -11,9 +11,10 @@ end=`date +%s`
 echo Installing pacakges took: `expr $end - $start` seconds.
 
 # Starting sweep
-echo "Starting Python script"
+echo "Exporting env variables"
 set -o allexport
 source .env
 set +o allexport
 cd src
+echo "Starting Python script"
 python hydra_main.py -m +mod=tue hydra/launcher=tue_slurm "$@"
