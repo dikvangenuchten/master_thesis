@@ -27,4 +27,4 @@ echo "Starting Python script"
 set -o allexport
 source .env
 set +o allexport
-python src/hydra_multirun.py paths.datasets=/home/mcs001/20182591/master_thesis/code/ +mod=tue "$@"
+python src/hydra_main.py paths.datasets=/home/mcs001/20182591/master_thesis/code/ +mod=tue "$@"
