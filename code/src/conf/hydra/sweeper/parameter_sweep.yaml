@@ -25,6 +25,7 @@ ax_config:
     ++scheduler.gamma:
       type: range
       bounds: [0.8, 1.0]
+      log_scale: true
     ++optimizer.lr:
       type: range
       bounds: [1e-7, 1e-3]

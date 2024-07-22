@@ -7,7 +7,8 @@
             "request": "launch",
             "program": "src/hydra_main.py",
             "args": [
-                "+task=semantic"
+                "+experiments=var_unet",
+                "model.encoder_name=flexivit_base"
             ],
             "console": "integratedTerminal",
             "env": {

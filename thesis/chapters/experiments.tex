@@ -20,7 +20,7 @@ TODO Add the results here. I am not yet finished with the ablation study to dete
 We first analyze the influence of the backbone on the performance of the VAE task by comparing the following backbones, MobilenetV2 \cite{sandler2019mobilenetv2invertedresidualslinear}, EfficientNet \cite{tan2020efficientnetrethinkingmodelscaling} and Resnet50 \cite{he2015deep}.
 
 \subsection{Influence of the Beta factor}
-We also analyze the effect of increasing the beta factor on the quality of the encoder. 
+We also analyze the effect of the beta factor on the quality of the encoder features. This is done by pre-training models with varying values for beta, after which they are finetuned for the segmentation task.
 
 \subsection{Unfreezing}
 To show the impact of freezing the encoder, we finetune a model that does not change the encoder model and compare it to one that is not frozen. The benefit of freezing the encoder is that the original $p(z |x)$ is preserved which can be used for anomaly detection. Furthermore, it makes the switch to an multimodal VAE, such as proposed in \cite{vasco2020mhvae}, possible.
