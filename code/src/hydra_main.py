@@ -2,11 +2,11 @@ from contextlib import contextmanager
 import logging
 import os
 import hydra
-import torch
-from torchvision.transforms import v2 as transforms
 
 from omegaconf import DictConfig, OmegaConf
 
+import torch
+from torchvision.transforms import v2 as transforms
 import losses
 import metrics
 import datasets
@@ -18,6 +18,9 @@ def uint8_to_long(batch):
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
+def hydr_entrypoint(cfg: DictConfig) -> None:
+    return main(cfg)
+
 def main(cfg: DictConfig) -> None:
     print(OmegaConf.to_yaml(cfg, resolve=True))
 
