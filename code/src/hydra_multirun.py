@@ -13,10 +13,12 @@ def main(cfg: DictConfig) -> None:
     try:
         from hydra_main import main
 
-        return main(cfg)
+        out = main(cfg)
+        logging.warning("Finished")
+        return out
     except Exception as exception:
         # Hydra catches and ignores any raised exceptions
-        logging.error(exception)
+        logging.exception(exception)
         raise
 
 
