@@ -31,6 +31,10 @@ def main(cfg: DictConfig) -> None:
 
     if os.environ.get("DATA_DIR", None) is None:
         os.environ["DATA_DIR"] = cfg.paths.datasets
+    
+    # This is required on the cluster
+    # See https://community.wandb.ai/t/wandb-fails-at-init-assert-ports-found/3446/3
+    os.environ["WANDB_DISABLE_SERVICE"] = "True"
 
     # These transforms need to happen before the batching
     pre_data_transforms = transforms.Compose(
