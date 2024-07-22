@@ -216,6 +216,7 @@ class Trainer:
         self.model.eval()
         metric = self._accelerator.prepare(metric)
         for batch in tqdm(self.eval_dataloader, desc="Evaluating"):
+            batch = self.data_transforms(batch)
             model_out = self.model(batch["input"])
             loss = self.loss_fn(model_out, batch)
             metric.update(
