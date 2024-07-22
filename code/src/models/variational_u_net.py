@@ -434,6 +434,7 @@ class VariationalUNet(SegmentationModel):
                         f"Could not find state dict in: {state_dict}. Trying parent directory"
                     )
                     state_dict = torch.load("../" + state_dict)
+                    logging.warning("Found state_dict in parent directory")
 
             self.load_partial_state_dict(
                 state_dict,
