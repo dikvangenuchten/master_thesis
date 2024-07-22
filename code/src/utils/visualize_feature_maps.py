@@ -16,14 +16,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tqdm
 
+
 def batched(iterable, n):
     # From: https://docs.python.org/3/library/itertools.html#itertools.batched
     # batched('ABCDEFG', 3) → ABC DEF G
     if n < 1:
-        raise ValueError('n must be at least one')
+        raise ValueError("n must be at least one")
     iterator = iter(iterable)
     while batch := tuple(itertools.islice(iterator, n)):
         yield batch
+
 
 def _visualize_3d_tensor(
     input_img, tensor: torch.Tensor, title: str
@@ -193,7 +195,9 @@ def visualize_filters_batched(
 def visualize_layer(
     fe: nn.Module, lr: float, steps: int, device="cuda"
 ) -> torch.Tensor:
-    max_batch_size, num_filters = determine_filter_and_batch_size(fe, device)
+    max_batch_size, num_filters = determine_filter_and_batch_size(
+        fe, device
+    )
 
     tot_canvas = []
     for index in batched(range(num_filters), n=max_batch_size):
@@ -204,12 +208,13 @@ def visualize_layer(
             requires_grad=True,
         )
         for i in (pbar := tqdm.trange(steps, leave=False)):
-            canvas, loss = gradient_ascent_step(fe, canvas, lr=lr, index=index)
-            pbar.set_description(
-                f"{i} {loss=:.2f}"
+            canvas, loss = gradient_ascent_step(
+                fe, canvas, lr=lr, index=index
             )
+            pbar.set_description(f"{i} {loss=:.2f}")
         tot_canvas.append(canvas.detach().cpu())
     return torch.cat(tot_canvas, 0)
+
 
 def determine_filter_and_batch_size(fe, device):
     if device == "cuda":
@@ -225,7 +230,7 @@ def determine_filter_and_batch_size(fe, device):
         max_batch_size = 16
         out = fe(torch.rand((1, 3, 256, 256), device=device))["out"]
         num_filters = out.shape[1]
-    return max_batch_size,num_filters
+    return max_batch_size, num_filters
 
 
 def gradient_ascent_step(fe, canvas, lr, index=None):

@@ -148,7 +148,7 @@ def test_in_memory_caching_dataloader():
         dataset_root="test/data",
         cache_dir=cache_dir,
         transform=transforms.Resize((128, 128)),
-        percentage=0.25
+        percentage=0.25,
     )
 
     loader = DataLoader(ds, batch_size=2)
@@ -158,10 +158,22 @@ def test_in_memory_caching_dataloader():
 
     # Ensure all samples that are generated are equal
     # This is only the case because transform is deterministic
-    assert all(torch.equal(batch_1["img"], batch_2["img"]) for (batch_1, batch_2) in zip(all_batch_1, all_batch_2))
-    assert all(torch.equal(batch_1["target"], batch_2["target"]) for (batch_1, batch_2) in zip(all_batch_1, all_batch_2))
-    assert all(torch.equal(batch_3["img"], batch_2["img"]) for (batch_3, batch_2) in zip(all_batch_3, all_batch_2))
-    assert all(torch.equal(batch_3["target"], batch_2["target"]) for (batch_3, batch_2) in zip(all_batch_3, all_batch_2))
+    assert all(
+        torch.equal(batch_1["img"], batch_2["img"])
+        for (batch_1, batch_2) in zip(all_batch_1, all_batch_2)
+    )
+    assert all(
+        torch.equal(batch_1["target"], batch_2["target"])
+        for (batch_1, batch_2) in zip(all_batch_1, all_batch_2)
+    )
+    assert all(
+        torch.equal(batch_3["img"], batch_2["img"])
+        for (batch_3, batch_2) in zip(all_batch_3, all_batch_2)
+    )
+    assert all(
+        torch.equal(batch_3["target"], batch_2["target"])
+        for (batch_3, batch_2) in zip(all_batch_3, all_batch_2)
+    )
 
     # In memory should be much faster then not in memory
     # Calculate the timedifference between each new sample
@@ -171,6 +183,7 @@ def test_in_memory_caching_dataloader():
     # Ensure the second (and third) pass are all quicker then the first
     assert all(d1 > d2 for (d1, d2) in zip(diff_1, diff_2))
     assert all(d1 > d3 for (d1, d3) in zip(diff_1, diff_3))
+
 
 def test_percentage():
     ds_full = CoCoDataset(

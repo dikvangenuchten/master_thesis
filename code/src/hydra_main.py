@@ -21,6 +21,7 @@ def uint8_to_long(batch):
 def hydr_entrypoint(cfg: DictConfig) -> None:
     return main(cfg)
 
+
 def main(cfg: DictConfig) -> None:
     print(OmegaConf.to_yaml(cfg, resolve=True))
 
@@ -199,15 +200,21 @@ def create_metrics(cfg):
 
     return train_metrics, eval_metrics
 
-def cast_nested_tensor(value, device:str):
+
+def cast_nested_tensor(value, device: str):
     if isinstance(value, torch.Tensor):
         return value.to(device=device)
     elif isinstance(value, list):
         return [cast_nested_tensor(v, device) for v in value]
     elif isinstance(value, dict):
-        return {k: cast_nested_tensor(v, device) for k, v in value.items()}
-    logging.warning(f"Recieved value of type: {type(value)} {value}, which could not be cast")
+        return {
+            k: cast_nested_tensor(v, device) for k, v in value.items()
+        }
+    logging.warning(
+        f"Recieved value of type: {type(value)} {value}, which could not be cast"
+    )
     return value
+
 
 if __name__ == "__main__":
     main()

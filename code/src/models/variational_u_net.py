@@ -370,7 +370,7 @@ class VariationalUNet(SegmentationModel):
         freeze_encoder: bool = False,
         load_decoder: bool = True,
         load_segmentation_head: bool = True,
-        img_size: Optional[Tuple[int, int]] = None
+        img_size: Optional[Tuple[int, int]] = None,
     ):
         super().__init__()
         if encoder_weights is None or encoder_weights.lower() == "none":
@@ -385,7 +385,7 @@ class VariationalUNet(SegmentationModel):
         self._normalize = transforms.Normalize(
             mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
         )
-        
+
         if encoder_name in TIMM_VIT_ENCODERS and img_size is not None:
             assert img_size[0] == img_size[1], "Input must be square"
             encoder_params["img_size"] = img_size[0]
@@ -434,7 +434,9 @@ class VariationalUNet(SegmentationModel):
                         f"Could not find state dict in: {state_dict}. Trying parent directory"
                     )
                     state_dict = torch.load("../" + state_dict)
-                    logging.warning("Found state_dict in parent directory")
+                    logging.warning(
+                        "Found state_dict in parent directory"
+                    )
 
             self.load_partial_state_dict(
                 state_dict,
@@ -445,7 +447,7 @@ class VariationalUNet(SegmentationModel):
                 and load_decoder
                 and load_segmentation_head,
             )
-            
+
         if freeze_encoder is True:
             for layer in self.encoder.parameters():
                 layer.requires_grad = False
@@ -483,7 +485,9 @@ class VariationalUNet(SegmentationModel):
                 if "encoder" not in k
             }
         if not decoder:
-            center = {k: v for k, v in state_dict.items() if "center" in k}
+            center = {
+                k: v for k, v in state_dict.items() if "center" in k
+            }
             state_dict = {
                 k: v
                 for k, v in state_dict.items()
