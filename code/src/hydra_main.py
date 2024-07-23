@@ -10,7 +10,6 @@ from torchvision.transforms import v2 as transforms
 import losses
 import metrics
 import datasets
-import wandb
 
 
 def uint8_to_long(batch):
@@ -20,7 +19,9 @@ def uint8_to_long(batch):
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def hydra_entrypoint(cfg: DictConfig) -> None:
-    return main(cfg)
+    torch.cuda.empty_cache()
+    out = main(cfg)
+    return out
 
 
 def main(cfg: DictConfig) -> None:
@@ -31,10 +32,13 @@ def main(cfg: DictConfig) -> None:
 
     if os.environ.get("DATA_DIR", None) is None:
         os.environ["DATA_DIR"] = cfg.paths.datasets
-    
+
     # This is required on the cluster
     # See https://community.wandb.ai/t/wandb-fails-at-init-assert-ports-found/3446/3
-    os.environ["WANDB_DISABLE_SERVICE"] = "True"
+    # os.environ["WANDB_DISABLE_SERVICE"] = "True"
+    os.environ["WANDB__SERVICE_WAIT"] = "300"
+    os.environ["_WANDB_STARTUP_DEBUG"] = "true"
+    os.environ["WANDB_DEBUG"] = "true"
 
     # These transforms need to happen before the batching
     pre_data_transforms = transforms.Compose(

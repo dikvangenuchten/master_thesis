@@ -39,7 +39,7 @@ def create_dataloaders(
     train_loader = DataLoader(
         train_dataset,
         batch_size=cfg.batch_size,
-        num_workers=int(os.environ.get("SLURM_NTASKS", os.cpu_count())),
+        num_workers=int(os.environ.get("SLURM_NTASKS", 0)),
         pin_memory=True,
     )
     val_dataset = dataset_factory(
@@ -48,7 +48,7 @@ def create_dataloaders(
     val_loader = DataLoader(
         val_dataset,
         batch_size=cfg.batch_size,
-        num_workers=int(os.environ.get("SLURM_NTASKS", os.cpu_count())),
+        num_workers=int(os.environ.get("SLURM_NTASKS", 0)),
         pin_memory=True,
     )
 

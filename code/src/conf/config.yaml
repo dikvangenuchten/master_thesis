@@ -10,7 +10,7 @@ defaults:
 
 num_steps: 10_000
 input_shape: [128, 128]
-batch_size: 64
+batch_size: 16
 
 # These values are set by the dataloader
 class_weights: null
