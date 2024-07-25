@@ -1,4 +1,4 @@
-_target_: models.UNet
+_target_: models.VAES
 image_channels: 3
-encoder_depth: 5
+encoder_name: "resnet50"
 encoder_weights: "imagenet"

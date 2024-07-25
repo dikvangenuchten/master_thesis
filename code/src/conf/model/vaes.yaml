@@ -1,0 +1,5 @@
+_target_: models.VAES
+image_channels: 3
+encoder_depth: 5
+encoder_weights: "imagenet"
+skip_connections: ["skip", "skip", "skip", "skip", "skip"]

@@ -140,7 +140,7 @@ class VariationalConv2dReLU(MetadataModule):
                 padding=padding,
                 bias=not (use_batchnorm),
             )
-        self._relu = nn.ReLU(inplace=True)
+        self._relu = nn.ReLU(inplace=False)
 
         if use_batchnorm:
             self._bn = nn.BatchNorm2d(out_channels)
@@ -212,7 +212,7 @@ class VariationalDecoderBlock(MetadataModule):
     ):
         super().__init__()
         self._use_skip = False
-        if skip_channels > 0:
+        if skip_channels > 0 and variational:
             self._skip_projection = VariationalConv2dReLU(
                 in_channels=skip_channels,
                 out_channels=skip_channels,
@@ -404,9 +404,9 @@ class VariationalUNet(SegmentationModel):
             encoder_channels=self.encoder.out_channels,
             decoder_channels=decoder_channels,
             n_blocks=encoder_depth,
-            center_variational=center_variational,
             use_batchnorm=True,
             center=True if encoder_name.startswith("vgg") else False,
+            center_variational=center_variational,
             attention_type=None,
             skip_connections=skip_connections,
             variational_skip_connections=variational_skip_connections,

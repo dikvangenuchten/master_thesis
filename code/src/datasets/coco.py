@@ -7,6 +7,7 @@ from typing import (
     List,
     Optional,
     Literal,
+    Tuple,
     get_args,
 )
 import warnings
@@ -16,6 +17,7 @@ from diffusers.models.autoencoders.vae import (
 )
 from PIL import Image as PImage
 from torchvision.tv_tensors import Image, Mask
+from torchvision.transforms import v2 as transforms
 import tqdm
 
 from datasets import LatentTensor
@@ -74,6 +76,7 @@ class CoCoDataset(torch.utils.data.Dataset):
         percentage: float = 1.00,
         cache_dir: Optional[str] = None,
         prefetch: bool = False,
+        input_shape: Tuple[int, int] = (256, 256),
     ):
         # The absolute path to the dataset
         self.base_path = os.path.join(dataset_root, rel_path)
@@ -149,6 +152,7 @@ class CoCoDataset(torch.utils.data.Dataset):
         self._weights = None
         self._ram_images = []
         self._sem_mask_cache = {}
+        self._resize = transforms.Resize(input_shape)
 
     def parse_output_structure(
         self, output_structure
@@ -283,6 +287,7 @@ class CoCoDataset(torch.utils.data.Dataset):
             # This is for some reason ~8 times faster compared to reducing the actual dataset size
             index = index % self._length
         out = self._getitem(index)
+        out = self._resize(out)
         if self.transform is not None:
             return self.transform(out)
         return out

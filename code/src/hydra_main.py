@@ -45,9 +45,14 @@ def main(cfg: DictConfig) -> None:
         [
             transforms.Resize(cfg.input_shape),
             transforms.ToDtype(torch.float32, scale=True),
+        ]
+    )
+    aug_data_tranforms = transforms.Compose(
+        [
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(),
             transforms.RandomGrayscale(),
+            transforms.GaussianBlur(5, (0.01, 2.0)),
         ]
     )
     extra = (
@@ -58,13 +63,15 @@ def main(cfg: DictConfig) -> None:
     # These transforms can be batched (on gpu)
     post_data_transforms = transforms.Compose(
         [
-            transforms.GaussianBlur(5, (0.01, 2.0)),
             *extra,
         ]
     )
 
     with create_trainer(
-        cfg, pre_data_transforms, post_data_transforms
+        cfg,
+        pre_data_transforms,
+        aug_data_tranforms,
+        post_data_transforms,
     ) as trainer:
         try_print_summary(cfg.input_shape, trainer.model)
 
@@ -111,11 +118,13 @@ def try_print_summary(input_shape, model):
 
 
 @contextmanager
-def create_trainer(cfg, pre_data_transforms, post_data_transforms):
+def create_trainer(
+    cfg, pre_data_transforms, aug_data_transforms, post_data_transforms
+):
     # Load datasets
     # This needs to happen first as some settings are infered based on the dataset
     cfg, train_loader, val_loader = datasets.create_dataloaders(
-        cfg, pre_data_transforms
+        cfg, pre_data_transforms, aug_data_transforms
     )
 
     # Create model and loss function

@@ -2,7 +2,7 @@ from typing import Tuple
 
 from omegaconf import DictConfig
 from torch.utils.data import DataLoader
-import torchvision
+from torchvision.transforms import v2 as transforms
 import hydra
 import os
 
@@ -15,7 +15,8 @@ from .toy_data import ToySegmentationTransform
 
 def create_dataloaders(
     cfg: DictConfig,
-    data_transforms: torchvision.transforms.v2.Transform,
+    data_transforms: transforms.Transform,
+    aug_data_transforms: transforms.Transform,
 ) -> Tuple[DictConfig, DataLoader, DataLoader]:
     """Create the Train and Validation dataset based on an hydra DictConfig
 
@@ -34,7 +35,14 @@ def create_dataloaders(
         cfg.dataset, _partial_=True
     )
     train_dataset = dataset_factory(
-        split="train", transform=data_transforms
+        split="train",
+        transform=transforms.Compose(
+            [
+                data_transforms,
+                aug_data_transforms,
+            ]
+        ),
+        input_shape=cfg.input_shape,
     )
     train_loader = DataLoader(
         train_dataset,
@@ -43,7 +51,9 @@ def create_dataloaders(
         pin_memory=True,
     )
     val_dataset = dataset_factory(
-        split="val", transform=data_transforms
+        split="val",
+        transform=data_transforms,
+        input_shape=cfg.input_shape,
     )
     val_loader = DataLoader(
         val_dataset,
