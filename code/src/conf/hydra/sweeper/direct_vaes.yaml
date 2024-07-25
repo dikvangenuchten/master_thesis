@@ -6,4 +6,5 @@ params:
   model.encoder_name: choice(resnet50)
   model.encoder_weights: choice(imagenet)
   model.skip_connections: choice([skip,skip,skip,skip,skip],[var,skip,skip,skip,skip],[var,var,skip,skip,skip],[var,var,var,skip,skip],[var,var,var,var,skip],[var,var,var,var,var],[proj,proj,proj,proj,proj],[var,proj,proj,proj,proj],[var,var,proj,proj,proj],[var,var,var,proj,proj],[var,var,var,var,proj],[var,var,var,var,var],[var,none,none,none,none],[var,var,none,none,none],[var,var,var,none,none],[var,var,var,var,none],[var,var,var,var,var])
-  input_shape: choice([224,224])
+  input_shape: choice([256,256])
+  batch_size: choice([32])
