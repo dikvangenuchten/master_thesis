@@ -58,7 +58,7 @@ def main(cfg: DictConfig) -> None:
     extra = (
         [uint8_to_long]
         if cfg.dataset.output_structure.target == "semantic_mask"
-        else []
+        else [transforms.Identity()]
     )
     # These transforms can be batched (on gpu)
     post_data_transforms = transforms.Compose(
@@ -80,7 +80,7 @@ def main(cfg: DictConfig) -> None:
         trainer.save(hydra_config.runtime.output_dir)
 
         # Run the final evaluation
-        if cfg.get("eval_metric") is not None and cfg.num_steps > 0:
+        if cfg.get("eval_metric") is not None and cfg.num_steps != 1:
             if cfg.dataset.output_structure.target == "img":
                 l1_loss = losses.WrappedLoss(
                     torch.nn.L1Loss(),
@@ -228,7 +228,7 @@ def create_metrics(cfg):
 
 def cast_nested_tensor(value, device: str):
     if isinstance(value, torch.Tensor):
-        return value.to(device=device)
+        return value.detach().to(device=device)
     elif isinstance(value, list):
         return [cast_nested_tensor(v, device) for v in value]
     elif isinstance(value, dict):
