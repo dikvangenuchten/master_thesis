@@ -267,6 +267,7 @@ class Trainer:
                 f"train_loss: {train_loss.val:.5f} (last: {train_loss.last:.5f}) "
                 f"eval_loss: {eval_loss.val:.5f} (last: {eval_loss.last:.5f})"
             )
+        return eval_loss.val
 
     def save(self, dir) -> None:
         os.makedirs(dir, exist_ok=True)
