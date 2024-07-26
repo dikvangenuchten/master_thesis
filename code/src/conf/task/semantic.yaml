@@ -1,8 +1,13 @@
 # @package _global_
 defaults:
+  - /loss@eval_metric: crossentropy_loss
   - override /loss: semantic_loss
 
 dataset:
   output_structure:
     target: semantic_mask
   supercategories_only: True
+
+eval_metric:
+  loss_fn:
+    reduction: "none" # null results in an error in pytorch

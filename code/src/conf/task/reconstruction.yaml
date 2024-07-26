@@ -1,7 +1,16 @@
 # @package _global_
 defaults:
-  - /loss: recon_loss
+  - /loss@eval_metric: l1_loss
+  - override /loss: recon_loss
 
 dataset:
   output_structure:
     target: img
+
+model:
+  activation:
+    _target_: torch.nn.Sigmoid
+
+eval_metric:
+  loss_fn:
+    reduction: "none" # null results in an error in pytorch
