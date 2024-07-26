@@ -1,5 +1,7 @@
 _target_: models.VAES
 image_channels: 3
 encoder_depth: 5
-encoder_weights: "imagenet"
-skip_connections: ["skip", "skip", "skip", "skip", "skip"]
+encoder_name: resnet50
+encoder_weights: none
+skip_connections: ["var", "var", "var", "var", "var"]
+encoder_freeze: true
