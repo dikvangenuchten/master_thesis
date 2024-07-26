@@ -24,12 +24,12 @@ class ModelOutput:
         return self._out
 
 
-from models.u_net import UNet  # noqa: E402
+from models.mobile_vae import MobileVAE  # noqa: E402
+from models.semantic_vae import SemanticVAE  # noqa: E402
+from models.torchseg_model import TorchSegModel  # noqa: E402
 from models.vaes import VAES  # noqa: E402
 from models.variational_u_net import VariationalUNet  # noqa: E402
 from models.vae import VAE  # noqa: E402
-from models.semantic_vae import SemanticVAE  # noqa: E402
-from models.mobile_vae import MobileVAE  # noqa: E402
 
 __all__ = [
     "UNet",
@@ -38,4 +38,5 @@ __all__ = [
     "MobileVAE",
     "VariationalUNet",
     "VAES",
+    "TorchSegModel",
 ]
