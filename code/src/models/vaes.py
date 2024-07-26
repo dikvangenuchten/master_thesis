@@ -122,10 +122,10 @@ class VAES(nn.Module):
         if encoder_state_dict is not None:
             encoder_state_dict = utils.load_state_dict(encoder_state_dict)
             encoder_state_dict = utils.extract_encoder(encoder_state_dict)
-            self.model.encoder.load_state_dict(encoder_state_dict)
+            self.encoder.load_state_dict(encoder_state_dict)
 
         if encoder_freeze:
-            self.model.encoder = utils.freeze_model(self.model.encoder)
+            self.encoder = utils.freeze_model(self.encoder)
 
         self.name = f"vae-{encoder_name}"
 
