@@ -1,0 +1,8 @@
+defaults:
+  - basic
+
+params:
+  +task: choice('semantic')
+  model: choice('vaes', 'unet', 'fpn')
+  model.encoder_weights: choice('None', 'vae', 'imagenet')
+  model.encoder_freeze: choice(true, false)
