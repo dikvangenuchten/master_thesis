@@ -21,6 +21,7 @@ def uint8_to_long(batch):
 def hydra_entrypoint(cfg: DictConfig) -> None:
     torch.cuda.empty_cache()
     out = main(cfg)
+    logging.info(f"End of run: {out}")
     return out
 
 
@@ -164,6 +165,7 @@ def create_trainer(
     yield trainer
     # Clean up trackers
     trainer.end_training()
+    logging.info("Training ended")
 
 
 def create_optimizer(cfg, model):
