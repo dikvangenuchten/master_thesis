@@ -3,7 +3,7 @@ defaults:
 
 params:
   +task: reconstruction
-  +model: vaes
+  model: vaes
   model.encoder_weights: choice("None", "Imagenet")
   loss.losses.kl_divergence.start_value: choice(100, 10, 1, 0.1, 0.01)
   +trainer.init_kwargs.wandb.group: beta_vae_${now:%Y-%m-%d:%H-%M-%S}
