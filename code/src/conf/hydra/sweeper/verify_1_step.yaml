@@ -1,0 +1,12 @@
+defaults:
+  - basic
+
+params:
+  +task: choice('semantic', 'reconstruction')
+  model: choice('vaes', 'unet', 'fpn')
+  model.encoder_weights: choice('None', 'vae', 'imagenet')
+  model.encoder_freeze: choice(true, false)
+  num_steps: 1
+  batch_size: 2
+  +trainer.init_kwargs.wandb.group: verify_${now:%Y-%m-%d:%H-%M-%S}
+  +trainer.init_kwargs.wandb.tags: ['debug', '${now:%Y-%m-%d:%H-%M-%S}']
