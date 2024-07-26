@@ -118,10 +118,14 @@ class VAES(nn.Module):
         # This initializes weights with specific distributions
         initialization.initialize_decoder(self.decoder)
         initialization.initialize_head(self.segmentation_head)
-        
+
         if encoder_state_dict is not None:
-            encoder_state_dict = utils.load_state_dict(encoder_state_dict)
-            encoder_state_dict = utils.extract_encoder(encoder_state_dict)
+            encoder_state_dict = utils.load_state_dict(
+                encoder_state_dict
+            )
+            encoder_state_dict = utils.extract_encoder(
+                encoder_state_dict
+            )
             self.encoder.load_state_dict(encoder_state_dict)
 
         if encoder_freeze:
