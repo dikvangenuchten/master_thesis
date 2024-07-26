@@ -1,10 +1,12 @@
 # @package hydra.launcher
 _target_: hydra_plugins.hydra_joblib_launcher.joblib_launcher.JoblibLauncher
-n_jobs: 1
+# Setting 'n_jobs' to 1 turns it in a standard for-loop
+# This causes a (gpu-)memory leak
+n_jobs: 2
 backend: null
 prefer: processes
 require: null
-verbose: 0
+verbose: 10
 timeout: null
 pre_dispatch: 1
 batch_size: 1
