@@ -6,3 +6,4 @@ params:
   model: choice('vaes', 'unet', 'fpn')
   model.encoder_weights: choice('None', 'vae', 'imagenet')
   model.encoder_freeze: choice(true, false)
+  +trainer.init_kwargs.wandb.group: comparison_${now:%Y-%m-%d:%H-%M-%S}

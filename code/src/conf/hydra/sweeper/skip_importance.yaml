@@ -2,13 +2,10 @@ defaults:
   - basic
 
 params:
-  +experiments: "segmentation_var_unet"
-  model.skip_connections: choice([True, False, False, False, False], [True, True, True, True, True])
-  model.variational_skip_connections: choice([True, True, True, True, True], [False, False, False, False, False])
-
-  +model.state_dict: "models/pretrained-vae.pt"
-  +model.load_decoder: False
-  +model.load_segmentation_head: False
-  +trainer.init_kwargs.wandb.group: "SkipImportance-24-06-02"
-  +trainer.init_kwargs.wandb.magic: True
-  num_steps: 15_000
+  +task: semantic
+  model: vaes
+  model.encoder_weights: imagenet
+  model.skip_connections: choice([skip,skip,skip,skip,skip],[var,skip,skip,skip,skip],[var,var,skip,skip,skip],[var,var,var,skip,skip],[var,var,var,var,skip],[var,var,var,var,var],[proj,proj,proj,proj,proj],[var,proj,proj,proj,proj],[var,var,proj,proj,proj],[var,var,var,proj,proj],[var,var,var,var,proj],[var,var,var,var,var],[var,none,none,none,none],[var,var,none,none,none],[var,var,var,none,none],[var,var,var,var,none],[var,var,var,var,var])
+  input_shape: [256,256]
+  batch_size: 32
+  +trainer.init_kwargs.wandb.group: skip_importance_${now:%Y-%m-%d:%H-%M-%S}

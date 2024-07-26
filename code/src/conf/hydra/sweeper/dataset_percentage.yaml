@@ -6,4 +6,5 @@ params:
   +dataset.percentage: choice(1, 0.1, 0.01, 0.001)
   model: vaes
   model.encoder_weights: choice('None', 'vae', 'imagenet')
-
+  +trainer.init_kwargs.wandb.group: dataset_percentage_${now:%Y-%m-%d:%H-%M-%S}
+  +trainer.init_kwargs.wandb.notes: "Sweep to check the influence of dataset size"

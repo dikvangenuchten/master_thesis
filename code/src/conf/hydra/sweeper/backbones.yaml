@@ -2,5 +2,9 @@ defaults:
   - basic
 
 params:
-  model.encoder_name: choice('mobilenetv2_100',vit_base_patch16_224,resnet50,resnet18)
-  input_shape: choice([224, 224])
+  +task: semantic
+  model: vaes
+  model.encoder_name: choice(mobilenetv2_100,resnet50,resnet18)
+  model.encoder_weights: imagenet
+  input_shape: choice([128, 128])
+  +trainer.init_kwargs.wandb.group: backbone_sweep_${now:%Y-%m-%d:%H-%M-%S}
