@@ -21,7 +21,7 @@ class TorchSegModel(nn.Module):
         encoder_name="mobilenetv2_100",
         encoder_weights="imagenet",
         encoder_freeze: bool = False,
-        state_dict: Optional[str] = None,
+        encoder_state_dict: Optional[str] = None,
         activation=nn.Identity(),
     ):
         super().__init__()
@@ -49,21 +49,24 @@ class TorchSegModel(nn.Module):
         )
 
         if (
-            encoder_weights is not None
+            encoder_state_dict is None
+            and encoder_weights is not None
             and encoder_weights.lower() == "vae"
         ):
             # Load the vae state-dict
             # TODO dynamically determine the correct one based on encoder-name
             # eg: {vae}-{\beta}-{encoder-name}.pt
-            state_dict = "models/pretrained-b10-vae.pt"
+            encoder_state_dict = "models/pretrained-b10-vae.pt"
 
-        if state_dict is not None:
-            state_dict = utils.load_state_dict(state_dict)
-            state_dict = utils.extract_encoder(state_dict)
-            self.model.encoder.load_state_dict(state_dict)
+        if encoder_state_dict is not None:
+            encoder_state_dict = utils.load_state_dict(encoder_state_dict)
+            encoder_state_dict = utils.extract_encoder(encoder_state_dict)
+            self.model.encoder.load_state_dict(encoder_state_dict)
 
         if encoder_freeze:
             self.model.encoder = utils.freeze_model(self.model.encoder)
+            
+        self.name = self.model.name
 
     def forward(self, input):
         input = self._normalize(input)

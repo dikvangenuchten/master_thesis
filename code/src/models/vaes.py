@@ -11,6 +11,7 @@ from torchseg.base import (
 from torchseg.encoders import get_encoder
 
 from models.variational_u_net import VariationalConv2d
+from . import utils
 
 
 def get_or_default(list_, idx, default=None):
@@ -69,6 +70,7 @@ class VAES(nn.Module):
         decoder_channels: list[int] = (256, 128, 64, 32, 16),
         encoder_name: str = "resnet34",
         encoder_weights: Optional[str] = "imagenet",
+        encoder_freeze: bool = False,
         skip_connections: List[str] = ["skip"] * 5,
         encoder_state_dict: Optional[Union[str, dict]] = None,
         activation: Callable = nn.Identity(),
@@ -116,8 +118,16 @@ class VAES(nn.Module):
         # This initializes weights with specific distributions
         initialization.initialize_decoder(self.decoder)
         initialization.initialize_head(self.segmentation_head)
+        
+        if encoder_state_dict is not None:
+            encoder_state_dict = utils.load_state_dict(encoder_state_dict)
+            encoder_state_dict = utils.extract_encoder(encoder_state_dict)
+            self.model.encoder.load_state_dict(encoder_state_dict)
 
-        self.name = f"u-{encoder_name}"
+        if encoder_freeze:
+            self.model.encoder = utils.freeze_model(self.model.encoder)
+
+        self.name = f"vae-{encoder_name}"
 
     @staticmethod
     def create_skip_layers(skip_connections, encoder_channels):
