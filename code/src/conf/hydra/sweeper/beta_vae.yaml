@@ -2,8 +2,9 @@ defaults:
   - basic
 
 params:
-  +experiments: choice('var_unet')
-  model.encoder_weights: choice("None")
-  loss.losses.kl_divergence.start_value: choice(10, 1, 0.1, 0.01)
-  +trainer.init_kwargs.wandb.group: beta_vae_${hydra:job.id}
+  +task: reconstruction
+  +model: vaes
+  model.encoder_weights: choice("None", "Imagenet")
+  loss.losses.kl_divergence.start_value: choice(100, 10, 1, 0.1, 0.01)
+  +trainer.init_kwargs.wandb.group: beta_vae_${now:%Y-%m-%d:%H-%M-%S}
   +trainer.init_kwargs.wandb.notes: "Sweep to check the various features layers of various beta values"
