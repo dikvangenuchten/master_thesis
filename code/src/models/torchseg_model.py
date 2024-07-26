@@ -35,7 +35,10 @@ class TorchSegModel(nn.Module):
         # Hydra does not support 'null' to None conversion in sweep
         if encoder_weights.lower() == "none":
             encoder_weights = None
-
+        
+        if encoder_weights is None and encoder_freeze is True:
+            raise RuntimeError("Frozen encoder with random weights is just stupid")
+        
         # Torchseg determines to use pretrained weights based on
         # the following internal check:
         # 'encoder_weights is not None'

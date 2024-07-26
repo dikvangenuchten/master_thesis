@@ -78,6 +78,9 @@ class VAES(nn.Module):
         super().__init__()
         if encoder_weights is None or encoder_weights.lower() == "none":
             encoder_weights = None
+        
+        if encoder_weights is None and encoder_freeze is True:
+            raise RuntimeError("Frozen encoder with random weights is just stupid")
 
         self.encoder = get_encoder(
             encoder_name,
