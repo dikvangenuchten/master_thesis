@@ -14,7 +14,7 @@ def main(cfg: DictConfig) -> None:
         from hydra_main import main
 
         out = main(cfg)
-        logging.warning("Finished")
+        logging.warning(f"Finished: {out}")
         return out
     except Exception as exception:
         # Hydra catches and ignores any raised exceptions
