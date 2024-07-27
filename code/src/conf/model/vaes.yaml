@@ -4,4 +4,4 @@ encoder_depth: 5
 encoder_name: resnet50
 encoder_weights: none
 skip_connections: ["var", "var", "var", "var", "var"]
-encoder_freeze: true
+encoder_freeze: False
