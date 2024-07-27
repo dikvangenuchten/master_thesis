@@ -14,8 +14,8 @@ class TorchSegModel(nn.Module):
     def __init__(
         self,
         architecture: Literal["fpn", "unet"],
-        image_channels: int,
         label_channels: int,
+        image_channels: int=3,
         encoder_depth: int = 5,
         decoder_channels: List[int] = (256, 128, 64, 32, 16),
         encoder_name="mobilenetv2_100",
@@ -35,10 +35,12 @@ class TorchSegModel(nn.Module):
         # Hydra does not support 'null' to None conversion in sweep
         if encoder_weights.lower() == "none":
             encoder_weights = None
-        
+
         if encoder_weights is None and encoder_freeze is True:
-            raise RuntimeError("Frozen encoder with random weights is just stupid")
-        
+            raise RuntimeError(
+                "Frozen encoder with random weights is just stupid"
+            )
+
         # Torchseg determines to use pretrained weights based on
         # the following internal check:
         # 'encoder_weights is not None'

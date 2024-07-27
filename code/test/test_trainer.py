@@ -4,12 +4,21 @@ from torch import nn, optim, utils
 
 from hydra_main import uint8_to_long
 import losses
-from models import MobileVAE
+from models import TorchSegModel, VAES
 import hydra
 
 
-@pytest.fixture(scope="module")
-def trainer(dataset, device):
+@pytest.fixture(params=["vaes", "unet", "fpn"])
+def model(request, dataset):
+    name = request.param
+    if name == "vaes":
+        yield VAES(label_channels=len(dataset.class_map))
+    elif name in ["unet", "fpn"]:
+        yield TorchSegModel(name, label_channels=len(dataset.class_map))
+
+
+@pytest.fixture()
+def trainer(model, dataset, device):
     dataloader = utils.data.DataLoader(dataset, batch_size=16)
 
     loss_fn = losses.WrappedLoss(
@@ -17,12 +26,6 @@ def trainer(dataset, device):
             weight=torch.tensor(dataset.class_weights, device=device),
             ignore_index=133,
         )
-    )
-
-    model = MobileVAE(
-        len(dataset.class_map),
-        activation=torch.nn.Softmax(1),
-        encoder_depth=1,
     )
 
     return hydra.utils.instantiate(

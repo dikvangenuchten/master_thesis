@@ -64,8 +64,8 @@ class VAES(nn.Module):
 
     def __init__(
         self,
+        label_channels: int,
         image_channels: int = 3,
-        label_channels: int = 1,
         encoder_depth: int = 5,
         decoder_channels: list[int] = (256, 128, 64, 32, 16),
         encoder_name: str = "resnet34",
@@ -78,9 +78,11 @@ class VAES(nn.Module):
         super().__init__()
         if encoder_weights is None or encoder_weights.lower() == "none":
             encoder_weights = None
-        
+
         if encoder_weights is None and encoder_freeze is True:
-            raise RuntimeError("Frozen encoder with random weights is just stupid")
+            raise RuntimeError(
+                "Frozen encoder with random weights is just stupid"
+            )
 
         self.encoder = get_encoder(
             encoder_name,
