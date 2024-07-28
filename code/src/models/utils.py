@@ -1,4 +1,7 @@
 import logging
+from typing import Optional
+import os
+
 import torch
 
 
@@ -42,3 +45,27 @@ def freeze_model(model: torch.nn.Module) -> torch.nn.Module:
     for layer in model.parameters():
         layer.requires_grad = False
     return model
+
+
+def parse_enc_weights(encoder_weights: Optional[str]):
+    if encoder_weights is None:
+        return None
+    encoder_weights = encoder_weights.lower()
+    if encoder_weights == "none":
+        return None
+    if encoder_weights in ["imagenet"]:
+        return encoder_weights
+    if encoder_weights.startswith("vae"):
+        return encoder_weights
+    raise RuntimeError(f"Invalid weights: {encoder_weights}")
+
+
+def determine_state_dict_path(encoder_name, encoder_weights):
+    # Load the vae state-dict
+    # They should be manually saved under the following format
+    # "models/{encoder_name}-vae-b{\beta}.pt"
+    # E.g. an resnet50 model trained with a beta value of 10
+    # "models/resnet50-vae-b10.pt
+    model_name = f"{encoder_name}-{encoder_weights}.pt"
+    encoder_state_dict = os.path.join("models", model_name)
+    return encoder_state_dict

@@ -76,8 +76,7 @@ class VAES(nn.Module):
         activation: Callable = nn.Identity(),
     ):
         super().__init__()
-        if encoder_weights is None or encoder_weights.lower() == "none":
-            encoder_weights = None
+        encoder_weights = utils.parse_enc_weights(encoder_weights)
 
         if encoder_weights is None and encoder_freeze is True:
             raise RuntimeError(
@@ -123,6 +122,15 @@ class VAES(nn.Module):
         # This initializes weights with specific distributions
         initialization.initialize_decoder(self.decoder)
         initialization.initialize_head(self.segmentation_head)
+
+        if (
+            encoder_state_dict is None
+            and encoder_weights is not None
+            and encoder_weights.startswith("vae")
+        ):
+            encoder_state_dict = utils.determine_state_dict_path(
+                encoder_name, encoder_weights
+            )
 
         if encoder_state_dict is not None:
             encoder_state_dict = utils.load_state_dict(
