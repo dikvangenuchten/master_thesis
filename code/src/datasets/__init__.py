@@ -49,6 +49,7 @@ def create_dataloaders(
         batch_size=cfg.batch_size,
         num_workers=int(os.environ.get("SLURM_NTASKS", 0)),
         pin_memory=True,
+        shuffle=True,
     )
     val_dataset = dataset_factory(
         split="val",
@@ -79,4 +80,5 @@ __all__ = [
     "OxfordPetForegroundDataset",
     "ToySegmentationTransform",
     "create_dataloaders",
+    "CityscapesDataset",
 ]
