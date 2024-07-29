@@ -4,7 +4,11 @@ defaults:
 params:
   +task: choice('semantic')
   +dataset.percentage: choice(1, 0.1, 0.01, 0.001)
-  model: vaes
-  model.encoder_weights: choice('None', 'vae', 'imagenet')
+  model: choisce(vaes, unet, fpn)
+  model.encoder_weights: choice('None', 'vae-b10', 'imagenet')
   +trainer.init_kwargs.wandb.group: dataset_percentage_${now:%Y-%m-%d:%H-%M-%S}
   +trainer.init_kwargs.wandb.notes: "Sweep to check the influence of dataset size"
+  # Running this on a different node
+  hydra.launcher.partition: tue.gpu.q
+  hydra.launcher.additional_parameters.nice: 0
+  batch_size: 32
