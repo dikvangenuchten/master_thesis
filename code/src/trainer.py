@@ -223,6 +223,9 @@ class Trainer:
                 StepData(batch=batch, model_out=model_out, loss=loss)
             )
         result = metric.compute()
+        self._accelerator.log(
+            {"EvalMetric": result}, log_kwargs={"wandb": {"commit": True}}
+        )
         print(f"result: {result}")
         return result
 
