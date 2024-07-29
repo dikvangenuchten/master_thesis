@@ -38,8 +38,8 @@ def main(cfg: DictConfig) -> None:
     # See https://community.wandb.ai/t/wandb-fails-at-init-assert-ports-found/3446/3
     # os.environ["WANDB_DISABLE_SERVICE"] = "True"
     os.environ["WANDB__SERVICE_WAIT"] = "300"
-    os.environ["_WANDB_STARTUP_DEBUG"] = "true"
-    os.environ["WANDB_DEBUG"] = "true"
+    # os.environ["_WANDB_STARTUP_DEBUG"] = "true"
+    # os.environ["WANDB_DEBUG"] = "true"
 
     # These transforms need to happen before the batching
     pre_data_transforms = transforms.Compose(
@@ -108,14 +108,19 @@ def main(cfg: DictConfig) -> None:
 
 
 def try_print_summary(input_shape, model):
+    """Try to print summarray
+
+    Returns True if succesful, false otherwise"""
     try:
         import torchinfo
 
         torchinfo.summary(
             model, input_size=(3, *input_shape), batch_dim=0
         )
+        return True
     except Exception as e:
         print(f"Could not generate torchinfo.summary because: {e}")
+        return False
 
 
 @contextmanager

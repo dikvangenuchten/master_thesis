@@ -224,7 +224,8 @@ class Trainer:
             )
         result = metric.compute()
         self._accelerator.log(
-            {"EvalMetric": result}, log_kwargs={"wandb": {"commit": True}}
+            {"EvalMetric": result},
+            log_kwargs={"wandb": {"commit": True}},
         )
         print(f"result: {result}")
         return result

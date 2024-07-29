@@ -321,11 +321,11 @@ def _filter_annotations(
 ) -> Dict:
     if supercategories_only:
         id_to_supercategory = {
-            c["id"]: c["supercategory"] for c in data["categories"]
+            c["id"]: c["supercategory"].removesuffix("-stuff") for c in data["categories"]
         }
-        supercategories = list(
-            {c["supercategory"] for c in data["categories"]}
-        )
+        supercategories = sorted(list(
+            {c["supercategory"].removesuffix("-stuff") for c in data["categories"]}
+        ))
 
         for annotation in tqdm.tqdm(data["annotations"]):
             for segment in annotation["segments_info"]:
