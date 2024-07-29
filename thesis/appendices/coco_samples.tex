@@ -1,0 +1,25 @@
+\chapter{More samples of the CoCo Dataset}
+\label{appendix:coco_samples}
+
+% Loop through each image in the "figures/datasets/coco/samples/train" directory
+\foreach \i in {0,1,...,5} {
+        % Include the current image
+        \begin{figure}[h]
+            \centering
+            \includegraphics[width=0.7\textwidth]{figures/datasets/coco/samples/train/\i}
+
+            % Create a caption for the image using the loop counter
+            \caption{Training Sample \i}\label{}
+        \end{figure}
+    }
+
+\foreach \i in {0,1,...,5} {
+        % Include the current image
+        \begin{figure}[h]
+            \centering
+            \includegraphics[width=0.7\textwidth]{figures/datasets/coco/samples/val/\i}
+
+            % Create a caption for the image using the loop counter
+            \caption{Validation Sample \i}\label{}
+        \end{figure}
+    }

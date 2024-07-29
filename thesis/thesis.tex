@@ -7,6 +7,7 @@
 %
 \documentclass[a4paper,10pt,twoside]{book}
 \usepackage{tuethesis2021}
+\usepackage{pgffor}
 
 %
 % These commands need to be defined in order to produce a correct and personalized document.
@@ -14,7 +15,7 @@
 % If you don't need a specific command, just leave the argument empty.
 % For example: \docsubtitle{}
 %
-\newcommand{\doctitle}{[DRAFT] Pretrained H-VAE for Image Segmentation with Uncertainty Estimation}
+\newcommand{\doctitle}{[DRAFT] Variational Auto-Encoding and Segmentation}
 \newcommand{\docsubtitle}{Master's Thesis}
 \newcommand{\me}{H.J.M. van Genuchten}
 \newcommand{\version}{Working version}
@@ -28,6 +29,8 @@
 \DeclareRobustCommand{\bbone}{\text{\usefont{U}{bbold}{m}{n}1}}
 
 \DeclareMathOperator{\EX}{\mathbb{E}}
+\newcommand\independent{\protect\mathpalette{\protect\independenT}{\perp}}
+\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}}
 
 \begin{document}
 % The title page will be inserted automatically, here.
@@ -64,8 +67,12 @@
 \bibliographystyle{plain}
 \bibliography{references}
 
-% \appendix
-% \addcontentsline{toc}{chapter}{Appendix}
+\clearpage
+
+\appendix
+\addcontentsline{toc}{chapter}{Appendix}
+\input{appendices/coco_samples}
+
 %
 % \input{appendices/main}
 

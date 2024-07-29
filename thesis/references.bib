@@ -181,14 +181,19 @@
   note   = {Accessed: 21-06-2024}
 }
 
-@misc{kingma2014autoencodingvariationalbayes,
-  title         = {Auto-Encoding Variational Bayes},
-  author        = {Diederik P Kingma and Max Welling},
-  year          = {2014},
-  eprint        = {1312.6114},
-  archiveprefix = {arXiv},
-  primaryclass  = {stat.ML},
-  url           = {https://arxiv.org/abs/1312.6114}
+@inproceedings{kingma2014autoencodingvariationalbayes,
+  author    = {Diederik P. Kingma and
+               Max Welling},
+  editor    = {Yoshua Bengio and
+               Yann LeCun},
+  title     = {Auto-Encoding Variational Bayes},
+  booktitle = {2nd International Conference on Learning Representations, {ICLR} 2014,
+               Banff, AB, Canada, April 14-16, 2014, Conference Track Proceedings},
+  year      = {2014},
+  url       = {http://arxiv.org/abs/1312.6114},
+  timestamp = {Thu, 04 Apr 2019 13:20:07 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/KingmaW13.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 
 @misc{bengio2014representationlearningreviewnew,
@@ -590,4 +595,22 @@
   archiveprefix = {arXiv},
   primaryclass  = {cs.LG},
   url           = {https://arxiv.org/abs/1905.11946}
+}
+
+@article{10.14778/3632093.3632098,
+  author     = {Punter, Wieger R. and Papapetrou, Odysseas and Garofalakis, Minos},
+  title      = {OmniSketch: Efficient Multi-Dimensional High-Velocity Stream Analytics with Arbitrary Predicates},
+  year       = {2023},
+  issue_date = {November 2023},
+  publisher  = {VLDB Endowment},
+  volume     = {17},
+  number     = {3},
+  issn       = {2150-8097},
+  url        = {https://doi.org/10.14778/3632093.3632098},
+  doi        = {10.14778/3632093.3632098},
+  abstract   = {A key need in different disciplines is to perform analytics over fast-paced data streams, similar in nature to the traditional OLAP analytics in relational databases - i.e., with filters and aggregates. Storing unbounded streams, however, is not a realistic, or desired approach due to the high storage requirements, and the delays introduced when storing massive data. Accordingly, many synopses/sketches have been proposed that can summarize the stream in small memory (usually sufficiently small to be stored in RAM), such that aggregate queries can be efficiently approximated, without storing the full stream. However, past synopses predominantly focus on summarizing single-attribute streams, and cannot handle filters and constraints on arbitrary subsets of multiple attributes efficiently. In this work, we propose OmniSketch, the first sketch that scales to fast-paced and complex data streams (with many attributes), and supports count aggregates with filters on multiple attributes, dynamically chosen at query time. The sketch offers probabilistic guarantees, a favorable space-accuracy tradeoff, and a worst-case logarithmic complexity for updating and for query execution. We demonstrate experimentally with both real and synthetic data that the sketch outperforms the state-of-the-art, and that it can approximate complex ad-hoc queries within the configured accuracy guarantees, with small memory requirements.},
+  journal    = {Proc. VLDB Endow.},
+  month      = {nov},
+  pages      = {319–331},
+  numpages   = {13}
 }
