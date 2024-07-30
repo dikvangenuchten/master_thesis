@@ -35,39 +35,47 @@ Bringing the total amount of classes to 25. The distribution of the class labels
 All models are implemented in PyTorch \cite{Ansel_PyTorch_2_Faster_2024} using an adapted version of the segmentation models repository \cite{Iakubovskii:2019}. All code and configs required to train the models and reproduce the experiments can be found on github \footnote[1]{\url{https://github.com/Generative-AI-TUe/msc-project-1297333}}. All models are trained on a NVIDIA Geforce RTX 2080 TI. The gradients are clipped using the norm, with a max value of 10. The AdaMax\cite{kingma2017adammethodstochasticoptimization} is used with a cosine annealing learning rate, varying between $1e^{-3}$ and $1e^-4$. Each model is trained on 10.000 minibatches of size 128, unless otherwise specified.
 
 
-\section{Is pretraining beneficial}
+\section{Is pretraining beneficial}\todo{Not all runs are finished yet}
+Each model was trained eight times. Either using no pretrained encoder weights, in the tables refered to as 'None'. Or using pretrained weights retreived from either ImageNet \cite{deng2009imagenet} or a $\beta$-vae. The $\beta$ used for pretraining is added to the weights name. Furthermore, the model is trained twice, once with the encoder is not updated (i.e. frozen) and once where it is finetune. The resulting Evaluation Jaccard Index can be seen in Table~\ref{tab:baseline_results}.
 
-Sweep to answer this ($comparison.yaml$):
-model: (VAES, UNET, FPN)
-pretraining weights: (rand, vae, img)
-frozen: (true, false)
+\input{figures/baselines/baselines-results}
 
-(18 - 3)x experiments
+\todo{TODO: Run statistical analysis on resutls.}
+\begin{itemize}
+    \item Compare {all}-vae1-frozen to {all}-img-frozen
+    \item Compare {all}-vae1-unfrozen to {all}-{rand, img}-unfrozen
+\end{itemize}
 
-show results:
-Graph of JI over steps
-color -> model
-linestyle -> weights
-
-Comparisons to answer the RQs
-Can a VAE be adapted to segmentation 
-->
-Compare VAES-rand result with {UNET,FPN}-rand
-
-Does the encoder of a VAE produce useful features
-->
-Compare {all}-vae1-frozen to {all}-img-frozen
-compare {all}-vae1-unfrozen to {all}-{rand, img}-unfrozen
+% Include the current image
+% \begin{figure}[h]
+%     \foreach \i in {0,1,...,5} {
+%             \centering
+%             \subfloat[Image]{\includegraphics[width=0.2\textwidth]{figures/baselines/samples/VAES-imagenet-False/\i.png}}
+%             % \subfloat[Ground Truth]{\includegraphics[width=0.2\textwidth]{figures/baselines/samples/VAES-imagenet-False/gt_\i.png}}
+%             % \subfloat[VAES-imagenet]{\includegraphics[width=0.2\textwidth]{figures/baselines/samples/VAES-imagenet-False/pr_\i.png}}
+%             % \subfloat[unet-imagenet]{\includegraphics[width=0.2\textwidth]{figures/baselines/samples/unet-imagenet-False/pr_\i.png}}
+%             % \subfloat[fpn-None]{\includegraphics[width=0.2\textwidth]{figures/baselines/samples/fpn-None-False/pr_\i.png}}
+%             \\
+%         }
+%     \caption{Samples of the validation dataset, with the ground truth and the prediction by the model. The encoder is not frozen. (Note: FPN Result is not the correct image yet)}\label{ref:baseline-sample-results-0}
+% \end{figure}
 
 
 \section{Reduction data required}
-To determine if pretraining results in a reduction of labeled training data required, a full factorial design is done over the parameters: architecture type, pretrained weights, and the percentage of the (labeled) dataset used. The resulting Jaccard Index of each combination can be seen in Table~\ref{tab:data_fraction_results}.
+To determine if pretraining results in a reduction of labeled training data required, a full factorial design is done over the parameters: architecture type, pretrained weights, and the percentage of the (labeled) dataset used. The resulting Jaccard Index of each combination can be seen in Table~\ref{tab:data_fraction_results} and are plotted in Figure~\ref{fig:dataset-fraction-results}.
 \input{figures/data_percentage/results_dataset_fraction}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{figures/data_percentage/line-plot.png}
+    \caption{Class Distribution of CoCo}
+    \label{fig:dataset-fraction-results}
+\end{figure}
 
 An Analisyses of Variance (ANOVA) is done, which can be seen in Table~\ref{tab:data_fraction_parameter_significance}. Based on which, it can be determined that there are no significant interaction effects between any of the parameters, and that each individual parameter has a significant effect.
 \input{figures/data_percentage/parameter_significance_table}
 
-The effect of the parameters can then be analyzed using a simple OLS model. The results of which are shown in Table~\ref{tab:data_fraction_parameter_influence}. It shows that there is a large and significant increase in preformance when using the ImageNet weights. The weights gained from pretraining a VAE do not significantly affect the performance, compared to random weights. Furthermore, both the FPN and UNet architectures are better then the VAES architecture. Finally, given a bigger dataset the result is improved, however it is more important to choose the right architecture and especially pretrained weights.
+The effect of the parameters can then be analyzed using a simple OLS model. The results of which are shown in Table~\ref{tab:data_fraction_parameter_influence}. It shows that there is a large and significant increase in preformance when using the ImageNet weights. The weights gained from pretraining a VAE do not significantly affect the performance, compared to random weights. Furthermore, both the FPN and UNet architectures are better then the VAES architecture. Finally, the size of the dataset is significant, however it is more important to choose the right architecture and especially pretrained weights.
 \input{figures/data_percentage/parameter_influence_table}
 
 
