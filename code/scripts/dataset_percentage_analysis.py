@@ -119,7 +119,7 @@ def create_plots(metrics: pd.DataFrame):
     colors = ["#377eb8", "#ff7f00", "#4daf4a"]
     linestyles = ["solid", "dotted", "dashed"]
     architectures = ["VAES", "unet", "fpn"]
-    weights = ["None", "imagenet", "vae-b10"]
+    weights = ["None", "vae-b10", "imagenet"]
 
     pivot = metrics.pivot_table(
         index=["architecture", "weights"],
