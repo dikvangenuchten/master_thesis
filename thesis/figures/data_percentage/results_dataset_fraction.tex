@@ -1,0 +1,21 @@
+\begin{table}[ht]
+\centering
+\caption{The evaluation Jaccard Index for the various models and dataset fractions. Higher is better.}
+\label{tab:data_fraction_results}
+\begin{tabular}{llrrrr}
+\toprule
+     & fraction &  1.000 &  0.100 &  0.010 &  0.001 \\
+architecture & weights &        &        &        &        \\
+\midrule
+VAES & None &  0.146 &  0.165 &  0.180 &  0.120 \\
+     & imagenet &  0.340 &  0.373 &  0.386 &  0.206 \\
+     & vae-b10 &  0.137 &  0.160 &  0.180 &  0.118 \\
+fpn & None &  0.218 &  0.117 &  0.213 &  0.167 \\
+     & imagenet &  0.455 &  0.481 &  0.483 &  0.337 \\
+     & vae-b10 &  0.186 &  0.212 &  0.231 &  0.163 \\
+unet & None &  0.211 &  0.095 &  0.184 &  0.139 \\
+     & imagenet &  0.463 &  0.441 &  0.433 &  0.298 \\
+     & vae-b10 &  0.202 &  0.178 &  0.212 &  0.136 \\
+\bottomrule
+\end{tabular}
+\end{table}
