@@ -68,7 +68,7 @@ To determine if pretraining results in a reduction of labeled training data requ
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.9\textwidth]{figures/data_percentage/line-plot.png}
-    \caption{Class Distribution of CoCo}
+    \caption{Jaccard Index for reduced training dataset size.}
     \label{fig:dataset-fraction-results}
 \end{figure}
 
@@ -77,34 +77,6 @@ An Analisyses of Variance (ANOVA) is done, which can be seen in Table~\ref{tab:d
 
 The effect of the parameters can then be analyzed using a simple OLS model. The results of which are shown in Table~\ref{tab:data_fraction_parameter_influence}. It shows that there is a large and significant increase in preformance when using the ImageNet weights. The weights gained from pretraining a VAE do not significantly affect the performance, compared to random weights. Furthermore, both the FPN and UNet architectures are better then the VAES architecture. Finally, the size of the dataset is significant, however it is more important to choose the right architecture and especially pretrained weights.
 \input{figures/data_percentage/parameter_influence_table}
-
-
-
-\section{Comparison against the baseline models}
-We compare our method against the two baseline methods, UNet and FPN. Each method is trained from scratch and using a pretrained encoder on ImageNet \cite{deng2009imagenet}. The mIoU is reported, aswell as the FLOPs and inference speed on the NVIDIA RTX 1070. 
-TODO Add the results here. I am not yet finished with the ablation study to determine the best model setup. I will try to keep the UNet and FPN settings as close as possible to the VAE settings.
-
-These experiments are not yet fully done, however here are some preliminary results from the pretrained VAE. The Loss values and Jaccard Index (JI) can be seen in Table \ref{tab:seg-vae}. The preliminary results seem to indicate that the model is overfitting quickly if the 
-
-\begin{table}[!ht]
-    \centering
-    \caption{Various metrics for the segmentation value for the pretrained, frozen VAE, after only 1000 optimization steps}
-    \label{tab:seg-vae}
-    \begin{tabular}{ccccc}
-        \hline
-        Model Variant & Kl-Divergence & CrossLoss (x1e6) & Eval JI & Train JI \\
-        \hline
-        pre-b0.01     & 80200         & 0.8              & 0.092   & 0.129    \\
-        pre-b0.1      & 31250         & 0.8              & 0.154   & 0.129    \\
-        pre-b1        & 8190          & 0.8              & 0.090   & 0.120    \\
-        pre-b10       & 2089          & 0.8              & 0.108   & 0.124    \\
-        Seg-Var       & n.a.          & n.a.             & n.a.    & n.a.     \\
-        UNET-scratch  & n.a.          & 1.3              & 0.140   & 0.137    \\
-        UNET-img      & n.a.          & n.a.             & n.a.    & n.a.     \\
-        UNET-vae-enc  & n.a.          & 1.3              & 0.140   & 0.137    \\
-        \hline
-    \end{tabular}
-\end{table}
 
 
 \section{Ablation Study}
@@ -140,7 +112,7 @@ We first analyze the influence of the backbone on the performance of the VAE tas
 
 
 \subsection{Influence of the Beta factor}
-We also analyze the effect of the beta factor on the quality of the encoder features. This is done by pre-training models with varying values for beta, after which they are finetuned for the segmentation task. The results can be seen in Table \ref{tab:beta-vae-loss-values}. Some examples of the reconstruction capabillities can be seen in Figure \ref{fig:beta-vae-recon-examples}.
+We also analyze the effect of the beta factor on the reconstruction quality of the vae. This is done by training models with varying values for beta. The results can be seen in Table \ref{tab:beta-vae-loss-values}. Some examples of the reconstruction capabillities can be seen in Figure \ref{fig:beta-vae-recon-examples}.
 
 \begin{table}[!ht]
     \centering
@@ -154,7 +126,7 @@ We also analyze the effect of the beta factor on the quality of the encoder feat
         0.1     & 31250         & 1.5                         \\
         1       & 8190          & 2.7                         \\
         10      & 2089          & 2.2                         \\
-        100     & (node crashed & mid run)                    \\
+        100     & 498           & 2.9                         \\
         \hline
     \end{tabular}
 \end{table}
@@ -172,6 +144,7 @@ We also analyze the effect of the beta factor on the quality of the encoder feat
 
 \subsection{Skip Connection}
 To understand the importance of the skip connections which are added after the pretraining. We will show the effect of this by incrementally removing more skip connections.
+\todo{Training is in the backlog of slurm}
 
 \begin{table}[!ht]
     \centering
