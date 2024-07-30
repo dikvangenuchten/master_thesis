@@ -9,6 +9,7 @@ import numpy as np  # noqa: F401
 from statsmodels.formula.api import ols
 from statsmodels.stats.anova import anova_lm
 import tqdm
+from matplotlib import pyplot as plt
 import wandb_utils
 
 FIGURES_DIR = "../thesis/figures/data_percentage/"
@@ -20,6 +21,34 @@ def main(group):
     runs = list(runs)
 
     metrics = get_metrics(runs)
+    create_plots(metrics.copy())
+    create_tables(metrics.copy())
+
+    download_samples(runs)
+
+
+def get_metrics(runs: List[wandb_utils.Run]) -> pd.DataFrame:
+    metrics = []
+    for i, run in enumerate(runs):
+        config = json.loads(run.json_config)
+        architecture = get_architecture(config)
+        weights = config["model"]["value"]["encoder_weights"]
+        percentage = config["dataset"]["value"]["percentage"]
+        eval_metric = get_eval_metric(run)
+        metrics.append(
+            {
+                "idx": i,
+                "config": config,
+                "architecture": architecture,
+                "weights": weights,
+                "fraction": percentage,
+                "Jaccard_Index": eval_metric,
+            }
+        )
+    return pd.DataFrame(metrics)
+
+
+def create_tables(metrics):
     # Do analysis and make plots for metrics
     # Insert "all invalid runs"
     len(metrics)
@@ -70,7 +99,11 @@ def main(group):
         os.path.join(FIGURES_DIR, "results_dataset_fraction.tex"),
         mode="w",
     ) as file:
-        table = metrics.pivot_table(index=["architecture", "weights"], columns=["fraction"], values="Jaccard_Index")
+        table = metrics.pivot_table(
+            index=["architecture", "weights"],
+            columns=["fraction"],
+            values="Jaccard_Index",
+        )
         # Reverse colums so 1 is first
         table = table[table.columns[::-1]]
         table.to_latex(
@@ -78,31 +111,55 @@ def main(group):
             caption="The evaluation Jaccard Index for the various models and dataset fractions. Higher is better.",
             position="ht",
             float_format="%.3f",
-            label="tab:data_fraction_results"
+            label="tab:data_fraction_results",
         )
 
-    download_samples(runs)
 
+def create_plots(metrics: pd.DataFrame):
+    colors = ["#377eb8", "#ff7f00", "#4daf4a"]
+    linestyles = ["solid", "dotted", "dashed"]
+    architectures = ["VAES", "unet", "fpn"]
+    weights = ["None", "imagenet", "vae-b10"]
 
-def get_metrics(runs: List[wandb_utils.Run]) -> pd.DataFrame:
-    metrics = []
-    for i, run in enumerate(runs):
-        config = json.loads(run.json_config)
-        architecture = get_architecture(config)
-        weights = config["model"]["value"]["encoder_weights"]
-        percentage = config["dataset"]["value"]["percentage"]
-        eval_metric = get_eval_metric(run)
-        metrics.append(
-            {
-                "idx": i,
-                "config": config,
-                "architecture": architecture,
-                "weights": weights,
-                "fraction": percentage,
-                "Jaccard_Index": eval_metric,
-            }
+    pivot = metrics.pivot_table(
+        index=["architecture", "weights"],
+        columns=["fraction"],
+        values="Jaccard_Index",
+    )
+    pivot = pivot[pivot.columns[::-1]]
+    fig, ax = plt.subplots()
+    for i, architecture in enumerate(architectures):
+        linestyle = linestyles[i]
+        for j, weight in enumerate(weights):
+            color = colors[j]
+            x = list(pivot.loc[architecture, weight].index)
+            y = list(pivot.loc[architecture, weight])
+            ax.plot(x, y, color=color, linestyle=linestyle)
+
+    # Add the legend
+    for i, architecture in enumerate(architectures):
+        linestyle = linestyles[i]
+        ax.plot(
+            [],
+            [],
+            color="black",
+            linestyle=linestyle,
+            label=architecture,
         )
-    return pd.DataFrame(metrics)
+    for i, weight in enumerate(weights):
+        color = colors[i]
+        ax.plot(
+            [], [], color=color, linestyle="", marker="o", label=weight
+        )
+    ax.legend(loc="upper right", ncol=2)
+
+    ax.set_ylim([0, 0.6])
+    ax.set_xscale("log")
+    ax.invert_xaxis()
+    ax.set_xlabel("Fraction of the training dataset used")
+    ax.set_ylabel("Jaccard Index")
+    fig.tight_layout()
+    fig.savefig(os.path.join(FIGURES_DIR, "line-plot.png"))
 
 
 def download_samples(runs: List[wandb_utils.Run]):
