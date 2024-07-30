@@ -1,0 +1,16 @@
+\begin{table}[ht]
+\centering
+\caption{Eval Jaccard Index for our model and the baselines for various parameters. Higher is better.}
+\label{tab:baseline_results}
+\begin{tabular}{llrrrr}
+\toprule
+     & weights &  None &  imagenet &  vae-b1 &  vae-b100 \\
+frozen & architecture &       &           &         &           \\
+\midrule
+False & VAES &  0.21 &      0.47 &    0.20 &      0.23 \\
+     & unet &  0.23 &      n.a. &    0.21 &      0.24 \\
+True & VAES &  n.a. &      0.40 &    0.20 &      0.18 \\
+     & unet &  n.a. &      0.42 &    0.20 &      0.19 \\
+\bottomrule
+\end{tabular}
+\end{table}
