@@ -27,7 +27,9 @@ def main(dataset_name):
         val_dataset = hydra.utils.instantiate(cfg, split="val")
 
         train_stats = get_statistics(train_dataset)
+        print(train_stats)
         val_stats = get_statistics(val_dataset)
+        print(val_stats)
 
         sample_dir = os.path.join(FIGURES_DIR, dataset_name, "samples")
         os.makedirs(sample_dir, exist_ok=True)
@@ -150,9 +152,7 @@ def generate_samples(dataset, n, dir):
 def get_statistics(dataset):
     size = len(dataset)
 
-    samples = [dataset[i] for i in range(10)]
-
-    pass
+    return {"size": size}
 
 
 if __name__ == "__main__":

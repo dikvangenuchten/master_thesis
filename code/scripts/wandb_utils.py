@@ -1,9 +1,12 @@
 import os
 from typing import List, Optional
+from matplotlib import pyplot as plt
+import numpy as np
 import tqdm
 import wandb
 import json
 import pandas as pd
+from PIL import Image
 from wandb.apis.public.runs import Run
 
 # Project is specified by <entity/project-name>
@@ -50,8 +53,9 @@ def download_last_eval_images(run, file_dir, key="EvalReconstruction"):
                 gt_files, desc="Downloading gt_masks", leave=False
             )
         ):
-            file.name = f"gt_{i}.png"
+            file.name = f"raw_gt_{i}.png"
             file.download(file_dir, exist_ok=True)
+            process_mask(os.path.join(file_dir, file.name))
 
         pr_files = list(run.files(pr_masks))
         for i, file in enumerate(
@@ -59,9 +63,19 @@ def download_last_eval_images(run, file_dir, key="EvalReconstruction"):
                 pr_files, desc="Downloading pr_masks", leave=False
             )
         ):
-            file.name = f"pr_{i}.png"
+            file.name = f"raw_pr_{i}.png"
             file.download(file_dir, exist_ok=True)
+            process_mask(os.path.join(file_dir, file.name))
 
+def process_mask(path):
+    # TODO fix inconsitency with first few runs
+    mask = np.asarray(Image.open(path)).copy()
+    cmap = plt.cm.tab20(range(27))
+    # Add black for unlabeled
+    cmap = np.concatenate((cmap, [[0, 0, 0, 1],]))
+    mask[mask==133] = 27
+    mask = cmap[mask]
+    Image.fromarray((mask * 255).astype("uint8")).save(path.replace("raw_", ""))
 
 def visualize_runs(runs):
     sweep_sum = []

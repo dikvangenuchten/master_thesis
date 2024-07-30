@@ -1,8 +1,6 @@
-import os
 from typing import List, Literal, Optional
 import torchseg
 from torch import nn
-from torchvision.transforms import v2 as transforms
 
 from . import utils
 
