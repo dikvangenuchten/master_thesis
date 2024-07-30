@@ -46,19 +46,19 @@ Each model was trained eight times. Either using no pretrained encoder weights, 
     \item Compare {all}-vae1-unfrozen to {all}-{rand, img}-unfrozen
 \end{itemize}
 
-% Include the current image
-% \begin{figure}[h]
-%     \foreach \i in {0,1,...,5} {
-%             \centering
-%             \subfloat[Image]{\includegraphics[width=0.2\textwidth]{figures/baselines/samples/VAES-imagenet-False/\i.png}}
-%             % \subfloat[Ground Truth]{\includegraphics[width=0.2\textwidth]{figures/baselines/samples/VAES-imagenet-False/gt_\i.png}}
-%             % \subfloat[VAES-imagenet]{\includegraphics[width=0.2\textwidth]{figures/baselines/samples/VAES-imagenet-False/pr_\i.png}}
-%             % \subfloat[unet-imagenet]{\includegraphics[width=0.2\textwidth]{figures/baselines/samples/unet-imagenet-False/pr_\i.png}}
-%             % \subfloat[fpn-None]{\includegraphics[width=0.2\textwidth]{figures/baselines/samples/fpn-None-False/pr_\i.png}}
-%             \\
-%         }
-%     \caption{Samples of the validation dataset, with the ground truth and the prediction by the model. The encoder is not frozen. (Note: FPN Result is not the correct image yet)}\label{ref:baseline-sample-results-0}
-% \end{figure}
+Include the current image
+\begin{figure}[h]
+    \foreach \i in {0,1,...,4} {
+            \centering
+            \subfloat[Image]{\includegraphics[width=0.2\textwidth]{figures/baselines/samples/VAES-imagenet-False/\i.png}}
+            \subfloat[Ground Truth]{\includegraphics[width=0.2\textwidth]{figures/baselines/samples/VAES-imagenet-False/gt_\i.png}}
+            \subfloat[VAES-imagenet]{\includegraphics[width=0.2\textwidth]{figures/baselines/samples/VAES-imagenet-False/pr_\i.png}}
+            \subfloat[unet-imagenet]{\includegraphics[width=0.2\textwidth]{figures/baselines/samples/unet-imagenet-False/pr_\i.png}}
+            % \subfloat[fpn-None]{\includegraphics[width=0.2\textwidth]{figures/baselines/samples/fpn-None-False/pr_\i.png}}
+            \\
+        }
+    \caption{Samples of the validation dataset, with the ground truth and the prediction by the model. The encoder is not frozen. (Note: FPN Result is not the correct image yet)}\label{ref:baseline-sample-results-0}
+\end{figure}
 
 
 \section{Reduction data required}
@@ -170,30 +170,6 @@ We also analyze the effect of the beta factor on the quality of the encoder feat
 \end{figure}
 
 
-\subsection{Unfreezing}
-To show the impact of freezing the encoder, we finetune each model twice models. One in which the encoder is kept frozen, i.e. no optimization is applied on the encoder layers, and one in which the encoder is jointly optimized with the decoder.
-
-The benefit of freezing the encoder is that the original $p(z |x)$ is preserved which can be used for anomaly detection. Furthermore, it makes the switch to an multimodal VAE, such as proposed in \cite{vasco2020mhvae}, possible.
-
-\begin{table}[!ht]
-    \centering
-    \caption{Result of unfreezing the encoder of the network}
-    \label{tab:abl-freeze-enc}
-    \begin{tabular}{cccc}
-        \hline
-        Model Variant      & CrossLoss (x1e6) & Eval JI & Train JI \\
-        \hline
-        UNet-img-freeze    & n.a.             & n.a.    & n.a.     \\
-        UNet-pre-freeze    & n.a.             & n.a.    & n.a.     \\
-        UNet-img           & n.a.             & n.a.    & n.a.     \\
-        seg-vae-img-freeze & n.a.             & n.a.    & n.a.     \\
-        seg-vae-pre-freeze & n.a.             & n.a.    & n.a.     \\
-        seg-vae-img        & n.a.             & n.a.    & n.a.     \\
-        seg-vae-pre        & n.a.             & n.a.    & n.a.     \\
-        \hline
-    \end{tabular}
-\end{table}
-
 \subsection{Skip Connection}
 To understand the importance of the skip connections which are added after the pretraining. We will show the effect of this by incrementally removing more skip connections.
 
@@ -214,30 +190,3 @@ To understand the importance of the skip connections which are added after the p
         \hline
     \end{tabular}
 \end{table}
-
-\subsection{Probabilistic Inference}
-TODO not entirely sure if I have enough time for this
-Another potential benefit of the VAEseg is the probabilistic nature of the model. Using bootstrapping, an uncertainty measure can be created. To understand if this certainty measure is a useful predictor of the actual certainty of the output. The ECE is reported for various sizes of bootstrapping.
-
-\section{Understanding potential benefits of VAE}
-\subsection*{ImageNet Bias}
-% \#TODO provide some examples of the (racial) bias problems of Imagenet. Might be able to generalize it to human made labels, hence benefit of VAE.
-
-% As previous research already has shown (TODO link research), models that use a pretrained backbone which is trained on the ImageNet dataset, contain various biases. As our backbone is not trained on ImageNet a small qualitative research will be done on the 2 models. To detect wheter the bias differs between the VASegm and an UNet-segmentation model. This is done by training two models, one using a frozen encoder which is trained on ImageNet, and one that is trained using the VAE. Based on some initial datavisualization it was suggested that ImageNet contained some racial biases in which it depicted persons of color more often as animals in comparison to the wrongly predicted caucasians people.
-
-
-% \subsection*{General Metrics}
-% For all of the above experiments the following metrics will be tracked to get insight in the quality of the model.
-
-% \begin{table}[]
-%     \begin{tabular}{l|l|l}
-%         Metric                      & Formula                                   & Reason                                     \\
-%         \hline
-%         Precision                   & $\frac{TP}{TP + FP}$                      & Standard practice                          \\
-%         Recall                      & $\frac{TP}{TP + FN}$                      & Standard practice                          \\
-%         Segmentation quality        & $\frac{\|TP\|}{\|FP\| + \|TP\| + \|FN\|}$ & Quantifly compare accuracy of the model    \\
-%         Expected Callibration Error &                                           & Check uncertainty prediction is reliable.
-%     \end{tabular}
-% \end{table}
-
-% \footnote[1]{ECE is taken from \cite{guo2017calibration}}
