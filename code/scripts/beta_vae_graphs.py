@@ -39,26 +39,12 @@ def main(group: str):
         file_dir = os.path.join(
             FIGURES_DIR, "samples", f"{weights}-b{beta}"
         )
-        download_last_eval_images(run, file_dir)
+        wandb_utils.download_last_eval_images(
+            run, file_dir, key="EvalReconstruction"
+        )
 
     df = pd.DataFrame(metrics)
     plot_beta_influence(df)
-
-
-def download_last_eval_images(run, file_dir):
-    last_step = run.summary["_step"]
-    step = list(
-        run.scan_history(
-            keys=["EvalReconstruction"], min_step=last_step - 1
-        )
-    )[0]
-    images = run.files(step["EvalReconstruction"]["filenames"])
-
-    for i, file in enumerate(
-        tqdm.tqdm(images, desc="Downloading recon images", leave=False)
-    ):
-        file.name = f"{i}.png"
-        file.download(file_dir, exist_ok=True)
 
 
 def plot_beta_influence(df):
