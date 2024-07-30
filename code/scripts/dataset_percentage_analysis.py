@@ -158,6 +158,7 @@ def create_plots(metrics: pd.DataFrame):
     ax.invert_xaxis()
     ax.set_xlabel("Fraction of the training dataset used")
     ax.set_ylabel("Jaccard Index")
+    ax.set_title("Jaccard Index for reduced dataset size")
     fig.tight_layout()
     fig.savefig(os.path.join(FIGURES_DIR, "line-plot.png"))
 
