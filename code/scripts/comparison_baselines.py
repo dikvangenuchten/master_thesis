@@ -4,6 +4,7 @@
 import json
 import os
 from typing import List
+import numpy as np
 import pandas as pd
 from statsmodels.formula.api import ols
 from statsmodels.stats.anova import anova_lm
@@ -11,6 +12,7 @@ import tqdm
 import wandb_utils
 
 FIGURES_DIR = "../thesis/figures/baselines/"
+
 
 def main(group):
     runs = wandb_utils.get_runs_from_group(group)
@@ -55,18 +57,19 @@ def create_tables(metrics: pd.DataFrame):
         columns="weights",
         values="eval_metric",
     )
-    pivot.to_latex(
+    pivot.style.format_index(str, level=[0]).highlight_max(
+        axis=0, props="textbf:--rwrap;", subset=pivot.columns
+    ).format(na_rep="n.a.", precision=2, subset=pivot.columns).to_latex(
         os.path.join(FIGURES_DIR, "baselines-results.tex"),
         caption="Eval Jaccard Index for our model and the baselines for various parameters. Higher is better.",
         label="tab:baseline_results",
-        na_rep="n.a.",
         position="ht",
-        float_format="%.2f"
     )
 
+
 def generate_visual_appealing_mask(ground_truth, prediction):
-    
     pass
+
 
 def analyze_metrics(metrics: pd.DataFrame):
     print("WARNING: Removed FPN for now as it is not yet done")
