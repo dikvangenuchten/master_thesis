@@ -26,7 +26,7 @@ def main(group):
     metrics = get_metrics(runs)
     # Do analysis and make plots for metrics
     create_tables(metrics)
-    # analyze_metrics(metrics)
+    analyze_metrics(metrics)
 
     download_samples(runs)
 
@@ -58,39 +58,41 @@ def create_tables(metrics: pd.DataFrame):
         values="eval_metric",
     )
     pivot.style.format_index(str, level=[0]).highlight_max(
-        axis=0, props="textbf:--rwrap;", subset=pivot.columns
-    ).format(na_rep="n.a.", precision=2, subset=pivot.columns).to_latex(
+        axis=0,
+        props="textbf:--rwrap;",
+    ).format(
+        na_rep="n.a.",
+        precision=2,
+    ).to_latex(
         os.path.join(FIGURES_DIR, "baselines-results.tex"),
         caption="Eval Jaccard Index for our model and the baselines for various parameters. Higher is better.",
         label="tab:baseline_results",
         position="ht",
+        hrules=True,
     )
-
-
-def generate_visual_appealing_mask(ground_truth, prediction):
-    pass
 
 
 def analyze_metrics(metrics: pd.DataFrame):
     print("WARNING: Removed FPN for now as it is not yet done")
-    metrics = metrics[metrics["architecture"] != "fpn"]
+    # metrics = metrics[metrics["architecture"] != "fpn"]
     print("WARNING: Removed FPN for now as it is not yet done")
 
     # Todo the ANOVA, we need to add the 'invalid' configs
-    for arch in metrics["architecture"].unique():
-        metrics = metrics.append(
-            {
-                "architecture": arch,
-                "weights": "None",
-                "frozen": True,
-                "eval_metric": 0.04,
-            },
-            ignore_index=True,
-        )
+    # for arch in metrics["architecture"].unique():
+    #     metrics = metrics.append(
+    #         {
+    #             "architecture": arch,
+    #             "weights": "None",
+    #             "frozen": True,
+    #             "eval_metric": 0.00,
+    #         },
+    #         ignore_index=True,
+    #     )
 
     parameter_influence = ols(
-        formula="eval_metric ~ frozen * weights * architecture",
+        formula="eval_metric ~ weights * architecture",
         data=metrics,
+        cov_type="hc1"
     ).fit()
     anova = anova_lm(parameter_influence, cov_type="hc3")
     print(anova.summary2())
