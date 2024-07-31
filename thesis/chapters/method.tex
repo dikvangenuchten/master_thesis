@@ -23,8 +23,8 @@ We will refer to the image encoder and label decoder together as VAE-Segmentatio
 
 \begin{figure}[h]
     \centering
-    \subfloat[Classic VAE\label{fig:schematic-vae}]{\includegraphics[width=0.45\textwidth]{figures/vae.png}}\hphantom{space}
-    \subfloat[Our method (VAES)\label{fig:schematic-vaes}]{\includegraphics[width=0.45\textwidth]{figures/vaes.png}}
+    \subfloat[A classic VAE and our model during the pre-training phase.\label{fig:schematic-vae}]{\includegraphics[width=0.45\textwidth]{figures/vae.png}}\hphantom{space}
+    \subfloat[The full VAES model. The dotted line shows the skip connections. During inference the image decoder can be disregarded\label{fig:schematic-vaes}]{\includegraphics[width=0.45\textwidth]{figures/vaes.png}}
     \caption{A schematic of the proposed VAES.}
 \end{figure}
 
