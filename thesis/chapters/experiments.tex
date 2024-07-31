@@ -2,9 +2,7 @@
 
 \section{Implementation details}
 \subsection{Dataset}
-\paragraph{COCO\cite{lin2015microsoftcococommonobjects}} is a publicly available dataset and has a multitude of labels. The semantic mask are extrated from the 2017 Panoptic annotations. This set contains more then 100k images that are densly annotated with both the semantic class and instance. There are a total of 133 different classes which belong to 27 'supercategories'. The four categories, "food" and "food-stuff", and "furniture" and "furniture-stuff", were merged into "food" and "furniture" respectively. As these contained 
-
-Bringing the total amount of classes to 25. The distribution of the class labels can be seen in Figure \ref{fig:coco-class-distribution}. Some samples of the dataset can be seen in Figure \ref{fig:coco-samples}. More samples can be found in Appendix \ref{appendix:coco_samples}. 
+\paragraph{COCO\cite{lin2015microsoftcococommonobjects}} is a publicly available dataset and has a multitude of labels. The semantic mask are extrated from the 2017 Panoptic annotations. This set contains more then 100k images that are densly annotated with both the semantic class and instance. There are a total of 133 different classes which belong to 27 'supercategories'. The four categories, "food" and "food-stuff", and "furniture" and "furniture-stuff", were merged into "food" and "furniture" respectively. Bringing the total amount of supercategories to 25. To speed up convergences, we will use these 25 classes. The distribution of the class labels can be seen in Figure \ref{fig:coco-class-distribution}. Some samples of the dataset can be seen in Figure \ref{fig:coco-samples}. More samples can be found in Appendix \ref{appendix:coco_samples}. 
 
 \begin{figure}[h]
     \centering
@@ -36,7 +34,7 @@ All models are implemented in PyTorch \cite{Ansel_PyTorch_2_Faster_2024} using a
 
 
 \section{Is pretraining beneficial}\todo{Not all runs are finished yet}
-Each model was trained eight times. Either using no pretrained encoder weights, in the tables refered to as 'None'. Or using pretrained weights retreived from either ImageNet \cite{deng2009imagenet} or a $\beta$-vae. The $\beta$ used for pretraining is added to the weights name. Furthermore, the model is trained twice, once with the encoder is not updated (i.e. frozen) and once where it is finetune. The resulting Evaluation Jaccard Index can be seen in Table~\ref{tab:baseline_results}.
+Each model was trained eight times. Either using no pretrained encoder weights, in the tables referred to as 'None'. Or using pretrained weights retreived from either ImageNet \cite{deng2009imagenet} or a $\beta$-vae. The $\beta$ used for pretraining is added to the weights name. Furthermore, the model is trained twice, once with the frozen (i.e. the encoder weights are not updated) and once where it is finetuned. The resulting Evaluation Jaccard Index can be seen in Table~\ref{tab:baseline_results}.
 
 \input{figures/baselines/baselines-results}
 
@@ -54,7 +52,7 @@ Include the current image
             \subfloat[Ground Truth]{\includegraphics[width=0.2\textwidth]{figures/baselines/samples/VAES-imagenet-False/gt_\i.png}}
             \subfloat[VAES-imagenet]{\includegraphics[width=0.2\textwidth]{figures/baselines/samples/VAES-imagenet-False/pr_\i.png}}
             \subfloat[unet-imagenet]{\includegraphics[width=0.2\textwidth]{figures/baselines/samples/unet-imagenet-False/pr_\i.png}}
-            % \subfloat[fpn-None]{\includegraphics[width=0.2\textwidth]{figures/baselines/samples/fpn-None-False/pr_\i.png}}
+            \subfloat[fpn-imagenet]{\includegraphics[width=0.2\textwidth]{figures/baselines/samples/fpn-imagenet-False/pr_\i.png}}
             \\
         }
     \caption{Samples of the validation dataset, with the ground truth and the prediction by the model. The encoder is not frozen. (Note: FPN Result is not the correct image yet)}\label{ref:baseline-sample-results-0}
