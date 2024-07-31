@@ -6,10 +6,10 @@ We start by rewritting the log likelihood of $p(x, y, z)$ as shown in Eq.~\ref{e
 
 \begin{subequations}
     \begin{align}
-        log p_\theta(x, y) & = \int_z log p_\theta(y | x, z) dz +  \int_z log p_\theta(x, z) + log p_\theta(z) dz             \label{eq:label_marginal} \\
-                           & \geq log p_\theta(y | x) + \mathcal{L}_{elbo}                                                                              \\
-                           & \approx \mathbb{E}_{z~q_{\phi}(z | x)}[\log p(y|x, z)] + \mathcal{L}_{elbo}                                                \\
-                           & = \mathcal{L}_{label-elbo} \label{eq:label_elbo}
+        \log p_\theta(x, y) & = \int_z \log p_\theta(y | x, z) dz +  \int_z \log p_\theta(x, z) + \log p_\theta(z) dz             \label{eq:label_marginal} \\
+                            & \geq \log p_\theta(y | x) + \mathcal{L}_{elbo}                                                                                \\
+                            & \approx \mathbb{E}_{z~q_{\phi}(z | x)}[\log p(y|x, z)] + \mathcal{L}_{elbo}                                                   \\
+                            & = \mathcal{L}_{label-elbo} \label{eq:label_elbo}
     \end{align}
 \end{subequations}
 
@@ -32,53 +32,30 @@ We will refer to the image encoder and label decoder together as VAE-Segmentatio
 The image encoder approximates the latent distribution, $p(z)$. To ensure we can train the encoder using gradient descent, we need to make sure it is fully differentiable. Thus we make use of the reparameterization trick. Using a deterministic mapping $g_\phi(\epsilon, z')$, where $\epsilon$ is an independent random variable and $g_\phi(x)$ is our (deterministic) neural network. Kingma et al. show that using this reparameterization trick, a wide range of distributions can be learned. In our case we use a Gaussian latent space. The reparameterization then becomse $z = \mu + \sigma \epsilon$, where $\mu$ and $\sigma$ are the output of our image encoder network.
 
 \subsection{Image Decoder}
-The image decoder approximates the conditional Gaussian distribution $p_\theta(x|z)$. It is used during the pretraining step to prime the image encoder with 'good' initial weights, using the traditional ($\beta$)-VAE training. The hypothesis is, that given that $x$ can be reconstructed from the learned $q_\phi(z|x)$, the learned latent space contains useful features to approximate $p_\theta(y|z)$. In Eq.~\ref{eq:beta-elbo} $log p(x|z)$ can be calculated using Eq.~\ref{eq:log_p_x_z} using a parameterized neural network.
+The image decoder approximates the conditional Gaussian distribution $p_\theta(x|z)$. It is used during the pretraining step to prime the image encoder with 'good' initial weights, using the traditional ($\beta$-)VAE training. The hypothesis is, that given that $x$ can be reconstructed from the learned $q_\phi(z|x)$, the learned latent space contains useful features to approximate $p_\theta(y|z)$. In Eq.~\ref{eq:beta-elbo} $\log p(x|z)$ can be calculated using Eq.~\ref{eq:log_p_x_z} using a parameterized neural network.
 
 \begin{equation}
     \begin{split}
-        log p(x|z)              & = log \mathcal{N}(x; \mu, \sigma^2I) \label{eq:log_p_x_z} \\
+        \log p(x|z)             & = \log \mathcal{N}(x; \mu, \sigma^2I) \label{eq:log_p_x_z} \\
         \text{where}~\mu,\sigma & =NN_\theta(z)
     \end{split}
 \end{equation}
 
 \subsection{Label Decoder}
-The label decoder is similar to the image decoder, except that it approximates a multivariate Bernoulli distribution, instead of an Gaussian. Thus the only difference is the calculation of $log p(y|z,x)$, which is shown in Eq.~\ref{eq:log_p_y_z}.
+The label decoder is similar to the image decoder, except that it approximates a multivariate Bernoulli distribution, instead of an Gaussian. Thus the only difference is the calculation of $\log p(y|z,x)$, which is shown in Eq.~\ref{eq:log_p_y_z}.
 
 \begin{subequations}
     \begin{align}
-        log p(y|z, x)  & = \sum_{i=0}^n y_i log h_i + (1 - y_i)log(1-h_i) \label{eq:log_p_y_z} \\
+        \log p(y|z, x) & = \sum_{i=0}^n y_i \log h_i + (1 - y_i)log(1-h_i) \label{eq:log_p_y_z} \\
         \text{where}~h & = softmax(NN_\theta(z))
     \end{align}
 \end{subequations}
 
-To improve the sharpness of the labels, additional latent variables are added from higher up the encoder, similar to HVAE. This results in the final loss Eq.~\ref{eq:beta-hvae-label-elbo}.
-
-\begin{equation}
-    \label{eq:beta-hvae-label-elbo}
-    \mathcal{L}_{\beta-label} = \mathbb{E}_{q_{\phi}(z|x)}[\log p(y|z)] - \beta \sum_{i=0}^n(D_{KL}(q_{\phi}(z_i|x) || p(z_i)))
-\end{equation}
-
-\begin{figure}[h]
-    \begin{minipage}{0.9\textwidth}
-        \includegraphics[width=1\textwidth]{figures/model_data_flow.png}
-        \caption{The data flow of the various submodels. NOTE: I still want to make this prettier, making it more similar to \ref{fig:hvae-example}}
-        \label{fig:seg-vae-schematic}
-    \end{minipage}
-\end{figure}
-
-\begin{figure}
-    \begin{minipage}{0.9\textwidth}
-        \includegraphics[width=1\textwidth]{figures/h_vae_structure.png}
-        \caption{Example of the H-VAE structure. From \cite{kohl2018probabilistic}.}
-        \label{fig:hvae-example}
-    \end{minipage}
-\end{figure}
-
 \section{Training procedure}
 The training consist of two stages, the pre-training phase, and the fine-tuning stage. 
-\paragraph*{Pre-training phase} During the pre-training phase, the image encoder, $q_\phi(z|x)$, and image decoder, $p_\theta(x|z)$, are trained. The model is optimized to minimize Eq.~\ref{eq:beta-elbo} using stochastic gradient descent with minibatches. Note, that during pre-training no labels are required.
+\paragraph*{Pre-training phase} During the pre-training phase, the image encoder, $q_\phi(z|x)$, and image decoder, $p_\theta(x|z)$, are trained. This is equal to the classical VAE shown in Figure~\ref{fig:schematic-vae}. The model is optimized to minimize the negative Eq.~\ref{eq:beta-elbo} using stochastic gradient descent with minibatches. Note, that during pre-training no labels are required.
 
-\paragraph*{Fine-turning phase} During the fine-tuning phase, the learned image encoder, $q_\phi(z|x)$ is reused. However, the image decoder, $p_\theta(x|z)$, is replaced with a new label decoder, $p_\xi(x|z)$. The encoder can either be kept frozen or jointly optimized with the decoder. During fine-tuning Eq.~\ref{eq:label_elbo} is maximized.
+\paragraph*{Fine-turning phase} During the fine-tuning phase, the learned image encoder, $q_\phi(z|x)$ is reused. However, the image decoder, $p_\theta(x|z)$, is replaced with a new label decoder, $p_\xi(x|z)$. The encoder can either be kept frozen or jointly optimized with the decoder. During fine-tuning the negative of Eq.~\ref{eq:label_elbo} is minimized.
 
 In the case that the image encoder is kept frozen, the dataset can be encoded once into the latent space. This latent space can then be sampled, reducing the computational and memory required during training.
 
