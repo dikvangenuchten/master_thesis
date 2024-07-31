@@ -1,3 +1,4 @@
+import copy
 import os
 from typing import List, Optional
 from matplotlib import pyplot as plt
@@ -16,20 +17,28 @@ WANDB_API = None
 
 
 def get_runs_from_group(
-    group: str, api: Optional[wandb.Api] = None
+    group: str,
+    api: Optional[wandb.Api] = None,
+    project_name: Optional[str] = None,
 ) -> List[Run]:
     if api is None:
         global WANDB_API
         if WANDB_API is None:
             WANDB_API = wandb.Api()
         api = WANDB_API
-    runs = api.runs(PROJECT_NAME, filters={"group": group})
+    if project_name is None:
+        global PROJECT_NAME
+        project_name = PROJECT_NAME
+    runs = api.runs(project_name, filters={"group": group})
     return runs
 
 
-def download_last_eval_images(run, file_dir, key="EvalReconstruction"):
-    last_step = run.summary["_step"]
-    step = list(run.scan_history(keys=[key], min_step=last_step - 1))[0]
+def download_last_eval_images(
+    run, file_dir, key="EvalReconstruction", step=None
+):
+    if step is None:
+        step = run.summary["_step"]
+    step = list(run.scan_history(keys=[key], min_step=step - 1))[0]
 
     images = list(run.files(step[key]["filenames"]))
     all_masks = step[key].get("all_masks", [])
@@ -67,15 +76,26 @@ def download_last_eval_images(run, file_dir, key="EvalReconstruction"):
             file.download(file_dir, exist_ok=True)
             process_mask(os.path.join(file_dir, file.name))
 
+
 def process_mask(path):
     # TODO fix inconsitency with first few runs
     mask = np.asarray(Image.open(path)).copy()
     cmap = plt.cm.tab20(range(27))
     # Add black for unlabeled
-    cmap = np.concatenate((cmap, [[0, 0, 0, 1],]))
-    mask[mask==133] = 27
+    cmap = np.concatenate(
+        (
+            cmap,
+            [
+                [0, 0, 0, 1],
+            ],
+        )
+    )
+    mask[mask == 133] = 27
     mask = cmap[mask]
-    Image.fromarray((mask * 255).astype("uint8")).save(path.replace("raw_", ""))
+    Image.fromarray((mask * 255).astype("uint8")).save(
+        path.replace("raw_", "")
+    )
+
 
 def visualize_runs(runs):
     sweep_sum = []
