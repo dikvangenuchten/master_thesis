@@ -1,21 +1,20 @@
 \begin{table}[ht]
-\centering
-\caption{The evaluation Jaccard Index for the various models and dataset fractions. Higher is better.}
+\caption{The Evaluation Jaccard Index for the various models and dataset fractions. The higher the score the better.}
 \label{tab:data_fraction_results}
 \begin{tabular}{llrrrr}
 \toprule
-     & fraction &  1.000 &  0.100 &  0.010 &  0.001 \\
-architecture & weights &        &        &        &        \\
+ & fraction & 1.000000 & 0.100000 & 0.010000 & 0.001000 \\
+architecture & weights &  &  &  &  \\
 \midrule
-VAES & None &  0.146 &  0.165 &  0.180 &  0.120 \\
-     & imagenet &  0.340 &  0.373 &  0.386 &  0.206 \\
-     & vae-b10 &  0.137 &  0.160 &  0.180 &  0.118 \\
-fpn & None &  0.218 &  0.117 &  0.213 &  0.167 \\
-     & imagenet &  0.455 &  0.481 &  0.483 &  0.337 \\
-     & vae-b10 &  0.186 &  0.212 &  0.231 &  0.163 \\
-unet & None &  0.211 &  0.095 &  0.184 &  0.139 \\
-     & imagenet &  0.463 &  0.441 &  0.433 &  0.298 \\
-     & vae-b10 &  0.202 &  0.178 &  0.212 &  0.136 \\
+\multirow[c]{3}{*}{VAES} & None & 0.15 & 0.16 & 0.18 & 0.12 \\
+ & imagenet & 0.34 & 0.37 & 0.39 & 0.21 \\
+ & vae-b10 & 0.14 & 0.16 & 0.18 & 0.12 \\
+\multirow[c]{3}{*}{fpn} & None & 0.22 & 0.12 & 0.21 & 0.17 \\
+ & imagenet & 0.45 & \textbf{0.48} & \textbf{0.48} & \textbf{0.34} \\
+ & vae-b10 & 0.19 & 0.21 & 0.23 & 0.16 \\
+\multirow[c]{3}{*}{unet} & None & 0.21 & 0.10 & 0.18 & 0.14 \\
+ & imagenet & \textbf{0.46} & 0.44 & 0.43 & 0.30 \\
+ & vae-b10 & 0.20 & 0.18 & 0.21 & 0.14 \\
 \bottomrule
 \end{tabular}
 \end{table}

@@ -2,7 +2,8 @@
 
 \section{Implementation details}
 \subsection{Dataset}
-\paragraph{COCO\cite{lin2015microsoftcococommonobjects}} is a publicly available dataset and has a multitude of labels. The semantic mask are extrated from the 2017 Panoptic annotations. This set contains more then 100k images that are densly annotated with both the semantic class and instance. There are a total of 133 different classes which belong to 27 'supercategories'. The four categories, "food" and "food-stuff", and "furniture" and "furniture-stuff", were merged into "food" and "furniture" respectively. Bringing the total amount of supercategories to 25. To speed up convergences, we will use these 25 classes. The distribution of the class labels can be seen in Figure \ref{fig:coco-class-distribution}. Some samples of the dataset can be seen in Figure \ref{fig:coco-samples}. More samples can be found in Appendix \ref{appendix:coco_samples}. 
+\paragraph{COCO~\cite{lin2015microsoftcococommonobjects}} is a publicly available dataset and has a multitude of labels. The semantic mask are extrated from the 2017 Panoptic annotations. This set contains more than 100k images that are densly annotated with both the semantic class and instance. There are a total of 133 different classes which belong to 27 `supercategories'. The four categories ``food'' and ``food-stuff'' and ``furniture'' and ``furniture-stuff'' were merged into ``food'' and ``furniture'' respectively, bringing the number of supercategories to 25. To speed up convergences, we will use these 25 classes. The distribution of the class labels can be seen in Figure \ref{fig:coco-class-distribution}. Some samples of the dataset can be seen in Figure \ref{fig:coco-samples}. More samples can be found in Appendix \ref{appendix:coco_samples}. 
+
 
 \begin{figure}[h]
     \centering
@@ -30,15 +31,21 @@
 
 
 \subsection{Training Settings}
-All models are implemented in PyTorch \cite{Ansel_PyTorch_2_Faster_2024} using an adapted version of the segmentation models repository \cite{Iakubovskii:2019}. All code and configs required to train the models and reproduce the experiments can be found on github \footnote[1]{\url{https://github.com/Generative-AI-TUe/msc-project-1297333}}. All models are trained on a NVIDIA Geforce RTX 2080 TI. The gradients are clipped using the norm, with a max value of 10. The AdaMax\cite{kingma2017adammethodstochasticoptimization} is used with a cosine annealing learning rate, varying between $1e^{-3}$ and $1e^{-4}$. Each model is trained on 10.000 minibatches of size 96, unless otherwise specified.
+All models are implemented in PyTorch~\cite{Ansel_PyTorch_2_Faster_2024} using an adapted version of the segmentation models repository~\cite{Iakubovskii:2019}. All code and configurations required to train the models and reproduce the experiments can be found on github \footnote[1]{\url{https://github.com/Generative-AI-TUe/msc-project-1297333}}. All models are trained on a NVIDIA Geforce RTX 2080 TI. The gradients are clipped using the norm, with a maximum value of 10. The AdaMax~\cite{kingma2017adammethodstochasticoptimization} is used with a cosine annealing learning rate, varying between $1e^{-3}$ and $1e^{-4}$. Each model is trained on 10.000 minibatches of size 96, unless otherwise specified.
 
 
-\section{Is pretraining beneficial}\todo{Not all runs are finished yet}
-Each model was trained eight times. Either using no pretrained encoder weights, in the tables referred to as 'None'. Or using pretrained weights retreived from either ImageNet \cite{deng2009imagenet} or a $\beta$-vae. The $\beta$ used for pretraining is added to the weights name. Furthermore, the model is trained twice, once with the frozen (i.e. the encoder weights are not updated) and once where it is finetuned. The resulting Evaluation Jaccard Index can be seen in Table~\ref{tab:baseline_results}.
+\section{Is pre-training beneficial?}
+For the experiments we make use of our method, VAES, FPN, and U-Net. Each model was trained eight times with different configurations. We used different settings for the pre-trained weights:
+\begin{itemize}
+    \item Without (`None') pre-trained weights.
+    \item With pre-trained weights retrieved from classification of ImageNet.
+    \item With pre-trained weights retrieved from a $\beta$-vae, with $\beta=1$ and $\beta=100$.
+\end{itemize}
+Additionally, the model is trained with `frozen' encoder weights (the encoder weights are not updated), and with `unfrozen' encoder weights (the encoder weights are updated). The resulting Evaluation Jaccard Index can be seen in Table~\ref{tab:baseline_results}.
 
 \input{figures/baselines/baselines-results}
 
-\todo{TODO: Run statistical analysis on resutls.}
+\todo{TODO: Run statistical analysis on results.}
 \begin{itemize}
     \item Compare {all}-vae1-frozen to {all}-img-frozen
     \item Compare {all}-vae1-unfrozen to {all}-{rand, img}-unfrozen
@@ -60,7 +67,7 @@ Include the current image
 
 
 \section{Reduction data required}
-To determine if pretraining results in a reduction of labeled training data required, a full factorial design is done over the parameters: architecture type, pretrained weights, and the percentage of the (labeled) dataset used. The resulting Jaccard Index of each combination can be seen in Table~\ref{tab:data_fraction_results} and are plotted in Figure~\ref{fig:dataset-fraction-results}.
+To determine if pre-training results in a reduction of labeled training data required, a full factorial design is done over the parameters: architecture type, pre-trained weights, and the percentage of the (labeled) dataset used. The resulting Evaluation Jaccard Index of each model configuration can be seen in Table~\ref{tab:data_fraction_results} and are plotted in Figure~\ref{fig:dataset-fraction-results}.
 \input{figures/data_percentage/results_dataset_fraction}
 
 \begin{figure}[h]
@@ -70,16 +77,16 @@ To determine if pretraining results in a reduction of labeled training data requ
     \label{fig:dataset-fraction-results}
 \end{figure}
 
-An Analisyses of Variance (ANOVA) is done, which can be seen in Table~\ref{tab:data_fraction_parameter_significance}. Based on which, it can be determined that there are no significant interaction effects between any of the parameters, and that each individual parameter has a significant effect.
+An Analysis of Variance (ANOVA) is done, of which the results can be seen in Table~\ref{tab:data_fraction_parameter_significance}. Based on these results, it can be determined that there are no significant interaction effects between any of the parameters, and that each individual parameter has a significant effect.
 \input{figures/data_percentage/parameter_significance_table}
 
-The effect of the parameters can then be analyzed using a simple OLS model. The results of which are shown in Table~\ref{tab:data_fraction_parameter_influence}. It shows that there is a large and significant increase in preformance when using the ImageNet weights. The weights gained from pretraining a VAE do not significantly affect the performance, compared to random weights. Furthermore, both the FPN and UNet architectures are better then the VAES architecture. Finally, the size of the dataset is significant, however it is more important to choose the right architecture and especially pretrained weights.
+The effect of the parameters can then be analysed by a simple OLS model. The results of which are shown in Table~\ref{tab:data_fraction_parameter_influence}. It shows that there is a large and significant increase in performance when using the ImageNet weights. The weights gained from pre-training a VAE do not significantly affect the performance, compared to random weights. Furthermore, both the FPN and UNet architectures are better than the VAES architecture. Finally, the size of the dataset is significant, however it is more important to choose the right architecture and especially pre-trained weights.
 \input{figures/data_percentage/parameter_influence_table}
 
 
 \section{Ablation Study}
 \subsection{Influence of the backbone}
-We first analyze the influence of the backbone on the performance of the VAE task by comparing the following backbones, MobilenetV2 \cite{sandler2019mobilenetv2invertedresidualslinear}, EfficientNet \cite{tan2020efficientnetrethinkingmodelscaling} and Resnet50 \cite{he2015deep}. The results can be seen in Table \ref{tab:vae-backbones}. Some examples of the reconstruction capabillities can be seen in Figure \ref{fig:vae-backbones}
+We first analyse the influence of the backbone on the performance of the VAE task by comparing the following backbones, MobilenetV2~\cite{sandler2019mobilenetv2invertedresidualslinear}, EfficientNet~\cite{tan2020efficientnetrethinkingmodelscaling} and Resnet50~\cite{he2015deep}. The results can be seen in Table \ref{tab:vae-backbones}. Some examples of the reconstruction capabillities can be seen in Figure \ref{fig:vae-backbones}
 
 \begin{table}[!ht]
     \centering
@@ -110,7 +117,7 @@ We first analyze the influence of the backbone on the performance of the VAE tas
 
 
 \subsection{Influence of the Beta factor}
-We also analyze the effect of the beta factor on the reconstruction quality of the vae. This is done by training models with varying values for beta. The results can be seen in Table \ref{tab:beta-vae-loss-values}. Some examples of the reconstruction capabillities can be seen in Figure \ref{fig:beta-vae-recon-examples}.
+We also analyse the effect of the beta factor on the reconstruction quality of the vae. This is done by training models with varying values for beta. The results can be seen in Table \ref{tab:beta-vae-loss-values}. Some examples of the reconstruction capabillities can be seen in Figure \ref{fig:beta-vae-recon-examples}.
 
 \begin{table}[!ht]
     \centering
@@ -141,7 +148,7 @@ We also analyze the effect of the beta factor on the reconstruction quality of t
 
 
 \subsection{Skip Connection}
-To understand the importance of the skip connections which are added after the pretraining. We will show the effect of this by incrementally removing more skip connections.
+To understand the importance of the skip connections which are added after the pre-training. We will show the effect of this by incrementally removing more skip connections.
 \todo{Training is in the backlog of slurm}
 
 \begin{table}[!ht]

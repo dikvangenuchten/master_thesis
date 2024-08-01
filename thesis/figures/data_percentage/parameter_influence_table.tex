@@ -1,33 +1,16 @@
-\begin{table}
-\caption{Summary of the OLS of the most likely model.}
+\begin{table}[ht]
+\caption{Coefficients of the OLS.\\Where:\\\hphantom{tabb}Coef. the effectsize\\\hphantom{tabb}P> |t| the significance value.}
 \label{tab:data_fraction_parameter_influence}
-\begin{center}
-\begin{tabular}{llll}
-\hline
-Model:              & OLS              & Adj. R-squared:     & 0.840      \\
-Dependent Variable: & Jaccard\_Index   & AIC:                & -111.0756  \\
-Date:               & 2024-07-30 13:33 & BIC:                & -101.5745  \\
-No. Observations:   & 36               & Log-Likelihood:     & 61.538     \\
-Df Model:           & 5                & F-statistic:        & 37.84      \\
-Df Residuals:       & 30               & Prob (F-statistic): & 4.43e-12   \\
-R-squared:          & 0.863            & Scale:              & 0.0023012  \\
-\hline
-\end{tabular}
-\end{center}
-
-\begin{center}
 \begin{tabular}{lrrrrrr}
-\hline
-                     & Coef. & Std.Err. &      t & P$> |$t$|$ & [0.025 & 0.975]  \\
-\hline
-Intercept            & 0.158 &    0.021 &  7.564 &       0.000 &  0.115 &  0.200  \\
-weights[T.imagenet]  & 0.228 &    0.020 & 11.661 &       0.000 &  0.188 &  0.268  \\
-weights[T.vae-b10]   & 0.013 &    0.020 &  0.675 &       0.505 & -0.027 &  0.053  \\
-architecture[T.fpn]  & 0.063 &    0.020 &  3.193 &       0.003 &  0.023 &  0.103  \\
-architecture[T.unet] & 0.040 &    0.020 &  2.050 &       0.049 &  0.000 &  0.080  \\
-np.log10(fraction)   & 0.019 &    0.007 &  2.706 &       0.011 &  0.005 &  0.034  \\
-\hline
+\toprule
+ & Coef. & Std.Err. & t & P>|t| & [0.025 & 0.975] \\
+\midrule
+Intercept & 0.16 & 0.02 & 7.56 & \textbf{0.00} & 0.12 & 0.20 \\
+weights[T.imagenet] & 0.23 & 0.02 & 11.66 & \textbf{0.00} & 0.19 & 0.27 \\
+weights[T.vae-b10] & 0.01 & 0.02 & 0.67 & 0.50 & -0.03 & 0.05 \\
+architecture[T.fpn] & 0.06 & 0.02 & 3.19 & \textbf{0.00} & 0.02 & 0.10 \\
+architecture[T.unet] & 0.04 & 0.02 & 2.05 & \textbf{0.05} & 0.00 & 0.08 \\
+$\log_{10}(\text{fraction})$ & 0.02 & 0.01 & 2.71 & \textbf{0.01} & 0.00 & 0.03 \\
+\bottomrule
 \end{tabular}
-\end{center}
 \end{table}
-\bigskip

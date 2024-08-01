@@ -1,0 +1,44 @@
+\begin{table}
+\caption{Summary of the OLS of the most likely model.}
+\label{tab:data_fraction_parameter_influence_full}
+\begin{center}
+\begin{tabular}{llll}
+\hline
+Model:              & OLS              & Adj. R-squared:     & 0.840      \\
+Dependent Variable: & Jaccard\_Index   & AIC:                & -111.0756  \\
+Date:               & 2024-08-01 15:37 & BIC:                & -101.5745  \\
+No. Observations:   & 36               & Log-Likelihood:     & 61.538     \\
+Df Model:           & 5                & F-statistic:        & 37.84      \\
+Df Residuals:       & 30               & Prob (F-statistic): & 4.43e-12   \\
+R-squared:          & 0.863            & Scale:              & 0.0023012  \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{lrrrrrr}
+\hline
+                     & Coef. & Std.Err. &      t & P$> |$t$|$ & [0.025 & 0.975]  \\
+\hline
+Intercept            & 0.158 &    0.021 &  7.564 &       0.000 &  0.115 &  0.200  \\
+weights[T.imagenet]  & 0.228 &    0.020 & 11.661 &       0.000 &  0.188 &  0.268  \\
+weights[T.vae-b10]   & 0.013 &    0.020 &  0.675 &       0.505 & -0.027 &  0.053  \\
+architecture[T.fpn]  & 0.063 &    0.020 &  3.193 &       0.003 &  0.023 &  0.103  \\
+architecture[T.unet] & 0.040 &    0.020 &  2.050 &       0.049 &  0.000 &  0.080  \\
+np.log10(fraction)   & 0.019 &    0.007 &  2.706 &       0.011 &  0.005 &  0.034  \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{llll}
+\hline
+Omnibus:       & 5.113  & Durbin-Watson:    & 1.446  \\
+Prob(Omnibus): & 0.078  & Jarque-Bera (JB): & 4.038  \\
+Skew:          & -0.810 & Prob(JB):         & 0.133  \\
+Kurtosis:      & 3.265  & Condition No.:    & 8      \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+\bigskip
