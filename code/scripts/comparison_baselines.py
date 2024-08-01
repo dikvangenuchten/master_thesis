@@ -4,7 +4,6 @@
 import json
 import os
 from typing import List
-import numpy as np
 import pandas as pd
 from statsmodels.formula.api import ols
 from statsmodels.stats.anova import anova_lm

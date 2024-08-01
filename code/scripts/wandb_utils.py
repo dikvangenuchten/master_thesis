@@ -1,4 +1,3 @@
-import copy
 import os
 from typing import List, Optional
 from matplotlib import pyplot as plt

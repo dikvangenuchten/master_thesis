@@ -97,18 +97,23 @@ def create_tables(metrics):
         float_format="%.3f",
     )
     effect_size = full_summary.tables[1]
-    effect_size_table = effect_size.style.format(na_rep="n.a.", precision=2).highlight_between(
+    effect_size_table = (
+        effect_size.style.format(na_rep="n.a.", precision=2)
+        .highlight_between(
             subset="P>|t|",
             axis=1,
             left=-1,
             right=0.05,
             props="textbf:--rwrap;",
-        ).format_index(escape="latex", axis=1).to_latex(
+        )
+        .format_index(escape="latex", axis=1)
+        .to_latex(
             caption="Coefficients of the OLS.\\\\Where:\\\\\\hphantom{tabb}Coef. the effectsize\\\\\\hphantom{tabb}P> |t| the significance value.",
             label="tab:data_fraction_parameter_influence",
             position="ht",
             hrules=True,
         )
+    )
     effect_size_table = effect_size_table.replace(
         "np.log10(fraction)", "$\\log_{10}(\\text{fraction})$"
     )
@@ -117,8 +122,7 @@ def create_tables(metrics):
         mode="w",
     ) as file:
         file.write(effect_size_table)
-    
-    
+
     full_summary.settings[0]["float_format"] = "%.3f"
     full_summary.extra_txt = []
     with open(
