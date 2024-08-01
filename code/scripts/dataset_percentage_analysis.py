@@ -58,20 +58,33 @@ def create_tables(metrics):
         cov_type="hc3",
     ).fit()
     os.makedirs(FIGURES_DIR, exist_ok=True)
+    caption = """Anova results estimating the influence of each parameter.\\\\Where: \\\\\\hphantom{tabb}`weights' are the pretrained weights (or lack thereof) used.\\\\\\hphantom{tabb}`architecture' is the model architecture used.\\\\\\hphantom{tabb}`$\log_{10}(\\text{fraction})$' is the fraction of data used in log scale.\\\\\\hphantom{tabb}$A$:$B$ is the interaction effect between $A$ and $B$"""
+
+    result = anova_lm(parameter_influence, type=2)
+    table = (
+        result.style.format(na_rep="n.a.", precision=2)
+        .highlight_between(
+            subset="PR(>F)",
+            axis=1,
+            left=-1,
+            right=0.05,
+            props="textbf:--rwrap;",
+        )
+        .format_index(escape="latex", axis=1)
+        .to_latex(
+            caption=caption,
+            label="tab:data_fraction_parameter_significance",
+            position="ht",
+            hrules=True,
+        )
+    )
+    table = table.replace(
+        "np.log10(fraction)", "$\\log_{10}(\\text{fraction})$"
+    )
     with open(
         os.path.join(FIGURES_DIR, "parameter_significance_table.tex"),
         mode="w",
     ) as file:
-        caption = """Anova results estimating the influence of each parameter.\\\\Where: \\\\\\hphantom{tabb}'weights' are the pretrained weights (or lack thereof) used.\\\\\\hphantom{tabb}'architecture' is the model architecture used.\\\\\\hphantom{tabb}'$log_{10}(\\text{fraction})$' is the fraction of data used in log scale."""
-        table = anova_lm(parameter_influence, type=2).to_latex(
-            caption=caption,
-            label="tab:data_fraction_parameter_significance",
-            float_format="%.2f",
-            position="ht",
-        )
-        table = table.replace(
-            "np.log10(fraction)", "$log_{10}(\\text{fraction})$"
-        )
         file.write(table)
 
     best_fit = ols(
@@ -79,40 +92,64 @@ def create_tables(metrics):
         data=metrics,
         cov_type="hc3",
     ).fit()
-    summary = best_fit.summary2(
+    full_summary = best_fit.summary2(
         title="Summary of the OLS of the most likely model.",
         float_format="%.3f",
     )
-    summary.settings[0]["float_format"] = "%.3f"
-    summary.tables = summary.tables[:2]
-    summary.extra_txt = []
+    effect_size = full_summary.tables[1]
+    effect_size_table = effect_size.style.format(na_rep="n.a.", precision=2).highlight_between(
+            subset="P>|t|",
+            axis=1,
+            left=-1,
+            right=0.05,
+            props="textbf:--rwrap;",
+        ).format_index(escape="latex", axis=1).to_latex(
+            caption="Coefficients of the OLS.\\\\Where:\\\\\\hphantom{tabb}Coef. the effectsize\\\\\\hphantom{tabb}P> |t| the significance value.",
+            label="tab:data_fraction_parameter_influence",
+            position="ht",
+            hrules=True,
+        )
+    effect_size_table = effect_size_table.replace(
+        "np.log10(fraction)", "$\\log_{10}(\\text{fraction})$"
+    )
     with open(
         os.path.join(FIGURES_DIR, "parameter_influence_table.tex"),
         mode="w",
     ) as file:
-        table = summary.as_latex(
-            label="tab:data_fraction_parameter_influence"
+        file.write(effect_size_table)
+    
+    
+    full_summary.settings[0]["float_format"] = "%.3f"
+    full_summary.extra_txt = []
+    with open(
+        os.path.join(APPENDIX_DIR, "dataset_percentage_full_anova.tex"),
+        mode="w",
+    ) as file:
+        table = full_summary.as_latex(
+            label="tab:data_fraction_parameter_influence_full"
         )
         file.write(table)
 
-    with open(
+    table = metrics.pivot_table(
+        index=["architecture", "weights"],
+        columns=["fraction"],
+        values="Jaccard_Index",
+    )
+    # Reverse colums so 1 is first
+    table = table[table.columns[::-1]]
+    table.style.highlight_max(
+        axis=0,
+        props="textbf:--rwrap;",
+    ).format(
+        na_rep="n.a.",
+        precision=2,
+    ).to_latex(
         os.path.join(FIGURES_DIR, "results_dataset_fraction.tex"),
-        mode="w",
-    ) as file:
-        table = metrics.pivot_table(
-            index=["architecture", "weights"],
-            columns=["fraction"],
-            values="Jaccard_Index",
-        )
-        # Reverse colums so 1 is first
-        table = table[table.columns[::-1]]
-        table.to_latex(
-            file,
-            caption="The evaluation Jaccard Index for the various models and dataset fractions. Higher is better.",
-            position="ht",
-            float_format="%.3f",
-            label="tab:data_fraction_results",
-        )
+        caption="The Evaluation Jaccard Index for the various models and dataset fractions. The higher the score the better.",
+        position="ht",
+        label="tab:data_fraction_results",
+        hrules=True,
+    )
 
 
 def create_plots(metrics: pd.DataFrame):
