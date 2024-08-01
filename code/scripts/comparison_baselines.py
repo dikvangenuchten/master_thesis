@@ -65,7 +65,7 @@ def create_tables(metrics: pd.DataFrame):
         precision=2,
     ).to_latex(
         os.path.join(FIGURES_DIR, "baselines-results.tex"),
-        caption="Eval Jaccard Index for our model and the baselines for various parameters. Higher is better.",
+        caption="The Evaluation Jaccard Index for our model and the baselines for various parameters. Higher is better.",
         label="tab:baseline_results",
         position="ht",
         hrules=True,
@@ -92,7 +92,7 @@ def analyze_metrics(metrics: pd.DataFrame):
     parameter_influence = ols(
         formula="eval_metric ~ weights * architecture",
         data=metrics,
-        cov_type="hc1"
+        cov_type="hc1",
     ).fit()
     anova = anova_lm(parameter_influence, cov_type="hc3")
     print(anova.summary2())
