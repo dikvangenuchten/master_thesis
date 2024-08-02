@@ -43,8 +43,9 @@ class SkipLayer(nn.Module):
         elif type == "skip":
             self._fn = wrapper(nn.Identity())
         elif type == "proj":
+            self._layer = nn.Conv2d(channels, channels, 3, 1, "same")
             self._fn = wrapper(
-                nn.Conv2d(channels, channels, 3, 1, "same")
+                self._layer
             )
         elif type == "var":
             self._fn = VariationalConv2d(
