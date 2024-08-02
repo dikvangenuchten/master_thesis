@@ -1,7 +1,7 @@
 defaults:
   - default_dirs
   - dataset: coco
-  - model: mobile_vae
+  - model: vaes
   - scheduler: cosine_annealing
   - optimizer: adamax
   - loss: recon_loss
