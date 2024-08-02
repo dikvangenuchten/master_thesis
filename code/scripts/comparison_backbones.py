@@ -37,7 +37,7 @@ def get_metrics(runs: List[wandb_utils.Run]) -> pd.DataFrame:
         backbone = get_backbone(config)
         l1loss, kl_div = get_loss_components(run)
         eval_metric = get_eval_metric(run)
-        model_stats = get_model_summary(config["model"])
+        model_stats = get_model_summary(config["model"]["value"])
 
         metrics.append(
             {
@@ -86,7 +86,7 @@ def get_backbone(config: dict):
 
 def get_model_summary(model_config, input_shape=(3, 128, 128)):
     model = utils.instantiate_dict(
-        model_config["value"], label_channels=3
+        model_config, label_channels=3
     )
     return utils.get_model_summary(model)
 

@@ -108,7 +108,7 @@ def create_tables(metrics):
         )
         .format_index(escape="latex", axis=1)
         .to_latex(
-            caption="Coefficients of the OLS.\\\\Where:\\\\\\hphantom{tabb}Coef. the effectsize\\\\\\hphantom{tabb}P> |t| the significance value.",
+            caption="Coefficients of the OLS.\\\\Where:\\\\\\hphantom{tabb}Coef. the effectsize.\\\\\\hphantom{tabb}P> |t| the p-value. Bolded if significant ($\alpha\le0.05$)).",
             label="tab:data_fraction_parameter_influence",
             position="ht",
             hrules=True,

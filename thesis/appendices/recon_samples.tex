@@ -1,0 +1,13 @@
+\chapter{Reconstruction samples}
+\label{appendix:recon_samples}
+
+
+\foreach \b in {0.01,0.1,1,10} {
+        \begin{figure}[ht]
+            \foreach \i in {10,11,...,17} {
+                    \centering
+                    \subfloat{\includegraphics[width=0.49\textwidth]{figures/beta-vae/samples/Imagenet-b\b/\i.png}}
+                }
+            \caption{Samples of the reconstruction quality ($\beta=$\b). Original (l), Reconstructed (r).}
+        \end{figure}
+    }

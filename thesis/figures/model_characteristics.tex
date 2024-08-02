@@ -1,0 +1,25 @@
+\begin{longtable}[ht]{lrrrrrrrrrr}
+\caption{Characteristics of the various architectures with ResNet50 as backbone. Inference measurements were done on a NVIDIA GTX 1070.} \label{tab:model_characteristics} \\
+\toprule
+ & Parameters ($1e^6$) & Total MAC ($1e^9$) & \multicolumn{4}{r}{Inference Speed (ms)} & \multicolumn{4}{r}{Memory Usage (mb)} \\
+ &   &   & 1 & 2 & 8 & 32 & 1 & 2 & 8 & 32 \\
+Name &  &  &  &  &  &  &  &  &  &  \\
+\midrule
+\endfirsthead
+\caption[]{Characteristics of the various architectures with ResNet50 as backbone. Inference measurements were done on a NVIDIA GTX 1070.} \\
+\toprule
+ & Parameters ($1e^6$) & Total MAC ($1e^9$) & \multicolumn{4}{r}{Inference Speed (ms)} & \multicolumn{4}{r}{Memory Usage (mb)} \\
+ &   &   & 1 & 2 & 8 & 32 & 1 & 2 & 8 & 32 \\
+Name &  &  &  &  &  &  &  &  &  &  \\
+\midrule
+\endhead
+\midrule
+\multicolumn{11}{r}{Continued on next page} \\
+\midrule
+\endfoot
+\bottomrule
+\endlastfoot
+vaes & 82.70 & 5.28 & 15.71 & 14.87 & 28.46 & 70.84 & 755.95 & 760.34 & 779.35 & 1062.98 \\
+unet & 32.52 & 2.72 & 10.20 & 10.02 & 16.71 & 49.66 & \textbf{549.91} & \textbf{554.11} & \textbf{579.54} & \textbf{770.77} \\
+fpn & \textbf{26.12} & \textbf{1.95} & \textbf{9.57} & \textbf{9.65} & \textbf{15.44} & \textbf{47.06} & 602.86 & 606.14 & 634.45 & 904.72 \\
+\end{longtable}
