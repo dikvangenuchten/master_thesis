@@ -5,7 +5,7 @@ params:
   +task: semantic
   model: vaes
   model.encoder_weights: imagenet
-  model.skip_connections: choice([skip,skip,skip,skip,skip],[var,skip,skip,skip,skip],[var,var,skip,skip,skip],[var,var,var,skip,skip],[var,var,var,var,skip],[var,var,var,var,var],[proj,proj,proj,proj,proj],[var,proj,proj,proj,proj],[var,var,proj,proj,proj],[var,var,var,proj,proj],[var,var,var,var,proj],[var,var,var,var,var],[var,none,none,none,none],[var,var,none,none,none],[var,var,var,none,none],[var,var,var,var,none],[var,var,var,var,var])
-  input_shape: [256,256]
-  batch_size: 32
+  model.skip_connections: choice([var,none,none,none,none],[var,var,none,none,none],[var,var,var,none,none],[var,var,var,var,none],[var,var,var,var,var],[skip,none,none,none,none],[skip,skip,none,none,none],[skip,skip,skip,none,none],[skip,skip,skip,skip,none],[skip,skip,skip,skip,skip],[proj,none,none,none,none],[proj,proj,none,none,none],[proj,proj,proj,none,none],[proj,proj,proj,proj,none],[proj,proj,proj,proj,proj])
+  input_shape: [128,128]
+  batch_size: 64
   +trainer.init_kwargs.wandb.group: skip_importance_${now:%Y-%m-%d:%H-%M-%S}
