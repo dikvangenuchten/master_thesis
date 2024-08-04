@@ -1,25 +1,21 @@
-\begin{longtable}[ht]{lrrrrrrrrrr}
-\caption{Characteristics of the various architectures with ResNet50 as backbone. Inference measurements were done on a NVIDIA GTX 1070.} \label{tab:model_characteristics} \\
+\begin{table}[ht]
+\centering
+\caption{Characteristics of the various architectures with ResNet50 as backbone. Inference measurements were done on a NVIDIA GTX 1070 with an image shape of 128x128.}
+\label{tab:model_characteristics}
+\begin{tabular}{llrrr}
 \toprule
- & Parameters ($1e^6$) & Total MAC ($1e^9$) & \multicolumn{4}{r}{Inference Speed (ms)} & \multicolumn{4}{r}{Memory Usage (mb)} \\
- &   &   & 1 & 2 & 8 & 32 & 1 & 2 & 8 & 32 \\
-Name &  &  &  &  &  &  &  &  &  &  \\
+ & Batch Size & vaes & fpn & unet \\
 \midrule
-\endfirsthead
-\caption[]{Characteristics of the various architectures with ResNet50 as backbone. Inference measurements were done on a NVIDIA GTX 1070.} \\
-\toprule
- & Parameters ($1e^6$) & Total MAC ($1e^9$) & \multicolumn{4}{r}{Inference Speed (ms)} & \multicolumn{4}{r}{Memory Usage (mb)} \\
- &   &   & 1 & 2 & 8 & 32 & 1 & 2 & 8 & 32 \\
-Name &  &  &  &  &  &  &  &  &  &  \\
-\midrule
-\endhead
-\midrule
-\multicolumn{11}{r}{Continued on next page} \\
-\midrule
-\endfoot
+Parameters (x$1e^6$) &   & 132.88 & \textbf{26.12} & 32.52 \\
+Total MAC (x$1e^9$) &   & 7.85 & \textbf{1.95} & 2.72 \\
+\multirow[c]{4}{*}{Inference Speed (ms)} & 1 & 19.22 & 8.04 & \textbf{7.36} \\
+ & 2 & 20.94 & \textbf{7.68} & 8.77 \\
+ & 8 & 42.30 & \textbf{15.45} & 16.73 \\
+ & 32 & 96.92 & \textbf{47.05} & 49.70 \\
+\multirow[c]{4}{*}{Memory Usage (mb)} & 1 & 1375.44 & \textbf{670.71} & 856.52 \\
+ & 2 & 1381.01 & \textbf{675.03} & 860.71 \\
+ & 8 & 1400.93 & \textbf{703.21} & 885.09 \\
+ & 32 & 1881.55 & \textbf{973.62} & 1077.38 \\
 \bottomrule
-\endlastfoot
-vaes & 82.70 & 5.28 & 15.71 & 14.87 & 28.46 & 70.84 & 755.95 & 760.34 & 779.35 & 1062.98 \\
-unet & 32.52 & 2.72 & 10.20 & 10.02 & 16.71 & 49.66 & \textbf{549.91} & \textbf{554.11} & \textbf{579.54} & \textbf{770.77} \\
-fpn & \textbf{26.12} & \textbf{1.95} & \textbf{9.57} & \textbf{9.65} & \textbf{15.44} & \textbf{47.06} & 602.86 & 606.14 & 634.45 & 904.72 \\
-\end{longtable}
+\end{tabular}
+\end{table}

@@ -1,0 +1,46 @@
+\chapter{Skip Importance OLS}
+\label{appendix:skip_importance_full}
+This is the of summary made the OLS model by the Python Package: Statsmodels~\cite{josef_perktold_2024_10984387}. First an OLS model containing all 1 and 2 level interaction effects was fitted. This was then analysed using `anova\_lm'. All significant ($\alpha\le0.05$) effects where used in the final model. The full summary of which can be seen in Table~\ref{tab:skip_importance_full_ols}.
+
+\begin{table}[ht]
+\caption{Results: Ordinary least squares}
+\label{tab:skip_importance_full_ols}
+\begin{center}
+\begin{tabular}{llll}
+\hline
+Model:              & OLS              & Adj. R-squared:     & 0.165       \\
+Dependent Variable: & eval\_metric     & AIC:                & -65.5465    \\
+Date:               & 2024-08-04 12:35 & BIC:                & -64.1304    \\
+No. Observations:   & 15               & Log-Likelihood:     & 34.773      \\
+Df Model:           & 1                & F-statistic:        & 3.765       \\
+Df Residuals:       & 13               & Prob (F-statistic): & 0.0743      \\
+R-squared:          & 0.225            & Scale:              & 0.00065478  \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{lrrrrrr}
+\hline
+          &  Coef. & Std.Err. &       t & P$> |$t$|$ &  [0.025 & 0.975]  \\
+\hline
+Intercept & 0.4240 &   0.0155 & 27.3620 &      0.0000 &  0.3905 & 0.4574  \\
+skip\_num & 0.0091 &   0.0047 &  1.9404 &      0.0743 & -0.0010 & 0.0192  \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{llll}
+\hline
+Omnibus:       & 2.290 & Durbin-Watson:    & 1.299  \\
+Prob(Omnibus): & 0.318 & Jarque-Bera (JB): & 1.037  \\
+Skew:          & 0.146 & Prob(JB):         & 0.595  \\
+Kurtosis:      & 1.745 & Condition No.:    & 8      \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+\bigskip
+Notes: \newline 
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.

@@ -48,7 +48,13 @@ The image decoder approximates the conditional Gaussian distribution $p_\theta(x
 \end{equation}
 
 \subsection{Label Decoder}
-The label decoder is similar to the image decoder, except that it approximates a multivariate Bernoulli distribution, instead of a Gaussian. Thus the only difference is the calculation of $\log p_\theta(y|x,z)$, which is shown in Eq.~\ref{eq:log_p_y_z}.
+The label decoder is similar to the image decoder, except that it approximates a multivariate Bernoulli distribution, instead of a Gaussian. Thus the calculation of $\log p_\theta(y|x,z)$ is different, which is shown in Eq.~\ref{eq:log_p_y_z}. Furthermore, it has `skip connections'. These skip connections allow for information to flow directly from a higher layer in the encoder to the decoder. We make the distinction between 3 types of skip connections.
+\begin{enumerate}
+    \item Skip. The output of the encoder layer is directly passed to the decoder.
+    \item Projection. The output of the encoder layer is first projected using a convolutional layer.
+    \item Variational. The output of the encoder layer is first projected using a variational convolutional layer.
+\end{enumerate}
+When all skip connections are of the type `Skip', our architecture is equal to the UNet architecture.
 
 \begin{subequations}
     \begin{align}

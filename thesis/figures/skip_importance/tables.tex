@@ -1,0 +1,30 @@
+\begin{table}[ht]
+\centering
+\caption{Anova results estimating the influence of each parameter.\\Where: \\\hphantom{tabb}`skip\_type' is the type of skip connection used.\\\hphantom{tabb}`skip\_num' the amount of skip connections.\\\hphantom{tabb}$A$:$B$ is the interaction effect between $A$ and $B$}
+\label{tab:skip_importance_anova_all}
+\begin{tabular}{lrrrrr}
+\toprule
+ & df & sum\_sq & mean\_sq & F & PR(>F) \\
+\midrule
+skip\_type & 2.00 & 0.00 & 0.00 & 3.80 & 0.06 \\
+skip\_num & 1.00 & 0.00 & 0.00 & 5.40 & \textbf{0.05} \\
+skip\_type:skip\_num & 2.00 & 0.00 & 0.00 & 1.02 & 0.40 \\
+Residual & 9.00 & 0.00 & 0.00 & n.a. & n.a. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[ht]
+\centering
+\caption{Coefficients of the OLS showing the influence of the hyperparameters on the Evaluation Jaccard Index.\\Where:\\\hphantom{tabb}Coef. the effectsize.\\\hphantom{tabb}P> |t| the p-value. Bolded if significant ($\alpha\le0.05$).}
+\label{tab:skip_importance_ols_effects}
+\begin{tabular}{lrrrrrr}
+\toprule
+ & Coef. & Std.Err. & t & P>|t| & [0.025 & 0.975] \\
+\midrule
+Intercept & 0.42 & 0.02 & 27.36 & \textbf{0.00} & 0.39 & 0.46 \\
+skip\_num & 0.01 & 0.00 & 1.94 & 0.07 & -0.00 & 0.02 \\
+\bottomrule
+\end{tabular}
+\end{table}

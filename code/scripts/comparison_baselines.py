@@ -69,6 +69,7 @@ def create_tables(metrics: pd.DataFrame):
         caption="The Evaluation Jaccard Index for our model and the baselines for various parameters. The higher the score, the better.",
         label="tab:baseline_results",
         position="ht",
+        position_float="centering",
         hrules=True,
     )
 
@@ -127,12 +128,16 @@ def analyze_metrics(metrics: pd.DataFrame):
                     "This is the of summary made the OLS model by the Python Package: Statsmodels~\\cite{josef_perktold_2024_10984387}.",
                     "First an OLS model containing all 1 and 2 level interaction effects was fitted.",
                     "This was then analysed using `anova\_lm'. All significant ($\\alpha\\le0.05$) effects where used in the final model.",
-                    "The full summary of which can be seen in Table~\\ref{tab:comparison_baselines_full_ols}.\n\n"
+                    "The full summary of which can be seen in Table~\\ref{tab:comparison_baselines_full_ols}.\n\n",
                 ]
             )
         )
-        table_text = most_likely_summary.as_latex(label="tab:comparison_baselines_full_ols")
-        table_text = table_text.replace("begin{table}", "begin{table}[ht]")
+        table_text = most_likely_summary.as_latex(
+            label="tab:comparison_baselines_full_ols"
+        )
+        table_text = table_text.replace(
+            "begin{table}", "begin{table}[ht]"
+        )
         f.write(table_text)
 
 

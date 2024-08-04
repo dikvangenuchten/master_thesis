@@ -1,0 +1,16 @@
+\begin{table}[ht]
+\centering
+\caption{VAE results of the various backbones.}
+\label{tab:backbones-results}
+\begin{tabular}{lrrrrr}
+\toprule
+ & Parameters ($1e^6$) & MAC ($1e^9$) & L1Loss (Recon) & KL-Divergence & Loss \\
+Backbone &  &  &  &  &  \\
+\midrule
+MobileViT & 8.55 & 1.32 & 388158.31 & 5906.05 & 2402.00 \\
+MobileNetV2 & \textbf{4.21} & \textbf{0.70} & 431505.41 & \textbf{5436.90} & 2774.02 \\
+EfficientNet & 9.79 & 0.83 & 382322.31 & 16659.25 & 2911.08 \\
+ResNet50 & 40.91 & 2.80 & \textbf{315560.38} & 9379.99 & \textbf{1792.29} \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -2,7 +2,7 @@
 defaults:
   - /loss@eval_metric: crossentropy_loss
   - override /loss: semantic_loss
-  - override /model: unet
+  - override /model: vaes
   - override /scheduler: step
 
 dataset:
@@ -14,7 +14,7 @@ model:
   encoder_depth: 5
   encoder_name: "resnet50"
   encoder_weights: "imagenet"
-  skip_connections: ["var", "skip", "skip", "skip", "skip"]
+  skip_connections: ["var", "var", "var", "var", "var"]
   # encoder_state_dict: "models/beta-vae-4/b10/model.pt"
 
 batch_size: 64

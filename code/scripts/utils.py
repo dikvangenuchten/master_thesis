@@ -36,10 +36,12 @@ def format_anova_table(
             props="textbf:--rwrap;",
         )
         .format_index(escape="latex", axis=1)
+        .format_index(escape="latex", axis=0)
         .to_latex(
             caption=caption,
             label=label,
             position="ht",
+            position_float="centering",
             hrules=True,
         )
     )
@@ -56,11 +58,13 @@ def format_effect_size(effect_size, caption: str, label: str):
             props="textbf:--rwrap;",
         )
         .format_index(escape="latex", axis=1)
+        .format_index(escape="latex", axis=0)
         .to_latex(
             caption=caption
             + "\\\\Where:\\\\\\hphantom{tabb}Coef. the effectsize.\\\\\\hphantom{tabb}P> |t| the p-value. Bolded if significant ($\\alpha\le0.05$).",
             label=label,
             position="ht",
+            position_float="centering",
             hrules=True,
         )
     )

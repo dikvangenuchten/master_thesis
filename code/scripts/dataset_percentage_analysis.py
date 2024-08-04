@@ -75,6 +75,7 @@ def create_tables(metrics):
             caption=caption,
             label="tab:data_fraction_parameter_significance",
             position="ht",
+            position_float="centering",
             hrules=True,
         )
     )
@@ -108,9 +109,10 @@ def create_tables(metrics):
         )
         .format_index(escape="latex", axis=1)
         .to_latex(
-            caption="Coefficients of the OLS.\\\\Where:\\\\\\hphantom{tabb}Coef. the effectsize.\\\\\\hphantom{tabb}P> |t| the p-value. Bolded if significant ($\alpha\le0.05$)).",
+            caption="Coefficients of the OLS.\\\\Where:\\\\\\hphantom{tabb}Coef. the effectsize.\\\\\\hphantom{tabb}P> |t| the p-value. Bolded if significant ($\\alpha\leq0.05$).",
             label="tab:data_fraction_parameter_influence",
             position="ht",
+            position_float="centering",
             hrules=True,
         )
     )
@@ -151,6 +153,7 @@ def create_tables(metrics):
         os.path.join(FIGURES_DIR, "results_dataset_fraction.tex"),
         caption="The Evaluation Jaccard Index for the various models and dataset fractions. The higher the score the better.",
         position="ht",
+        position_float="centering",
         label="tab:data_fraction_results",
         hrules=True,
     )

@@ -10,7 +10,7 @@ import wandb_utils
 import utils
 
 FIGURES_DIR = "../thesis/figures/vae-backbones/"
-STEP = 15000
+STEP = 10000
 
 
 def main(project, group):
@@ -54,7 +54,31 @@ def get_metrics(runs: List[wandb_utils.Run]) -> pd.DataFrame:
 
 def create_tables(metrics: pd.DataFrame):
     # Create results table
-    pass
+    caption = "VAE results of the various backbones."
+    label = "tab:backbones-results"
+    metrics.set_index("Backbone", inplace=True)
+    tex = (
+        metrics.style.format(precision=2)
+        .highlight_min(
+            props="textbf:--rwrap;",
+        )
+        .to_latex(
+            caption=caption,
+            label=label,
+            position="ht",
+            position_float="centering",
+            hrules=True,
+        )
+        .replace("mobilevitv2_100", "MobileViT")
+        .replace("mobilenetv2_100", "MobileNetV2")
+        .replace("efficientnet_b2", "EfficientNet")
+        .replace("resnet50", "ResNet50")
+        .replace("_", "\_")
+    )
+    with open(
+        os.path.join(FIGURES_DIR, "backbones_vae.tex"), mode="w"
+    ) as file:
+        file.write(tex)
 
 
 def get_loss_components(run):
@@ -63,7 +87,7 @@ def get_loss_components(run):
         f"{split}L1Loss",
         f"{split}AnnealingWeightedLoss",
     ]
-    result = next(run.scan_history(keys=components))
+    result = next(run.scan_history(keys=components, min_step=STEP))
     l1loss = result[components[0]]
     klloss = result[components[1]]
     return l1loss, klloss
@@ -85,17 +109,14 @@ def get_backbone(config: dict):
 
 
 def get_model_summary(model_config, input_shape=(3, 128, 128)):
-    model = utils.instantiate_dict(
-        model_config, label_channels=3
-    )
+    model = utils.instantiate_dict(model_config, label_channels=3)
     return utils.get_model_summary(model)
 
 
 def get_eval_metric(run):
-    eval_metric = run.summary.get("EvalMetric")
-    if eval_metric is not None:
-        return eval_metric
-    return run.summary.get("EvalAverageLoss")
+    return next(
+        run.scan_history(keys=["EvalAverageLoss"], min_step=STEP)
+    )["EvalAverageLoss"]
 
 
 if __name__ == "__main__":

@@ -33,10 +33,6 @@
 \subsection{Training Settings}
 All models are implemented in PyTorch~\cite{Ansel_PyTorch_2_Faster_2024} using an adapted version of the segmentation models repository~\cite{Iakubovskii:2019}. All code and configurations required to train the models and reproduce the experiments can be found on github \footnote[1]{\url{https://github.com/Generative-AI-TUe/msc-project-1297333}}. All models are trained on a NVIDIA Geforce RTX 2080 TI. The gradients are clipped using the norm, with a maximum value of 10. The AdaMax~\cite{kingma2017adammethodstochasticoptimization} is used with a cosine annealing learning rate, varying between $1e^{-3}$ and $1e^{-4}$. Each model is trained on 10.000 minibatches of size 96, unless otherwise specified.
 
-
-
-
-
 \section{Is pre-training beneficial?}
 For the experiments we make use of our method, VAES, FPN, and U-Net. Each model was trained eight times with different configurations. We used different settings for the pre-trained weights:
 \begin{itemize}
@@ -49,8 +45,6 @@ Additionally, the model is trained with `frozen' encoder weights (the encoder we
 \input{figures/baselines/baselines-results}
 
 An Analysis of Variance (ANOVA) is done, of which the results can be seen in Table~\ref{tab:comparison_baselines_anova_all}. Based on these results an Ordinary Least Squares Linear Model (OLS) is fitted to determine the effect of each significant parameter. The results of this are shown in Table~\ref{tab:comparison_baselines_ols_effects}.
-
-\input{figures/baselines/tables}
 
 \begin{figure}[h]
     \foreach \i in {0,1,...,4} {
@@ -65,6 +59,7 @@ An Analysis of Variance (ANOVA) is done, of which the results can be seen in Tab
     \caption{Samples of the validation dataset, with the ground truth and the prediction by the model. The encoder is not frozen.}\label{ref:baseline-sample-results-0}
 \end{figure}
 
+\input{figures/baselines/tables}
 
 \section{Reduction data required}
 To determine if pre-training results in a reduction of labeled training data required, a full factorial design is done over the parameters: architecture type, pre-trained weights, and the percentage of the (labeled) dataset used. The resulting Evaluation Jaccard Index of each model configuration can be seen in Table~\ref{tab:data_fraction_results} and are plotted in Figure~\ref{fig:dataset-fraction-results}.
@@ -87,39 +82,24 @@ The effect of the parameters can then be analysed by a simple OLS model. The res
 
 As the computational resources in mobile robots tend to be low, the inference speed and memory usage was measured. Inference was done on a NVIDIA GTX 1070, and measured using PyTorch benchmarking tools. The results can be seen in Table~\ref{tab:model_characteristics}.
 
-\include{figures/model_characteristics}
+\input{figures/model_characteristics}
 
 
 \section{Ablation Study}
 \subsection{Influence of the backbone}
-We first analyse the influence of the backbone on the performance of the VAE task by comparing the following backbones: MobilenetV2~\cite{sandler2019mobilenetv2invertedresidualslinear}, EfficientNet~\cite{tan2020efficientnetrethinkingmodelscaling} and Resnet50~\cite{he2015deep}. The results can be seen in Table~\ref{tab:vae-backbones}. Some examples of the reconstruction capabilities can be seen in Figure~\ref{fig:vae-backbones}.
-
-\begin{table}[!ht]
-    \centering
-    \caption{Loss values resulting from training a Beta-VAE for various $\beta$ values}
-    \label{tab:vae-backbones}
-    \begin{tabular}{ccc}
-        \hline
-        $\beta$ & Kl-Divergence & Reconstruction Error (x1e5) \\
-        \hline
-        0.01    & 80200         & 1.9                         \\
-        0.1     & 31250         & 1.5                         \\
-        1       & 8190          & 2.7                         \\
-        10      & 2089          & 2.2                         \\
-        100     & n.a.          & (node crashed mid run)      \\
-        \hline
-    \end{tabular}
-\end{table}
+We first analyse the influence of the backbone on the performance of the VAE task by comparing the following backbones: MobileViT~\cite{Mehta2022SeparableSF}, MobileNetV2~\cite{sandler2019mobilenetv2invertedresidualslinear}, EfficientNet~\cite{tan2020efficientnetrethinkingmodelscaling} and ResNet50~\cite{he2015deep}. The results can be seen in Table~\ref{tab:backbones-results}. Some examples of the reconstruction capabilities can be seen in Figure~\ref{fig:vae-backbones}.
 
 \begin{figure}[!ht]
     \centering
-    \caption{Example reconstruction for a few of the models}
+    \caption{Example reconstruction for the various backbones.}
     \label{fig:vae-backbones}
-    \subfloat[Original, $\beta$ = 0.01]{\includegraphics[width=0.45\linewidth]{figures/beta-vae/b0.01-0.png}}
-    \subfloat[Original, $\beta$ = 0.1]{\includegraphics[width=0.45\linewidth]{figures/beta-vae/b0.1-0.png}} \quad
-    \subfloat[Original, $\beta$ = 1]{\includegraphics[width=0.45\linewidth]{figures/beta-vae/b1-0.png}}
-    \subfloat[Original, $\beta$ = 10]{\includegraphics[width=0.45\linewidth]{figures/beta-vae/b10-0.png}}
+    \subfloat[Original, EfficientNet]{\includegraphics[width=0.45\linewidth]{figures/vae-backbones/samples/efficientnet_b2/4.png}}
+    \subfloat[Original, MobileNetV2]{\includegraphics[width=0.45\linewidth]{figures/vae-backbones/samples/mobilenetv2_100/4.png}} \quad
+    \subfloat[Original, MobileViT]{\includegraphics[width=0.45\linewidth]{figures/vae-backbones/samples/mobilevitv2_100/4.png}}
+    \subfloat[Original, ResNet50]{\includegraphics[width=0.45\linewidth]{figures/vae-backbones/samples/resnet50/4.png}}
 \end{figure}
+
+\input{figures/vae-backbones/backbones_vae.tex}
 
 
 \subsection{Influence of the Beta factor}
@@ -131,13 +111,13 @@ We also analyse the effect of the $\beta$ factor on the reconstruction quality o
     \label{tab:beta-vae-loss-values}
     \begin{tabular}{ccc}
         \hline
-        $\beta$ & KL-Divergence & Reconstruction Error (x1e5) \\
+        $\beta$ & KL-Divergence & Reconstruction Error ($1e^5$) \\
         \hline
-        0.01    & 80200         & 1.9                         \\
-        0.1     & 31250         & 1.5                         \\
-        1       & 8190          & 2.7                         \\
-        10      & 2089          & 2.2                         \\
-        100     & 498           & 2.9                         \\
+        0.01    & 80200         & 1.9                           \\
+        0.1     & 31250         & 1.5                           \\
+        1       & 8190          & 2.7                           \\
+        10      & 2089          & 2.2                           \\
+        100     & 498           & 2.9                           \\
         \hline
     \end{tabular}
 \end{table}
@@ -154,24 +134,9 @@ We also analyse the effect of the $\beta$ factor on the reconstruction quality o
 
 
 \subsection{Skip Connection}
-To understand the importance of the Skip Connections which are added after the pretraining, we will show the effect of this by incrementally removing more
-Skip Connections.
-\todo{Training is in the backlog of slurm}
+To understand the importance of the type and amount of skip connections which are added after the pretraining, we will show the effect of this by incrementally removing more skip connections. We vary the amount of skip connections from 1 to 5 and try all 3 skip connection types. The results can be viewed in Table~\ref{tab:skip_results}
+Again an ANOVA is fitted to determine the significant effects, the results can be seen in Table~\ref{tab:skip_importance_anova_all}. Then, an OLS is fitted to show the effect size of all significant factors, the results of which can be seen in Table~\ref{tab:skip_importance_ols_effects}. Neither the amount, nor type of skip connection matter significantly for the 
 
-\begin{table}[!ht]
-    \centering
-    \caption{Results when removing Skip Connections.}
-    \label{tab:abl-skip-connection}
-    \begin{tabular}{cccc}
-        \hline
-        Num Skip Connections & CrossLoss (x1e6) & Eval JI & Train JI \\
-        \hline
-        0 (Only midblock)    & n.a.             & n.a.    & n.a.     \\
-        1                    & n.a.             & n.a.    & n.a.     \\
-        2                    & n.a.             & n.a.    & n.a.     \\
-        3                    & n.a.             & n.a.    & n.a.     \\
-        4                    & n.a.             & n.a.    & n.a.     \\
-        5 (all)              & n.a.             & n.a.    & n.a.     \\
-        \hline
-    \end{tabular}
-\end{table}
+\input{figures/skip_importance/skip-importance-results}
+
+\input{figures/skip_importance/tables}
