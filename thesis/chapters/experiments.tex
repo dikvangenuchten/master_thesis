@@ -33,7 +33,7 @@
 \subsection{Training Settings}
 All models are implemented in PyTorch~\cite{Ansel_PyTorch_2_Faster_2024} using an adapted version of the segmentation models repository~\cite{Iakubovskii:2019}. All code and configurations required to train the models and reproduce the experiments can be found on github \footnote[1]{\url{https://github.com/Generative-AI-TUe/msc-project-1297333}}. All models are trained on a NVIDIA Geforce RTX 2080 TI. The gradients are clipped using the norm, with a maximum value of 10. The AdaMax~\cite{kingma2017adammethodstochasticoptimization} is used with a cosine annealing learning rate, varying between $1e^{-3}$ and $1e^{-4}$. Each model is trained on 10.000 minibatches of size 96, unless otherwise specified.
 
-\section{Is pre-training beneficial?}
+\section{Comparison to baseline architectures}
 For the experiments we make use of our method, VAES, FPN, and U-Net. Each model was trained eight times with different configurations. We used different settings for the pre-trained weights:
 \begin{itemize}
     \item Without (`None') pre-trained weights.
@@ -86,7 +86,7 @@ As the computational resources in mobile robots tend to be low, the inference sp
 
 
 \section{Ablation Study}
-\subsection{Influence of the backbone}
+\subsection{Backbone}
 We first analyse the influence of the backbone on the performance of the VAE task by comparing the following backbones: MobileViT~\cite{Mehta2022SeparableSF}, MobileNetV2~\cite{sandler2019mobilenetv2invertedresidualslinear}, EfficientNet~\cite{tan2020efficientnetrethinkingmodelscaling} and ResNet50~\cite{he2015deep}. The results can be seen in Table~\ref{tab:backbones-results}. Some examples of the reconstruction capabilities can be seen in Figure~\ref{fig:vae-backbones}.
 
 \begin{figure}[!ht]
@@ -102,7 +102,7 @@ We first analyse the influence of the backbone on the performance of the VAE tas
 \input{figures/vae-backbones/backbones_vae.tex}
 
 
-\subsection{Influence of the Beta factor}
+\subsection{$\beta\text{-value}$}
 We also analyse the effect of the $\beta$ factor on the reconstruction quality of the VAE. This is done by training models with varying values for $\beta$. The results can be seen in Table~\ref{tab:beta-vae-loss-values}. Some examples of the reconstruction capabilities can be seen in Figure~\ref{fig:beta-vae-recon-examples}. More samples can be seen in Appendix~\ref{appendix:recon_samples}.
 
 \begin{table}[!ht]
