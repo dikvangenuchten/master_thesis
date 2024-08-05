@@ -1,12 +1,25 @@
 \chapter{Future Work}\label{chapter:future_work}
 
+\section{Improving VAES}
+As already stated in the background section~\ref{chapter:background}, the VAE has some flaws that have been shown to be mitigatable. We will highlight some interesting research that could be adapted to our method to possibly improve the quality of predictions.
+\subsection{Larger dataset}
+In this thesis, the pretraining of the VAE has been limited to the COCO~\cite{lin2015microsoftcococommonobjects} ($\sim$100k) dataset. However, similar to tranformers, it might be beneficial to pretraining on larger datasets, such as OpenImagesV7~\cite{OpenImages} ($\sim$9M).
 
-\begin{itemize}
-    \item Improving the VAE
-          \subitem (Proper) HVAE
-          \subitem Different Latent distribution (e.g. )
-    \item Extending the VAE
-          \subitem Multimodal-latent VAE
-          \subitem Incorporate time (https://arxiv.org/pdf/2104.10157)
-          \subitem OOD
-\end{itemize}
+\subsection{Improving the backbone}
+One of the drawbacks of Fully Convolutional Network (FCN), is that in their classic form, such as used by us, they have a small Field of View. This means, they cannot relate parts of the image that are far apart. This can partially be combatted by making use of dilated convolutional layers, such as proposed by Gao~\cite{gao2023rethinking}. Or by the use of vision tranformers~\cite{dosovitskiy2021image}, which can relate pixels that are far apart in the input image by leveraging attention mechanisms. These vision tranformers have been used successfully in the segmentation task~\cite{xie2021segformer,chen2022vision}. However, they have two major drawbacks. One, as tranformers have a lower inductive bias for vision~\cite{dosovitskiy2021image} compared to convolutional networks, they require much more data and time to train. Secondly, their attention mechanisms are computationally more complex than convolutional layers, thus they are more difficult to optimize for edge devices such as required for mobile robotics. The first drawback can be countered by using publicly available pre-trained models. The second problem is more fundamental, and although there is research into making tranformers more efficient~\cite{li2022efficientformer,Yu2021MetaFormerIA}. They remain more computationally expensive compared to their CNN counterparts.
+
+\subsection{Improving the prior}
+In our current method, we use a Gaussian prior, which might not be the best representation of the hidden probalistic process we are trying to model. It would be interesting to investigate what the effect of different, and more complex priors is.
+
+\section{Extending VAES}
+Next to the possibillities to mitigate current problems, VAEs can also be extended to provide additional benefits compared to the more classic discriminative approaches. In this section we will highlight some of the possible extensions.
+
+\subsection{Anomaly detection}
+VAEs have been shown to be able to provide a rudemantary anomaly detection. There are two prominent methods for this. The first method is by detecting unusual latent variables from the approximate posterior output $q_{\phi}(z|x)$~\cite{marimont2020anomalydetectionlatentspace,angiulli2020improving,angiulli2023latent}. The second method is by calculating the reconstruction error from the given input~\cite{an2015variational, zhou2020unsupervisedanomalylocalizationusing, gouda2022unsupervised}. The main benefit of the first method is that the decoder is not required for anomaly detection, resulting in a lower inference cost. In the case of robotics, it is important to detect unusual situation as it might result in unexpected behaviour which inturn could lead to dangerous situations. Therefore, it would be interesting to see if our method is capable of providing these anomaly predictions aswell.
+
+Furthermore, a closely related use case is the ability to have an uncertainty estimation, by the use of bootstrapping~\cite{chen2018use,kohl2018probabilistic}, for the output of the model. The additional uncertainty information could then be used by downstream systems to be even more robust. Moreover, this information might be useful for various active learning~\cite{hino2020active} techniques. Which allow for more effective labelling strategies, thus reducing the amount of labelling required and ensuring an efficient feedback loop from production environments. This could possibly be further combined with models like the Segment Anything Model (SAM)~\cite{kirillov2023segment}. It is a huge, and slow, network capable of, as the name implies, segmenting anything based on a prompt. Which could aid in the labelling task, thus reducing the amount of human labour required to improve the models that are employed in the field.
+
+\subsection{Multimodal encoder}
+VAEs have been shown to be able to be trained for multimodal input~\cite{sadok2024multimodal,shi2019variational,sutter2021generalized,suzuki2016joint,wu2018multimodal}. In which next to the image, the model also takes into account other forms of information (e.g. sound~\cite{sadok2024multimodal} or text~\cite{suzuki2016joint}). As extra sensor can easily be added to mobile robots, they might provide useful information to the latent space that could otherwise not be detected using visual queues.
+
+Another additional input could be the past frames. As there are VAE-based video generation models~\cite{yan2021videogpt}. Especially when they are trained on datasets that require the model to understand object permanance. This would be extra beneficial in combination with feedback from the kinematics of the robot.

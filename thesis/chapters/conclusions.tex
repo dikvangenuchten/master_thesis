@@ -1,9 +1,7 @@
 \chapter{Conclusions}\label{chapter:conclusions}
 
-This part still needs some expanding but my current conclusions can be boiled down to the following bullet-points:
-\begin{itemize}
-    \item The VAE can be adapted for image segmentation, and works similarly to the UNet in prediction performance.
-    \item In the context of mobile robotics there are some downsides compared to the classic UNet and FPN, as these are faster for inference.
-    \item Skip connections do not seem to matter a lot.
-    \item Pretraining using a VAE on the same dataset does not seem to beneficial, however importantly it is not detremental either. Thus it might be worth it to check if pretraining VAE on e.g. ImageNet does provide a benefit
-\end{itemize}
+We showed that the Variational AutoEncoder (VAE) can be adapted towards the semantic segmentation task. Its performance is similar to that of an U-Net. However, it is more computationally expensive. Therefore, in its current form does not provide any benefits over the simpler U-Net and FPN networks. Moreover, in the case of mobile robotics specifically, it has a major downside. Namely, the slower inference speed.
+
+Furthermore, it can be concluded that pretraining on the VAE task does not have a significant positive, or negative effect on the final performance of the model. 
+
+Finally, pre-training on the VAE task does not impact the quality of the model when there is only a limited amount of labelled data available. Moreover, using pre-trained weights from a classification task proves to be of vital importance to achieve good results, surpassing the importance of selecting the optimal architecture.
