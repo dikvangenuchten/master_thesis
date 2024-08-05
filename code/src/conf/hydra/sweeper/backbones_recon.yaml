@@ -7,4 +7,4 @@ params:
   model.encoder_name: choice(mobilenetv2_100,resnet50,resnet18,efficientnet_b2)
   model.encoder_weights: imagenet
   input_shape: choice([128, 128])
-  +trainer.init_kwargs.wandb.group: backbone_sweep_${now:%Y-%m-%d:%H-%M-%S}
+  +trainer.init_kwargs.wandb.group: backbone_sweep_recon_${now:%Y-%m-%d:%H-%M-%S}
