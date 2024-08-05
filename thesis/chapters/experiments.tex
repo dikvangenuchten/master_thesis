@@ -2,7 +2,7 @@
 
 \section{Implementation details}
 \subsection{Dataset}
-\paragraph{COCO~\cite{lin2015microsoftcococommonobjects}} is a publicly available dataset and has a multitude of labels. The semantic mask are extrated from the 2017 Panoptic annotations. This set contains more than 100k images that are densly annotated with both the semantic class and instance. There are a total of 133 different classes which belong to 27 `supercategories'. The four categories ``food'' and ``food-stuff'' and ``furniture'' and ``furniture-stuff'' were merged into ``food'' and ``furniture'' respectively, bringing the number of supercategories to 25. To speed up convergences, we will use these 25 classes. The distribution of the class labels can be seen in Figure \ref{fig:coco-class-distribution}. Some samples of the dataset can be seen in Figure \ref{fig:coco-samples}. More samples can be found in Appendix \ref{appendix:coco_samples}. 
+\paragraph{COCO~\cite{lin2015microsoftcococommonobjects}} is a publicly available dataset and has a multitude of labels. The semantic mask are extracted from the 2017 Panoptic annotations. This set contains more than 100k images that are densly annotated with both the semantic class and instance. There are a total of 133 different classes which belong to 27 `supercategories'. The four categories ``food'' and ``food-stuff'' and ``furniture'' and ``furniture-stuff'' were merged into ``food'' and ``furniture'' respectively, bringing the number of supercategories to 25. To speed up convergences, we will use these 25 classes. The distribution of the class labels can be seen in Figure \ref{fig:coco-class-distribution}. Some samples of the dataset can be seen in Figure \ref{fig:coco-samples}. More samples can be found in Appendix \ref{appendix:coco_samples}. 
 
 
 \begin{figure}[h]
@@ -31,7 +31,7 @@
 
 
 \subsection{Training Settings}
-All models are implemented in PyTorch~\cite{Ansel_PyTorch_2_Faster_2024} using an adapted version of the segmentation models repository~\cite{Iakubovskii:2019}. All code and configurations required to train the models and reproduce the experiments can be found on github \footnote[1]{\url{https://github.com/Generative-AI-TUe/msc-project-1297333}}. All models are trained on a NVIDIA Geforce RTX 2080 TI. The gradients are clipped using the norm, with a maximum value of 10. The AdaMax~\cite{kingma2017adammethodstochasticoptimization} is used with a cosine annealing learning rate, varying between $1e^{-3}$ and $1e^{-4}$. Each model is trained on 10.000 minibatches of size 96, unless otherwise specified.
+All models are implemented in PyTorch~\cite{Ansel_PyTorch_2_Faster_2024} using an adapted version of the segmentation models repository~\cite{Iakubovskii:2019}. All code and configurations required to train the models and reproduce the experiments can be found on GitHub \footnote[1]{\url{https://github.com/Generative-AI-TUe/msc-project-1297333}}. All models are trained on a NVIDIA Geforce RTX 2080 TI. The gradients are clipped using the norm, with a maximum value of 10. The AdaMax~\cite{kingma2017adammethodstochasticoptimization} is used with a cosine annealing learning rate, varying between $1e^{-3}$ and $1e^{-4}$. Each model is trained on 10.000 minibatches of size 96, unless otherwise specified.
 
 \section{Comparison to baseline architectures}
 For the experiments we make use of our method, VAES (ours), FPN, and U-Net. Each model was trained eight times with different configurations. We used different settings for the pre-trained weights:
@@ -134,8 +134,8 @@ We also analyse the effect of the $\beta$ factor on the reconstruction quality o
 
 
 \subsection{Skip Connection}
-To understand the importance of the type and amount of skip connections which are added after the pretraining, we will show the effect of this by incrementally removing more skip connections. We vary the amount of skip connections from 1 to 5 and try all 3 skip connection types. The results can be viewed in Table~\ref{tab:skip_results}
-Again an ANOVA is fitted to determine the significant effects, the results can be seen in Table~\ref{tab:skip_importance_anova_all}. Then, an OLS is fitted to show the effect size of all significant factors, the results of which can be seen in Table~\ref{tab:skip_importance_ols_effects}. Neither the amount, nor type of skip connection matter significantly for the 
+To understand the importance of the type and amount of skip connections which are added after the pretraining, we will show the effect of this by incrementally removing more skip connections. We vary the amount of skip connections from 1 to 5 and try all 3 skip connection types. The results can be viewed in Table~\ref{tab:skip_results}.
+Again an ANOVA is fitted to determine the significant effects, the results can be seen in Table~\ref{tab:skip_importance_anova_all}. Then, an OLS is fitted to show the effect size of all significant factors, the results of which can be seen in Table~\ref{tab:skip_importance_ols_effects}. From this limited sample of runs the type does not seem to be significant. Neither does the amount of skip connections prove to be a significant effect based on the OLS. However, they are both close to a significance value of $0.05$, thus a bigger sample might show a small (likely positive) effect.
 
 \input{figures/skip_importance/skip-importance-results}
 
