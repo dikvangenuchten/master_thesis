@@ -70,6 +70,7 @@ def create_tables(metrics: pd.DataFrame):
         label="tab:baseline_results",
         position="ht",
         position_float="centering",
+        multirow_align="t",
         hrules=True,
     )
 
