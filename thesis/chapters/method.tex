@@ -39,7 +39,7 @@ We will refer to the image encoder and label decoder together as VAE-Segmentatio
 The image encoder approximates the latent distribution, $p_\theta(z)$. To ensure we can train the encoder using gradient descent, we need to make sure it is fully differentiable. Thus we make use of the reparameterization trick. We use a deterministic mapping $g_\phi(\epsilon, z')$, where $\epsilon$ is an independent random variable and $g_\phi(x)$ is our (deterministic) neural network. Kingma et al.~~\cite{kingma2014autoencodingvariationalbayes} show that using this reparameterization trick a wide range of distributions can be learnt. In our case we use a Gaussian latent space. The reparameterization then becomes $z = \mu + \sigma \epsilon$, where $\mu$ and $\sigma$ are the output of our image encoder network.
 
 \subsection{Image Decoder}
-The image decoder approximates the conditional Gaussian distribution $p_\theta(x|z)$. It is used during the pre-training step to prime the image encoder with 'good' initial weights, using the traditional ($\beta$-)VAE training. The hypothesis is, that given that $x$ can be reconstructed from the learnt $q_\phi(z|x)$, the learnt latent space contains useful features to approximate $p_\theta(y|z)$. In Eq.~\ref{eq:beta-elbo} $\log p_\theta(x|z)$ can be calculated using Eq.~\ref{eq:log_p_x_z} using a parameterized neural network.
+The image decoder approximates the conditional Gaussian distribution $p_\theta(x|z)$. It is used during the pre-training step to prime the image encoder with 'good' initial weights, using the traditional ($\beta$-)VAE training. The hypothesis is, that given that $x$ can be reconstructed from the learnt $q_\phi(z|x)$, the learnt latent space contains useful features to approximate $p_\theta(y|x,z)$. In Eq.~\ref{eq:beta-elbo} $\log p_\theta(x|z)$ can be calculated using Eq.~\ref{eq:log_p_x_z} using a parameterized neural network.
 
 \begin{equation}
     \begin{split}
@@ -68,7 +68,7 @@ When all skip connections are of the type `Skip', our architecture is equal to t
 The training consist of two stages, the pre-training phase, and the fine-tuning stage. 
 \paragraph*{Pre-training phase} During the pre-training phase, the image encoder, $q_\phi(z|x)$, and image decoder, $p_\theta(x|z)$, are trained. This is equal to the classical VAE shown in Figure~\ref{fig:schematic-vae}. The model is optimized to minimise the negative Eq.~\ref{eq:beta-elbo} using stochastic gradient descent with minibatches. Note, that during pre-training no labels are required.
 
-\paragraph*{Fine-tuning phase} During the fine-tuning phase, the learnt image encoder, $q_\phi(z|x)$, is reused. However, the image decoder, $p_\theta(x|z)$, is replaced with a new label decoder, $p_\xi(x|z)$. The encoder can either be kept frozen or jointly optimized with the decoder. During fine-tuning the negative of Eq.~\ref{eq:label_ELBO} is minimised.
+\paragraph*{Fine-tuning phase} During the fine-tuning phase, the learnt image encoder, $q_\phi(z|x)$, is reused. However, the image decoder, $p_\theta(x|z)$, is replaced with a new label decoder, $p_\xi(y|x,z)$. The encoder can either be kept frozen or jointly optimized with the decoder. During fine-tuning the negative of Eq.~\ref{eq:label_ELBO} is minimised.
 
 In the case that the image encoder is kept frozen, the dataset can be encoded once into the latent space. This latent space can then be sampled, reducing the computational and memory required during training.
 
