@@ -48,6 +48,15 @@ def get_metrics(runs: List[wandb_utils.Run]) -> pd.DataFrame:
     return pd.DataFrame(metrics)
 
 
+def format_exp(val):
+    return {
+        f"{1:.0e}": "$1e^{0}$",
+        f"{0.1:.0e}": "$1e^{-1}$",
+        f"{0.01:.0e}": "$1e^{-2}$",
+        f"{0.001:.0e}": "$1e^{-3}$",
+    }[f"{val:.0e}"]
+
+
 def create_tables(metrics):
     # Do analysis and make plots for metrics
     # Insert "all invalid runs"
@@ -149,7 +158,7 @@ def create_tables(metrics):
     ).format(
         na_rep="n.a.",
         precision=2,
-    ).to_latex(
+    ).format_index(format_exp, axis=1).to_latex(
         os.path.join(FIGURES_DIR, "results_dataset_fraction.tex"),
         caption="The Evaluation Jaccard Index for the various models and dataset fractions. The higher the score the better.",
         position="ht",

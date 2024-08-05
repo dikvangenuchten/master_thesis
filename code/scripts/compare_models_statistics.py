@@ -10,7 +10,7 @@ FIGURES_DIR = "../thesis/figures/"
 
 def main():
     results = []
-    for model_name in ["vaes", "fpn", "unet",]:
+    for model_name in ["vaes", "unet", "fpn"]:
         result = benchmark_single_model(model_name)
         results.append(result)
     df = pd.DataFrame(results)
