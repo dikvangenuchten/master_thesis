@@ -1,7 +1,7 @@
 \chapter{Conclusions}\label{chapter:conclusions}
 
-We showed that the Variational AutoEncoder (VAE) can be adapted towards the semantic segmentation task. Showing that the semantic segmentation task can be viewed as a generative problem. Its performance is similar to that of an U-Net. However, it is more computationally expensive. Therefore, in its current form does not provide any benefits over the simpler U-Net and FPN networks. Specifically, in the case of mobile robotics, where inference speed is of huge importance.
+We showed that the Variational AutoEncoder (VAE) can be adapted to the semantic segmentation task. Showing that the semantic segmentation task can be viewed as a generative problem. Its performance is similar to that of an U-Net. However, it is more computationally expensive. Therefore, in its current form does not provide any benefits over the simpler U-Net and FPN networks. Specifically, in the case of mobile robotics, where inference speed is of huge importance.
 
-Furthermore, it can be concluded that pretraining on the VAE task does not have a significant positive, or negative effect on the final performance of the model. 
+Furthermore, it can be concluded that pre-training on the VAE task does not have a significant positive, or negative effect on the final performance of the model. 
 
 Finally, pre-training on the VAE task does not impact the quality of the model when there is only a limited amount of labelled data available. Moreover, using pre-trained weights from a classification task proves to be of vital importance to achieve good results, surpassing the importance of selecting the optimal architecture.
