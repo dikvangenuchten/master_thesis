@@ -7,7 +7,9 @@ With the rise of small gpu accelerated computers, such as the NVIDIA Jetson Orin
 \section{Research Questions and Contributions}
 This thesis will answer the following research questions.
 \begin{itemize}
-    \item Can the VAE be adaptes
+    \item Can the VAE be adapted to an Image Segmentation task?
+    \item Do the pretrained weights of a VAE provide useful features for image segmentation.
+    \item Does pretraining on the VAE task reduce the amount of labeled data required?
 \end{itemize}
 The contributions of this thesis are as follows;
 \begin{itemize}
@@ -15,4 +17,4 @@ The contributions of this thesis are as follows;
     \item An adaption of the VAE, the VAE-Segmentation architecture, is proposed. A variational  can be used to produce semantic segmentation masks.
     \item It is shown that using pretrained weights can increase the performance of semantic segmentation models. Having a bigger effect on the final performance compared to the model architecture. Furthermore it is shown, that the VAE reconstruction tasks
 \end{itemize}
-Then we will show that the classic VAE tasks does not provide useful features for semantic segmentation. Finally, we will statistically show that the most important factor in achieving good results is not necesarrily the amount of data for the task at hand, but adapting a model that is trained on a large classification dataset can provide huge improvements to the resulting network. 
+Then we will show that the classic VAE tasks does not provide useful features for semantic segmentation. Finally, we will statistically show that the most important factor in achieving good results is not necesarrily the amount of data for the task at hand, but adapting a model that is trained on a large classification dataset can provide huge improvements to the resulting network.

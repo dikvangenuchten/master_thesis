@@ -1,3 +1,9 @@
 \chapter{Conclusions}\label{chapter:conclusions}
 
-The VAES architecture shows that a generative approach to semantic segmentation can work. However, it does perform slightly worse than discriminative approaches.
+This part still needs some expanding but my current conclusions can be boiled down to the following bullet-points:
+\begin{itemize}
+    \item The VAE can be adapted for image segmentation, and works similarly to the UNet in prediction performance.
+    \item In the context of mobile robotics there are some downsides compared to the classic UNet and FPN, as these are faster for inference.
+    \item Skip connections do not seem to matter a lot.
+    \item Pretraining using a VAE on the same dataset does not seem to beneficial, however importantly it is not detremental either. Thus it might be worth it to check if pretraining VAE on e.g. ImageNet does provide a benefit
+\end{itemize}
