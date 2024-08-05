@@ -13,8 +13,9 @@ We start by rewriting the log-likelihood of $p_\theta(x, y, z)$ as shown in Eq.~
 \begin{subequations}
     \begin{align}
         \log p_\theta(x, y) & = \int_z \log p_\theta(y | x, z) dz +  \int_z \log p_\theta(x, z) + \log p_\theta(z) dz             \label{eq:label_marginal} \\
-                            & \geq \log p_\theta(y | x) + \mathcal{L}_{ELBO}                                                                                \\
-                            & \approx \mathbb{E}_{z~q_{\phi}(z | x)}[\log p_\theta(y|x, z)] + \mathcal{L}_{ELBO}                                            \\
+                            & \geq \int_z \log p_\theta(y | x, z) dz + \mathcal{L}_{ELBO}                                                                   \\
+                            & = \log p_\theta(y | x) + \mathcal{L}_{ELBO}                                                                                   \\
+                            & = \mathbb{E}_{z~q_{\phi}(z | x)}[\log p_\theta(y|x, z)] + \mathcal{L}_{ELBO}                                                  \\
                             & = \mathcal{L}_{label-ELBO} \label{eq:label_ELBO}
     \end{align}
 \end{subequations}
