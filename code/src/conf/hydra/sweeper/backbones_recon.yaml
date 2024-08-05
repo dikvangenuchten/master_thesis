@@ -2,7 +2,7 @@ defaults:
   - basic
 
 params:
-  +task: recon
+  +task: reconstruction
   model: vaes
   model.encoder_name: choice(mobilenetv2_100,resnet50,resnet18,efficientnet_b2)
   model.encoder_weights: imagenet
