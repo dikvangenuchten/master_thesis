@@ -30,3 +30,10 @@ jobs:
         with:
           name: thesis
           path: ./thesis/thesis.pdf
+      - name: Comment PR
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          filePath: ./thesis/thesis.pdf
+          message: |
+            This should be the latest build!
+
