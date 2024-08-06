@@ -10,6 +10,6 @@ ARG USER_GID=$USER_UID
 
 RUN adduser -D $USERNAME \
     # [Optional] Add sudo support. Omit if you don't need to install software after connecting.
-    && apk add --update sudo openssh-client git-lfs openjdk11 \
+    && apk add --update sudo openssh-client git-lfs openjdk11-jre \
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME
