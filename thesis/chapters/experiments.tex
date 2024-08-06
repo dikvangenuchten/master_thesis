@@ -34,7 +34,7 @@
 All models are implemented in PyTorch~\cite{Ansel_PyTorch_2_Faster_2024} using an adapted version of the segmentation models repository~\cite{Iakubovskii:2019}. All code and configurations required to train the models and reproduce the experiments can be found on GitHub\footnote[1]{\url{https://github.com/Generative-AI-TUe/msc-project-1297333}}. The models are trained on an NVIDIA GeForce RTX 2080 TI. The gradients are clipped using the norm, with a maximum value of 10. The AdaMax~\cite{kingma2017adammethodstochasticoptimization} is used with a cosine annealing learning rate, varying between $1e^{-3}$ and $1e^{-4}$. Each model is trained on 10.000 minibatches of size 96 unless otherwise specified.
 
 \section{Comparison to baseline architectures}
-For the experiments we make use of our method, VAES (ours), FPN, and U-Net. Each model was trained eight times with different configurations. We used different settings for the pre-trained weights:
+For the experiments we make use of three methods: VAES (ours), FPN, and U-Net. Each model was trained eight times with different configurations. We used different settings for the pre-trained weights:
 \begin{itemize}
     \item Without (`None') pre-trained weights.
     \item With pre-trained weights retrieved from the classification of ImageNet.
@@ -80,30 +80,47 @@ The effect of the parameters can then be analysed by a simple OLS model. The res
 
 \section{Model Characteristics}
 
-As the computational resources in mobile robots tend to be low, the inference speed and memory usage were measured. Inference was done on a NVIDIA GTX 1070, and measured using PyTorch benchmarking tools. The results can be seen in Table~\ref{tab:model_characteristics}.
+As the computational resources in mobile robots tend to be low, the inference speed and memory usage were measured. Inference was done on an NVIDIA GTX 1070, and measured using PyTorch benchmarking tools. The results can be seen in Table~\ref{tab:model_characteristics}.
 
 \input{figures/model_characteristics}
 
 
 \section{Ablation Study}
 \subsection{Backbone}
-We first analyse the influence of the backbone on the performance of the VAE task by comparing the following backbones: MobileViT~\cite{Mehta2022SeparableSF}, MobileNetV2~\cite{sandler2019mobilenetv2invertedresidualslinear}, EfficientNet~\cite{tan2020efficientnetrethinkingmodelscaling}, and ResNet50~\cite{he2015deep}. The results can be seen in Table~\ref{tab:backbones-results}. Some examples of the reconstruction capabilities can be seen in Figure~\ref{fig:vae-backbones}.
+We first analyse the influence of the backbone on the performance of the VAE task by comparing the following backbones: MobileNetV2~\cite{sandler2019mobilenetv2invertedresidualslinear}, EfficientNet~\cite{tan2020efficientnetrethinkingmodelscaling}, and two variants of the ResNet~\cite{he2015deep} architecture. The results can be seen in Table~\ref{tab:vae-backbones-results}. Some examples of the reconstruction capabilities can be seen in Figure~\ref{fig:vae-backbones}. MobileNetV2 is the smallest network, as can be seen from the parameter count and Multiply-Accumulate (MAC) values. Overall ResNet18 achieves the best L1Loss, meaning it is best at reconstruction. Although the difference is small. Visually, all networks perform very similar.
 
 \begin{figure}[!ht]
     \centering
+    \subfloat[Original, EfficientNet]{\includegraphics[width=0.45\linewidth]{figures/vae-backbones/reconstruction/samples/efficientnet_b2/14.png}}
+    \subfloat[Original, MobileNetV2]{\includegraphics[width=0.45\linewidth]{figures/vae-backbones/reconstruction/samples/mobilenetv2_100/14.png}} \quad
+    \subfloat[Original, ResNet18]{\includegraphics[width=0.45\linewidth]{figures/vae-backbones/reconstruction/samples/resnet18/14.png}}
+    \subfloat[Original, ResNet50]{\includegraphics[width=0.45\linewidth]{figures/vae-backbones/reconstruction/samples/resnet50/14.png}}
     \caption{Example reconstruction for the various backbones.}
     \label{fig:vae-backbones}
-    \subfloat[Original, EfficientNet]{\includegraphics[width=0.45\linewidth]{figures/vae-backbones/samples/efficientnet_b2/4.png}}
-    \subfloat[Original, MobileNetV2]{\includegraphics[width=0.45\linewidth]{figures/vae-backbones/samples/mobilenetv2_100/4.png}} \quad
-    \subfloat[Original, MobileViT]{\includegraphics[width=0.45\linewidth]{figures/vae-backbones/samples/mobilevitv2_100/4.png}}
-    \subfloat[Original, ResNet50]{\includegraphics[width=0.45\linewidth]{figures/vae-backbones/samples/resnet50/4.png}}
 \end{figure}
 
-\input{figures/vae-backbones/backbones_vae.tex}
+\input{figures/vae-backbones/reconstruction/backbones_vae.tex}
 
+We redo the analysis for the VAES task with the same backbones. Examples of the segmentation masks can be seen in Figure~\ref{fig:vaes-backbones} The results can be seen in Table~\ref{tab:vaes-backbones-results}. For semantic segmentation, the smaller architectures lack behind ResNet50. However, depending on the computational limitations, it might be worth to use the smaller networks as the difference is not huge.
+
+\begin{figure}[h]
+    \foreach \i in {14,11} {
+            \centering
+            \subfloat[Image]{\includegraphics[width=0.16\textwidth]{figures/vae-backbones/semantic/samples/resnet50/\i.png}}
+            \subfloat[Ground Truth]{\includegraphics[width=0.16\textwidth]{figures/vae-backbones/semantic/samples/resnet50/gt_\i.png}}
+            \subfloat[ResNet50]{\includegraphics[width=0.16\textwidth]{figures/vae-backbones/semantic/samples/resnet50/pr_\i.png}}
+            \subfloat[ResNet18]{\includegraphics[width=0.16\textwidth]{figures/vae-backbones/semantic/samples/resnet18/pr_\i.png}}
+            \subfloat[MobileNetV2]{\includegraphics[width=0.16\textwidth]{figures/vae-backbones/semantic/samples/mobilenetv2_100/pr_\i.png}}
+            \subfloat[!!TODO!!]{\includegraphics[width=0.16\textwidth]{figures/vae-backbones/semantic/samples/mobilenetv2_100/pr_\i.png}}
+            \\
+        }
+    \caption{Samples of the validation dataset, with the ground truth and the prediction by VAES with different backbones.}\label{fig:vaes-backbones}
+\end{figure}
+
+\input{figures/vae-backbones/semantic/backbones_vae.tex}
 
 \subsection{$\beta\text{-value}$}
-We also analyse the effect of the $\beta$ factor on the reconstruction quality of the VAE. This is done by training models with varying values for $\beta$. The results can be seen in Table~\ref{tab:beta-vae-loss-values}. Some examples of the reconstruction capabilities can be seen in Figure~\ref{fig:beta-vae-recon-examples}. More samples can be seen in Appendix~\ref{appendix:recon_samples}.
+We also analyse the effect of the $\beta$ factor on the reconstruction quality of the VAE. This is done by training models with varying values for $\beta$. The results can be seen in Table~\ref{tab:beta-vae-loss-values}. Some examples of the reconstruction capabilities can be seen in Figure~\ref{fig:beta-vae-recon-examples}. More samples can be seen in Appendix~\ref{appendix:recon_samples}. Based on the images and the reconstruction error, it can be concluded that the higher values for $\beta$ the reconstruction capabilities of the network are reduced. This is to be expected as the model is forced to use a 
 
 \begin{table}[!ht]
     \centering
@@ -115,7 +132,7 @@ We also analyse the effect of the $\beta$ factor on the reconstruction quality o
         \hline
         0.01    & 80200         & 1.9                           \\
         0.1     & 31250         & 1.5                           \\
-        1       & 8190          & 2.7                           \\
+        1       & 8190          & 2.4                           \\
         10      & 2089          & 2.2                           \\
         100     & 498           & 2.9                           \\
         \hline
@@ -136,6 +153,8 @@ We also analyse the effect of the $\beta$ factor on the reconstruction quality o
 \subsection{Skip Connection}
 To understand the importance of the type and amount of skip connections that are added after the pre-training, we will show the effect of this by incrementally removing more skip connections. We vary the amount of skip connections from 1 to 5 and try all 3 skip connection types. The results can be viewed in Table~\ref{tab:skip_results}.
 Again an ANOVA is fitted to determine the significant effects, the results can be seen in Table~\ref{tab:skip_importance_anova_all}. Then, an OLS is fitted to show the effect size of all significant factors, the results of which can be seen in Table~\ref{tab:skip_importance_ols_effects}. From this limited sample of runs, the type does not seem to be significant. Neither does the amount of skip connections prove to be a significant effect based on the OLS. However, they are both close to a significance value of $0.05$, thus a bigger sample might show a small (likely positive) effect.
+
+\todo{Discuss the skip connection more, are the skip connections purely for gradient flow, as they do not provide (significant) performance.}
 
 \input{figures/skip_importance/skip-importance-results}
 

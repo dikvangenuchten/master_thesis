@@ -11,3 +11,5 @@ CoCo
 AdaMax
 EfficientNet
 VAEs
+minibatch
+ResNet
