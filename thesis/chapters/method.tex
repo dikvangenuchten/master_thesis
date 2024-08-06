@@ -1,5 +1,5 @@
 \chapter{Method}\label{chapter:first_real_chapter}
-From a probabilistic point of view, semantic segmentation can be modeled as $p_\theta(x,y)$, where $x$ is a given (RGB-)image, and $y$ is the semantic label. However, in practice, there also exists $z$, the physical object of which $x$ is a view. Thus we propose the probabilistic model to be $p_\theta(x,y,z)$. Which can be rewritten as: $p_\theta(x,y,z)$ = $p_\theta(y|x,z) p_\theta(x|z) p_\theta(z)$.
+From a probabilistic point of view, semantic segmentation can be modelled as $p_\theta(x,y)$, where $x$ is a given (RGB-)image, and $y$ is the semantic label. However, in practice, there also exists $z$, the physical object of which $x$ is a view. Thus, we propose the probabilistic model to be $p_\theta(x,y,z)$. Which can be rewritten as: $p_\theta(x,y,z)$ = $p_\theta(y|x,z) p_\theta(x|z) p_\theta(z)$.
 \begin{itemize}
     \item $p_\theta(z)$; The generative process of the object.
     \item $p_\theta(x|z)$; The generative process of the observation of the object.
@@ -8,7 +8,7 @@ From a probabilistic point of view, semantic segmentation can be modeled as $p_\
 Notice that the model $p_\theta(x|z) p_\theta(z)$ is equal to the VAE. We propose to first learn the generative model $p_\theta(x,z) = p_\theta(x|z) p_\theta(z)$, by learning the approximation of $p_\theta(x|z)$ and $p_\theta(z)$, using a VAE. After which we can use that learnt model to approximate the parameters of $p_\theta(y|x,z)$.
 
 \section{Model}
-We start by rewriting the log-likelihood of $p_\theta(x, y, z)$ as shown in Eq.~\ref{eq:label_marginal}. Notice, that the second right-hand term, is the log-likelihood of $p_\theta(x)$. Using the Jensen's inequality~~\cite{jensen1906fonctions}, it can be replaced with the $\mathcal{L}_ELBO$. This results in the equation $\mathcal{L}_{label-ELBO}$, shown in Eq.~\ref{eq:label_ELBO}
+We start by rewriting the log-likelihood of $p_\theta(x, y, z)$ as shown in Eq.~\ref{eq:label_marginal}. Notice, that the second right-hand term, is the log-likelihood of $p_\theta(x)$. Using the Jensen's inequality~\cite{jensen1906fonctions}, it can be replaced with the $\mathcal{L}_ELBO$. This results in the equation $\mathcal{L}_{label-ELBO}$, shown in Eq.~\ref{eq:label_ELBO}
 
 \begin{subequations}
     \begin{align}
@@ -36,7 +36,7 @@ We will refer to the image encoder and label decoder together as VAE-Segmentatio
 \end{figure}
 
 \subsection{Image Encoder}
-The image encoder approximates the latent distribution, $p_\theta(z)$. To ensure we can train the encoder using gradient descent, we need to make sure it is fully differentiable. Thus we make use of the reparameterization trick. We use a deterministic mapping $g_\phi(\epsilon, z')$, where $\epsilon$ is an independent random variable and $g_\phi(x)$ is our (deterministic) neural network. Kingma et al.~~\cite{kingma2014autoencodingvariationalbayes} show that by using this reparameterization trick a wide range of distributions can be learnt. In our case, we use a Gaussian latent space. The reparameterization then becomes $z = \mu + \sigma \epsilon$, where $\mu$ and $\sigma$ are the output of our image encoder network.
+The image encoder approximates the latent distribution, $p_\theta(z)$. To ensure we can train the encoder using gradient descent, we need to make sure it is fully differentiable. Thus, we make use of the reparametrization trick. We use a deterministic mapping $g_\phi(\epsilon, z')$, where $\epsilon$ is an independent random variable and $g_\phi(x)$ is our (deterministic) neural network. Kingma et al.~\cite{kingma2014autoencodingvariationalbayes} show that by using this reparametrization trick a wide range of distributions can be learnt. In our case, we use a Gaussian latent space. The reparametrization then becomes $z = \mu + \sigma \epsilon$, where $\mu$ and $\sigma$ are the output of our image encoder network.
 
 \subsection{Image Decoder}
 The image decoder approximates the conditional Gaussian distribution $p_\theta(x|z)$. It is used during the pre-training step to prime the image encoder with 'good' initial weights, using the traditional ($\beta$-)VAE training. The hypothesis is, that given that $x$ can be reconstructed from the learnt $q_\phi(z|x)$, the learnt latent space contains useful features to approximate $p_\theta(y|x,z)$. In Eq.~\ref{eq:beta-elbo} $\log p_\theta(x|z)$ can be calculated using Eq.~\ref{eq:log_p_x_z} using a parameterized neural network.
@@ -49,7 +49,7 @@ The image decoder approximates the conditional Gaussian distribution $p_\theta(x
 \end{equation}
 
 \subsection{Label Decoder}
-The label decoder is similar to the image decoder, except that it approximates a multivariate Bernoulli distribution, instead of a Gaussian. Thus the calculation of $\log p_\theta(y|x,z)$ is different, which is shown in Eq.~\ref{eq:log_p_y_z}. Furthermore, it has `skip connections'. These skip connections allow for information to flow directly from a higher layer in the encoder to the decoder. We make the distinction between 3 types of skip connections.
+The label decoder is similar to the image decoder, except that it approximates a multivariate Bernoulli distribution, instead of a Gaussian distribution. Thus, the calculation of $\log p_\theta(y|x,z)$ is different, which is shown in Eq.~\ref{eq:log_p_y_z}. Furthermore, it has `skip connections'. These skip connections allow for information to flow directly from a higher layer in the encoder to the decoder. We make the distinction between 3 types of skip connections.
 \begin{enumerate}
     \item Skip. The output of the encoder layer is directly passed to the decoder.
     \item Projection. The output of the encoder layer is first projected using a convolutional layer.
@@ -74,7 +74,7 @@ In the case that the image encoder is kept frozen, the dataset can be encoded on
 
 \section{Evaluation}
 \subsection{Inference}
-Due to the variational architecture of the model, the inference can be done in two ways. One way is deterministic, by taking the mode of each latent vector. The other is variational, by sampling each latent vector. During training sampling the latent space is useful to improve the stability of training. However, during evaluation, it is preffered for the model to be deterministic. Hence during evaluation, the mode of the latent space is used.
+Due to the variational architecture of the model, the inference can be done in two ways. One way is deterministic, by taking the mode of each latent vector. The other is variational, by sampling each latent vector. During training sampling the latent space is useful to improve the stability of training. However, during evaluation, it is preferred for the model to be deterministic. Hence, during evaluation, the mode of the latent space is used.
 
 \subsection{Metrics}
 The most well-known and widely-used metrics within classification are precision (Eq.~\ref{eq:precision}), recall (Eq.~\ref{eq:recall}), and F1-score (Eq.~\ref{eq:f1})~\cite{rijsbergen1979information}. The latter is a combination of precision and recall. Within the field of image segmentation is also sometimes referred to as the Recognition Quality (RQ). In this, TP, FP, and FN refer to the True Positive, False Positive, and False Negative predictions per pixel. As our model always gives a prediction for each pixel, an FP in one class will always coincide with an FN in another class. Another common metric is the Jaccard Index (Eq.~\ref{eq:jaccard}), which is monotonically similar to the F1-score but weighs incorrect predictions more. As they are similar we will only report the Jaccard Index.
