@@ -17,20 +17,16 @@ jobs:
   build_latex:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        working_dir: ["research_proposal", "thesis"]
-
     steps:
       - name: Set up Git repository
         uses: actions/checkout@v3
       - name: Compile LaTeX document
         uses: xu-cheng/latex-action@v3
         with:
-          working_directory: ./${{ working_dir }}
-          root_file: main.tex
+          working_directory: ./thesis
+          root_file: thesis.tex
       - name: Upload PDF file
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ working_dir }}
-          path: main.pdf
+          name: thesis
+          path: thesis.pdf
