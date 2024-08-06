@@ -36,4 +36,5 @@ jobs:
           filePath: ./thesis/thesis.pdf
           message: |
             This should be the latest build!
-
+          comment_tag: thesis-pdf-build
+          mode: recreate
