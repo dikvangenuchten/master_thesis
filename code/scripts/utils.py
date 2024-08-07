@@ -9,7 +9,7 @@ import hydra
 
 try:
     multiprocessing.set_start_method("spawn")
-except:
+except Exception:
     pass
 
 
@@ -141,7 +141,9 @@ def benchmark_inference(
         )
 
         with torch.inference_mode():
-            result = t1.adaptive_autorange(1e-5, min_run_time=30, max_run_time=60)
+            result = t1.adaptive_autorange(
+                1e-5, min_run_time=30, max_run_time=60
+            )
         return_value.append(
             {
                 "batch_size": batch_size,
