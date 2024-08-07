@@ -39,17 +39,13 @@
 \clearpage
 
 %Sometimes line numbers are nice, uncomment the next line to enable:
-%\linenumbers
+% \linenumbers
 
 % \input{chapters/abstract}
 
 % \input{chapters/preface}
 
 \tableofcontents
-
-% \listoffigures
-
-% \listoftables
 
 % \lstlistoflistings
 
@@ -70,15 +66,19 @@
 \bibliographystyle{plain}
 \bibliography{references}
 
+\listoffigures
+
+\listoftables
+
 \clearpage
 
 \appendix
-\addcontentsline{toc}{chapter}{Appendix}
-\input{appendices/comparison_baselinse}
-\input{appendices/dataset_percentage_full_anova.tex}
-\input{appendices/skip_importance}
-\input{appendices/coco_samples}
-\input{appendices/recon_samples}
+% \addcontentsline{toc}{chapter}{Appendix}
+\include{appendices/comparison_baselinse}
+\include{appendices/dataset_percentage_full_anova}
+\include{appendices/skip_importance}
+\include{appendices/coco_samples}
+\include{appendices/recon_samples}
 
 % \input{appendices/main}
 

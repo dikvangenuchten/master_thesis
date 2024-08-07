@@ -33,6 +33,9 @@
 \subsection{Training Settings}
 All models are implemented in PyTorch~\cite{Ansel_PyTorch_2_Faster_2024} using an adapted version of the segmentation models repository~\cite{Iakubovskii:2019}. All code and configurations required to train the models and reproduce the experiments can be found on GitHub\footnote[1]{\url{https://github.com/Generative-AI-TUe/msc-project-1297333}}. The models are trained on an NVIDIA GeForce RTX 2080 TI. The gradients are clipped using the norm, with a maximum value of 10. The AdaMax~\cite{kingma2017adammethodstochasticoptimization} is used with a cosine annealing learning rate, varying between $1e^{-3}$ and $1e^{-4}$. A batch size of 96 is used as it was the maximum that reliably fitted on the GPU. Each model was trained on 10,000 minibatches randomly sampled from the dataset.
 
+\subsection{Model Settings}
+
+
 \section{Comparison to Baseline Architectures}
 For the experiments we make use of three methods: VAES (ours), FPN, and U-Net. Each model was trained eight times with different configurations. We used different settings for the pre-trained weights:
 \begin{itemize}
@@ -114,9 +117,9 @@ We first analyse the influence of the backbone on the performance of the VAE tas
 
 \input{figures/vae-backbones/reconstruction/backbones_vae.tex}
 
-We redo the analysis for the VAES task with the same backbones. Examples of the segmentation masks can be seen in Figure~\ref{fig:vaes-backbones} The results can be seen in Table~\ref{tab:vaes-backbones-results}. For semantic segmentation, the smaller architectures lack behind ResNet50. However, depending on the computational limitations, it might be worth to use the smaller networks as the difference is not huge.
+We redo the analysis for the semantic segmentation task with the same backbones. Examples of the segmentation masks can be seen in Figure~\ref{fig:vaes-backbones}. The results can be seen in Table~\ref{tab:vaes-backbones-results}. For semantic segmentation, ResNet18 and MobileNetV2 perform slightly worse compared to EfficientNet and ResNet50. Computationally MobileNetV2 and EfficientNet are the least resource intensive.
 
-\begin{figure}[h]
+\begin{figure}[ht]
     \foreach \i in {14,11} {
             \centering
             \subfloat[Image]{\includegraphics[width=0.16\textwidth]{figures/vae-backbones/semantic/samples/resnet50/\i.png}}
@@ -124,7 +127,7 @@ We redo the analysis for the VAES task with the same backbones. Examples of the 
             \subfloat[ResNet50]{\includegraphics[width=0.16\textwidth]{figures/vae-backbones/semantic/samples/resnet50/pr_\i.png}}
             \subfloat[ResNet18]{\includegraphics[width=0.16\textwidth]{figures/vae-backbones/semantic/samples/resnet18/pr_\i.png}}
             \subfloat[MobileNetV2]{\includegraphics[width=0.16\textwidth]{figures/vae-backbones/semantic/samples/mobilenetv2_100/pr_\i.png}}
-            \subfloat[!!TODO!!]{\includegraphics[width=0.16\textwidth]{figures/vae-backbones/semantic/samples/mobilenetv2_100/pr_\i.png}}
+            \subfloat[EfficientNet]{\includegraphics[width=0.16\textwidth]{figures/vae-backbones/semantic/samples/efficientnet_b2/pr_\i.png}}
             \\
         }
     \caption{Samples of the validation dataset, with the ground truth and the prediction by VAES with different backbones.}\label{fig:vaes-backbones}
@@ -132,8 +135,8 @@ We redo the analysis for the VAES task with the same backbones. Examples of the 
 
 \input{figures/vae-backbones/semantic/backbones_vae.tex}
 
-\subsection{$\beta\text{-value}$}
-We also analyse the effect of the $\beta$ factor on the reconstruction quality of the VAE. This is done by training models with varying values for $\beta$. The results can be seen in Table~\ref{tab:beta-vae-loss-values}. Some examples of the reconstruction capabilities can be seen in Figure~\ref{fig:beta-vae-recon-examples}. More samples can be seen in Appendix~\ref{appendix:recon_samples}. Based on the images and the reconstruction error, it can be concluded that the higher values for $\beta$ the reconstruction capabilities of the network are reduced. This is to be expected as the model is forced to use a 
+\subsection{$\beta$-value}
+We also analyse the effect of the $\beta$ factor on the reconstruction quality of the VAE. This is done by training models with varying values for $\beta$. The results can be seen in Table~\ref{tab:beta-vae-loss-values}. Some examples of the reconstruction capabilities can be seen in Figure~\ref{fig:beta-vae-recon-examples}. More samples can be seen in Appendix~\ref{appendix:recon_samples}. Based on the images and the reconstruction error, it can be concluded that the higher values for $\beta$ the reconstruction capabilities of the network are reduced. This is to be expected as the model is forced to ensure the latent space is closer to the prior distribution.
 
 \begin{table}[!ht]
     \centering
