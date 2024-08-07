@@ -71,6 +71,7 @@ def create_tables(metrics: pd.DataFrame):
         position="ht",
         position_float="centering",
         multirow_align="t",
+        clines="skip-last;data",
         hrules=True,
     )
 

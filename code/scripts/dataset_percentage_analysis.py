@@ -180,6 +180,8 @@ def create_tables(metrics):
         caption="The Evaluation Jaccard Index for the various models and dataset fractions. The higher the score the better.",
         position="ht",
         position_float="centering",
+        clines="skip-last;data",
+        multirow_align="t",
         label="tab:data_fraction_results",
         hrules=True,
     )
