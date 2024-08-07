@@ -67,7 +67,7 @@ def create_tables(metrics):
         cov_type="hc3",
     ).fit()
     os.makedirs(FIGURES_DIR, exist_ok=True)
-    caption = """Anova results estimating the influence of each parameter.\\\\Where: \\\\\\hphantom{tabb}`weights' are the pretrained weights (or lack thereof) used.\\\\\\hphantom{tabb}`architecture' is the model architecture used.\\\\\\hphantom{tabb}`$\log_{10}(\\text{fraction})$' is the fraction of data used in log scale.\\\\\\hphantom{tabb}$A$:$B$ is the interaction effect between $A$ and $B$"""
+    caption = """ANOVA results estimating the influence of each parameter.\\\\Where: \\\\\\hphantom{tabb}`weights' are the pretrained weights (or lack thereof) used.\\\\\\hphantom{tabb}`architecture' is the model architecture used.\\\\\\hphantom{tabb}`$\log_{10}(\\text{fraction})$' is the fraction of data used in log scale.\\\\\\hphantom{tabb}$A$:$B$ is the interaction effect between $A$ and $B$"""
 
     result = anova_lm(parameter_influence, type=2)
     table = (

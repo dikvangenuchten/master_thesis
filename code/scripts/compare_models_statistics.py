@@ -1,5 +1,6 @@
 import os
 import hydra
+from omegaconf import OmegaConf
 import torch
 import utils
 import pandas as pd
@@ -29,6 +30,8 @@ def main():
             position="ht",
             position_float="centering",
             # environment="longtable",
+            clines="skip-last;data",
+            multirow_align="t",
             hrules=True,
         )
         .replace("Name", "Batch Size")
@@ -42,16 +45,20 @@ def main():
 def benchmark_single_model(model_name):
     with hydra.initialize("../src/conf/model"):
         cfg = hydra.compose(config_name=model_name)
-        model = utils.instantiate_dict(cfg, label_channels=25)
-        results = benchmark_inference(model, model_name)
+        cfg = OmegaConf.to_container(cfg)
+        cfg["label_channels"] = 25
+        results = utils.benchmark_subprocess(cfg, model_name)
+        summary = utils.get_model_summary_in_subprocess(cfg)
+        # model = utils.instantiate_dict(cfg, label_channels=25)
+        # results = benchmark_inference(model, model_name)
 
-        summary = utils.get_model_summary(model)
-        del model
+        # summary = utils.get_model_summary(model)
+        # del model
 
         return {
             "Name": model_name,
-            "Parameters (x$1e^6$), ": summary.total_params * 1e-6,
-            "Total MAC (x$1e^9$), ": summary.total_mult_adds * 1e-9,
+            "Parameters (x$1e^6$), ": summary["total_params"] * 1e-6,
+            "Total MAC (x$1e^9$), ": summary["total_mult_adds"] * 1e-9,
             **{
                 f"Inference Speed (ms),{r['batch_size']}": r[
                     "timer"

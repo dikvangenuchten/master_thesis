@@ -7,15 +7,19 @@
  & Batch Size & vaes & unet & fpn \\
 \midrule
 Parameters (x$1e^6$) &   & 132.88 & 32.52 & \textbf{26.12} \\
+\cline{1-5}
 Total MAC (x$1e^9$) &   & 7.85 & 2.72 & \textbf{1.95} \\
-\multirow[c]{4}{*}{Inference Speed (ms)} & 1 & 19.04 & 7.38 & \textbf{7.04} \\
- & 2 & 20.92 & 8.80 & \textbf{7.74} \\
- & 8 & 42.30 & 16.73 & \textbf{15.48} \\
- & 32 & 96.88 & 49.67 & \textbf{47.07} \\
-\multirow[c]{4}{*}{Memory Usage (mb)} & 1 & 1375.44 & \textbf{750.35} & 803.17 \\
- & 2 & 1381.01 & \textbf{754.55} & 806.45 \\
- & 8 & 1400.93 & \textbf{778.93} & 834.63 \\
- & 32 & 1881.55 & \textbf{971.21} & 1105.03 \\
+\cline{1-5}
+\multirow[t]{4}{*}{Inference Speed (ms)} & 1 & 19.13 & 8.52 & \textbf{7.95} \\
+ & 2 & 20.97 & 8.79 & \textbf{7.71} \\
+ & 8 & 42.35 & 16.74 & \textbf{15.47} \\
+ & 32 & 97.16 & 49.84 & \textbf{47.09} \\
+\cline{1-5}
+\multirow[t]{4}{*}{Memory Usage (mb)} & 1 & 1375.44 & 215.43 & \textbf{137.36} \\
+ & 2 & 1381.01 & 221.59 & \textbf{141.69} \\
+ & 8 & 1400.93 & 243.88 & \textbf{168.82} \\
+ & 32 & 1881.55 & \textbf{436.95} & 439.22 \\
+\cline{1-5}
 \bottomrule
 \end{tabular}
 \end{table}

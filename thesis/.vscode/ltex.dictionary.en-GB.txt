@@ -13,3 +13,11 @@ EfficientNet
 VAEs
 minibatch
 ResNet
+Gao
+HVAE
+VampPrior
+Bommasani
+Rezende
+Hierarchical-VAEs
+BIVA
+NVAE

@@ -39,7 +39,7 @@ class SkipLayer(nn.Module):
             return _inner
 
         if type == "none":
-            self._fn = wrapper(lambda x: x * 0)
+            self._fn = wrapper(lambda x: None)
         elif type == "skip":
             self._fn = wrapper(nn.Identity())
         elif type == "proj":
@@ -104,6 +104,7 @@ class VAES(nn.Module):
         self.decoder = UnetDecoder(
             encoder_channels=encoder_channels,
             decoder_channels=decoder_channels,
+            skip_connections=skip_connections,
             n_blocks=encoder_depth,
             use_batchnorm=True,
             center=True if encoder_name.startswith("vgg") else False,
@@ -185,6 +186,7 @@ class UnetDecoder(nn.Module):
         self,
         encoder_channels,
         decoder_channels,
+        skip_connections,
         n_blocks=5,
         use_batchnorm=True,
         attention_type=None,
@@ -198,8 +200,13 @@ class UnetDecoder(nn.Module):
 
         # computing blocks input and output channels
         head_channels = encoder_channels[0]
+        encoder_channels = [
+            c if t.lower() != "none" else 0
+            for (c, t) in zip(encoder_channels, skip_connections)
+        ]
         in_channels = [head_channels] + list(decoder_channels[:-1])
         skip_channels = list(encoder_channels[1:]) + [0]
+        # skip_channels = [c if t.lower() != "none" else 0 for (c, t) in zip(skip_channels, skip_connections)]
         out_channels = decoder_channels
 
         if center:

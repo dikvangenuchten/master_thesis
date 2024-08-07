@@ -2,7 +2,7 @@
 
 \section{Implementation details}
 \subsection{Dataset}
-\paragraph{CoCo~\cite{lin2015microsoftcococommonobjects}} is a publicly available dataset and has a multitude of labels. The semantic masks are extracted from the 2017 Panoptic annotations. This set contains more than 100k images that are densely annotated with both the semantic class and instance. There are a total of 133 different classes which belong to 27 `supercategories'. The four categories ``food'' and ``food-stuff'' and ``furniture'' and ``furniture-stuff'' were merged into ``food'' and ``furniture'' respectively, bringing the number of supercategories to 25. To speed up convergences, we will use these 25 classes. The distribution of the class labels can be seen in Figure \ref{fig:coco-class-distribution}. Some samples of the dataset can be seen in Figure \ref{fig:coco-samples}. More samples can be found in Appendix \ref{appendix:coco_samples}. 
+\paragraph{CoCo~\cite{lin2015microsoftcococommonobjects}} is a publicly available dataset which has a multitude of label categories. The semantic masks are extracted from the 2017 Panoptic annotations. This set contains more than 100k images that are densely annotated with both the semantic class and instance. There are a total of 133 different classes which belong to 27 `supercategories'. The four categories ``food'' and ``food-stuff'' and ``furniture'' and ``furniture-stuff'' were merged into ``food'' and ``furniture'' respectively, bringing the number of supercategories to 25. To speed up convergences, we will use these 25 classes. The distribution of the class labels can be seen in Figure~\ref{fig:coco-class-distribution}. Some samples of the dataset can be seen in Figure~\ref{fig:coco-samples}. More samples can be found in Appendix~\ref{appendix:coco_samples}. Furthermore, during training some basic image augmentations were added; random flips, random grayscale, and Gaussian blur.
 
 
 \begin{figure}[h]
@@ -31,21 +31,18 @@
 
 
 \subsection{Training Settings}
-All models are implemented in PyTorch~\cite{Ansel_PyTorch_2_Faster_2024} using an adapted version of the segmentation models repository~\cite{Iakubovskii:2019}. All code and configurations required to train the models and reproduce the experiments can be found on GitHub\footnote[1]{\url{https://github.com/Generative-AI-TUe/msc-project-1297333}}. The models are trained on an NVIDIA GeForce RTX 2080 TI. The gradients are clipped using the norm, with a maximum value of 10. The AdaMax~\cite{kingma2017adammethodstochasticoptimization} is used with a cosine annealing learning rate, varying between $1e^{-3}$ and $1e^{-4}$. Each model is trained on 10.000 minibatches of size 96 unless otherwise specified.
+All models are implemented in PyTorch~\cite{Ansel_PyTorch_2_Faster_2024} using an adapted version of the segmentation models repository~\cite{Iakubovskii:2019}. All code and configurations required to train the models and reproduce the experiments can be found on GitHub\footnote[1]{\url{https://github.com/Generative-AI-TUe/msc-project-1297333}}. The models are trained on an NVIDIA GeForce RTX 2080 TI. The gradients are clipped using the norm, with a maximum value of 10. The AdaMax~\cite{kingma2017adammethodstochasticoptimization} is used with a cosine annealing learning rate, varying between $1e^{-3}$ and $1e^{-4}$. A batch size of 96 is used as it was the maximum that reliably fitted on the GPU. Each model was trained on 10,000 minibatches randomly sampled from the dataset.
 
-\section{Comparison to baseline architectures}
+\section{Comparison to Baseline Architectures}
 For the experiments we make use of three methods: VAES (ours), FPN, and U-Net. Each model was trained eight times with different configurations. We used different settings for the pre-trained weights:
 \begin{itemize}
     \item Without (`None') pre-trained weights.
     \item With pre-trained weights retrieved from the classification of ImageNet.
-    \item With pre-trained weights retrieved from a $\beta$-vae, with $\beta=1$ and $\beta=100$.
+    \item With pre-trained weights retrieved from a $\beta$-VAE, with $\beta=1$ and $\beta=100$.
 \end{itemize}
-Additionally, the model is trained with `frozen' encoder weights (the encoder weights are not updated), and with `unfrozen' encoder weights (the encoder weights are updated). The resulting Evaluation Jaccard Index can be seen in Table~\ref{tab:baseline_results}.
+Additionally, the model is trained with `frozen' encoder weights (the encoder weights are not updated), and with `unfrozen' encoder weights (the encoder weights are updated). The resulting Evaluation Jaccard Index can be seen in Table~\ref{tab:baseline_results}. Some example predictions are shown in Figure~\ref{fig:baseline-sample-results-0}.
 
 \input{figures/baselines/baselines-results}
-
-An Analysis of Variance (ANOVA) is done, of which the results can be seen in Table~\ref{tab:comparison_baselines_anova_all}. Based on these results an Ordinary Least Squares Linear Model (OLS) is fitted to determine the effect of each significant parameter. The results of this are shown in Table~\ref{tab:comparison_baselines_ols_effects}.
-
 \begin{figure}[h]
     \foreach \i in {0,1,...,4} {
             \centering
@@ -56,12 +53,17 @@ An Analysis of Variance (ANOVA) is done, of which the results can be seen in Tab
             \subfloat[fpn-imagenet]{\includegraphics[width=0.2\textwidth]{figures/baselines/samples/fpn-imagenet-False/pr_\i.png}}
             \\
         }
-    \caption{Samples of the validation dataset, with the ground truth and the prediction by the model. The encoder is not frozen.}\label{ref:baseline-sample-results-0}
+    \caption{Samples of the validation dataset, with the ground truth and the prediction by the model. The encoder is not frozen.}\label{fig:baseline-sample-results-0}
 \end{figure}
 
-\input{figures/baselines/tables}
 
-\section{Reduction data required}
+First, an Analysis of Variance (ANOVA) is done, of which the results can be seen in Table~\ref{tab:comparison_baselines_anova_all}. From the ANOVA table it can be determined that the pre-training weights and the architecture have a significant effect on the Jaccard Index. Freezing the weights does not have a significant effect. However, this can be due to the limited sample size as the $p$-value is close to $0.05$. Furthermore, there is no significant interaction effect between the parameters. 
+\input{figures/baselines/tables}
+Secondly, an Ordinary Least Squares Linear Model (OLS) is fitted to determine the effect size of each significant parameter. The results of this are shown in Table~\ref{tab:comparison_baselines_ols_effects}. The intercept is the baseline model. Here it is the model with the VAES architecture and no pre-trained weights. Compared to this baseline, there is no significant effect on the Jaccard Index when using the pre-trained VAE weights instead. Using the `ImageNet' weights does double the Jaccard Index. The choice in architecture matters less. Only the FPN architecture is a significantly better choice. 
+
+
+
+\section{Reduction of Data Required}
 To determine if pre-training results in a reduction of labelled training data required, a full factorial design is done over the parameters: architecture type, pre-trained weights, and the percentage of the (labelled) dataset used. The resulting Evaluation Jaccard Index of each model configuration can be seen in Table~\ref{tab:data_fraction_results} and is plotted in Figure~\ref{fig:dataset-fraction-results}.
 \input{figures/data_percentage/results_dataset_fraction}
 
@@ -72,20 +74,31 @@ To determine if pre-training results in a reduction of labelled training data re
     \label{fig:dataset-fraction-results}
 \end{figure}
 
-An Analysis of Variance (ANOVA) is done, of which the results can be seen in Table~\ref{tab:data_fraction_parameter_significance}. Based on these results, it can be determined that there are no significant interaction effects between any of the parameters and that each individual parameter has a significant effect.
+An Analysis of Variance (ANOVA) is done, of which the results can be seen in Table~\ref{tab:data_fraction_parameter_significance}. From the ANOVA table it can be determined that the pre-training weights, the architecture, and the size of the dataset all have an effect on the Jaccard Index. However, there is no significant interaction effect between the parameters. Based on these results it cannot be concluded that using pre-trained weights reduces the required amount of training data significantly. 
 \input{figures/data_percentage/parameter_significance_table}
+Following this, an OLS is fitted to determine the effect size of each significant parameter. The results of this are shown in Table~\ref{tab:data_fraction_parameter_influence}. This shows that the usage of `ImageNet' weights has the strongest positive effect on the resulting Jaccard Index. Using the pre-trained weights from the VAE does not significantly differ from using random weights. Using a different architecture than the VAES, does increase the Jaccard Index performance of the model by $\sim0.05$. The smallest effect is that of the reduction in data.
 
-The effect of the parameters can then be analysed by a simple OLS model. The results of which are shown in Table~\ref{tab:data_fraction_parameter_influence}. It shows that there is a large and significant increase in performance when using the ImageNet weights. The weights gained from pre-training a VAE do not significantly affect the performance, compared to random weights. Furthermore, both the FPN and U-Net architectures are better than the VAES architecture. Finally, the size of the dataset is significant, however, it is more important to choose the right architecture and especially pre-trained weights.
 \input{figures/data_percentage/parameter_influence_table}
 
 \section{Model Characteristics}
 
-As the computational resources in mobile robots tend to be low, the inference speed and memory usage were measured. Inference was done on an NVIDIA GTX 1070, and measured using PyTorch benchmarking tools. The results can be seen in Table~\ref{tab:model_characteristics}.
+As the computational resources in mobile robots tend to be low, the inference speed and memory usage were measured. Inference was done on an NVIDIA GTX 1070, and measured using PyTorch benchmarking tools. The results can be seen in Table~\ref{tab:model_characteristics}. The added variational computations that are required for the VAES architecture, more than doubles the inference speed. The FPN architecture is the fastest by a small margin, but does require slightly more 
 
 \input{figures/model_characteristics}
 
 
 \section{Ablation Study}
+
+\subsection{Skip Connection}
+To understand the importance of the type and number of skip connections that are added after the pre-training, we will show the effect of this by incrementally removing more skip connections. We vary the number of skip connections from 1 to 5 and try all 3 skip connection types. The results can be viewed in Table~\ref{tab:skip_results}. Lowering the number of skip connections has as benefit that it reduces the amount of parameters and computations that are required to run the model.
+\input{figures/skip_importance/skip-importance-results}
+
+Again an ANOVA is fitted to determine the significant effects, the results can be seen in Table~\ref{tab:skip_importance_anova_all}. 
+Then, an OLS is fitted to show the effect size of all significant factors, the results of which can be seen in Table~\ref{tab:skip_importance_ols_effects}. From this limited sample of runs, the type does not seem to be significant. Neither does the number of skip connections prove to be a significant effect based on the OLS. However, they are both close to a significance value of $0.05$, thus a bigger sample might show a small (likely positive) effect. Moreover, the increase in skip connections also increases the inference complexity. Hence, it might not be worth the reduced inference speed.
+
+\input{figures/skip_importance/tables}
+
+
 \subsection{Backbone}
 We first analyse the influence of the backbone on the performance of the VAE task by comparing the following backbones: MobileNetV2~\cite{sandler2019mobilenetv2invertedresidualslinear}, EfficientNet~\cite{tan2020efficientnetrethinkingmodelscaling}, and two variants of the ResNet~\cite{he2015deep} architecture. The results can be seen in Table~\ref{tab:vae-backbones-results}. Some examples of the reconstruction capabilities can be seen in Figure~\ref{fig:vae-backbones}. MobileNetV2 is the smallest network, as can be seen from the parameter count and Multiply-Accumulate (MAC) values. Overall ResNet18 achieves the best L1Loss, meaning it is best at reconstruction. Although the difference is small. Visually, all networks perform very similar.
 
@@ -148,14 +161,3 @@ We also analyse the effect of the $\beta$ factor on the reconstruction quality o
     \subfloat[Original, $\beta$ = 1]{\includegraphics[width=0.45\linewidth]{figures/beta-vae/b1-0.png}}
     \subfloat[Original, $\beta$ = 10]{\includegraphics[width=0.45\linewidth]{figures/beta-vae/b10-0.png}}
 \end{figure}
-
-
-\subsection{Skip Connection}
-To understand the importance of the type and amount of skip connections that are added after the pre-training, we will show the effect of this by incrementally removing more skip connections. We vary the amount of skip connections from 1 to 5 and try all 3 skip connection types. The results can be viewed in Table~\ref{tab:skip_results}.
-Again an ANOVA is fitted to determine the significant effects, the results can be seen in Table~\ref{tab:skip_importance_anova_all}. Then, an OLS is fitted to show the effect size of all significant factors, the results of which can be seen in Table~\ref{tab:skip_importance_ols_effects}. From this limited sample of runs, the type does not seem to be significant. Neither does the amount of skip connections prove to be a significant effect based on the OLS. However, they are both close to a significance value of $0.05$, thus a bigger sample might show a small (likely positive) effect.
-
-\todo{Discuss the skip connection more, are the skip connections purely for gradient flow, as they do not provide (significant) performance.}
-
-\input{figures/skip_importance/skip-importance-results}
-
-\input{figures/skip_importance/tables}

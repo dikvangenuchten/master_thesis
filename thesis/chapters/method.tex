@@ -26,9 +26,9 @@ We start by rewriting the log-likelihood of $p_\theta(x, y)$ as shown in Eq.~\re
 
 Hence, we want to estimate the following three distributions using a neural network.
 \begin{itemize}
-    \item $q_\phi(z|x)$ (i.e. image encoder)
-    \item $p_\theta(x|z)$ (i.e. image decoder)
-    \item $p_\psi(y|x, z)$ (i.e. label decoder)
+    \item $q_\phi(z|x)$ (i.e., image encoder)
+    \item $p_\theta(x|z)$ (i.e., image decoder)
+    \item $p_\psi(y|x, z)$ (i.e., label decoder)
 \end{itemize}
 We will refer to the image encoder and label decoder together as VAE-Segmentation (VAES). A schematic of the model can be seen in Figure~\ref{fig:schematic-vaes}.
 
@@ -74,7 +74,7 @@ The training consists of two stages, the pre-training phase, and the fine-tuning
 
 \RestyleAlgo{ruled}
 \begin{algorithm}
-    \caption{Pre-training: The pre-training phase is equal to the AEVB, i.e. VAE, algorithm proposed by Kingma et al.~\cite{kingma2014autoencodingvariationalbayes}.}
+    \caption{Pre-training: The pre-training phase is equal to the AEVB, i.e., VAE, algorithm proposed by Kingma et al.~\cite{kingma2014autoencodingvariationalbayes}.}
     $\theta, \phi \gets$ Initialize parameters\;
     \Repeat{Convergence of $\theta, \phi$}{
         $\mathbf{X}^M \gets $ Sample a random minibatch of size $M$\;

@@ -86,7 +86,7 @@ def analyze_metrics(metrics: pd.DataFrame):
     anova = anova_lm(all_parameter_model)
 
     # Format anova table and save it as tex
-    caption = """Anova results estimating the influence of each parameter.\\\\Where: \\\\\\hphantom{tabb}`weights' are the pretrained weights (or lack thereof) used.\\\\\\hphantom{tabb}`architecture' is the model architecture used.\\\\\\hphantom{tabb}'frozen' indicates whether the encoder was frozen\\\\\\hphantom{tabb}$A$:$B$ is the interaction effect between $A$ and $B$"""
+    caption = """ANOVA results estimating the influence of each parameter.\\\\Where: \\\\\\hphantom{tabb}`weights' are the pretrained weights (or lack thereof) used.\\\\\\hphantom{tabb}`architecture' is the model architecture used.\\\\\\hphantom{tabb}'frozen' indicates whether the encoder was frozen\\\\\\hphantom{tabb}$A$:$B$ is the interaction effect between $A$ and $B$"""
     label = "tab:comparison_baselines_anova_all"
     anova_tex = utils.format_anova_table(
         anova, caption=caption, label=label
@@ -126,7 +126,7 @@ def analyze_metrics(metrics: pd.DataFrame):
         f.write(
             " ".join(
                 [
-                    "This is the of summary made the OLS model by the Python Package: Statsmodels~\\cite{josef_perktold_2024_10984387}.",
+                    "This is the summary made of the OLS model by the Python Package: Statsmodels~\\cite{josef_perktold_2024_10984387}.",
                     "First an OLS model containing all 1 and 2 level interaction effects was fitted.",
                     "This was then analysed using `anova\_lm'. All significant ($\\alpha\\le0.05$) effects where used in the final model.",
                     "The full summary of which can be seen in Table~\\ref{tab:comparison_baselines_full_ols}.\n\n",

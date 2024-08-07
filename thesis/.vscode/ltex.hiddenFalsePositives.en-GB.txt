@@ -6,3 +6,5 @@
 {"rule":"MORFOLOGIK_RULE_EN_GB","sentence":"^\\QIt uses SegNet \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q, a semantic segmentation network, that is able to classify each pixel in a given frame.\\E$"}
 {"rule":"OXFORD_SPELLING_Z_NOT_S","sentence":"^\\QThe model is optimized to minimise the negative Eq.\\E$"}
 {"rule":"OXFORD_SPELLING_Z_NOT_S","sentence":"^\\Q\\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q is minimised.\\E$"}
+{"rule":"ENGLISH_WORD_REPEAT_BEGINNING_RULE","sentence":"^\\QBetter decoders, such as transformer based decoders \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q and lastly, Hierarchical-VAEs (HVAE), of which the most notable are the Ladder-VAE \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q, the BIVA \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q and NVAE \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q.\\E$"}
+{"rule":"UPPERCASE_SENTENCE_START","sentence":"^\\Qis a publicly available dataset which has a multitude of label categories.\\E$"}

@@ -54,7 +54,9 @@ def create_metrics_table(metrics: pd.DataFrame):
         caption=caption,
         label="tab:skip_results",
         position="ht",
+        clines="skip-last;data",
         position_float="centering",
+        multirow_align="t",
         hrules=True,
     )
 
@@ -68,7 +70,7 @@ def analyze_metrics(metrics: pd.DataFrame):
     anova = anova_lm(all_parameter_model)
 
     # Format anova table and save it as tex
-    caption = """Anova results estimating the influence of each parameter.\\\\Where: \\\\\\hphantom{tabb}`skip_type' is the type of skip connection used.\\\\\\hphantom{tabb}`skip_num' the amount of skip connections.\\\\\\hphantom{tabb}$A$:$B$ is the interaction effect between $A$ and $B$"""
+    caption = """ANOVA results estimating the influence of each parameter.\\\\Where: \\\\\\hphantom{tabb}`skip_type' is the type of skip connection used.\\\\\\hphantom{tabb}`skip_num' the amount of skip connections.\\\\\\hphantom{tabb}$A$:$B$ is the interaction effect between $A$ and $B$"""
     caption = caption.replace("_", "\_")
     label = "tab:skip_importance_anova_all"
     anova_tex = utils.format_anova_table(
@@ -105,7 +107,7 @@ def analyze_metrics(metrics: pd.DataFrame):
         f.write(
             " ".join(
                 [
-                    "This is the of summary made the OLS model by the Python Package: Statsmodels~\\cite{josef_perktold_2024_10984387}.",
+                    "This is the summary made of the OLS model by the Python Package: Statsmodels~\\cite{josef_perktold_2024_10984387}.",
                     "First an OLS model containing all 1 and 2 level interaction effects was fitted.",
                     "This was then analysed using `anova\_lm'. All significant ($\\alpha\\le0.05$) effects where used in the final model.",
                     "The full summary of which can be seen in Table~\\ref{tab:skip_importance_full_ols}.\n\n",
@@ -131,11 +133,14 @@ def get_metrics(runs: List[wandb_utils.Run]) -> pd.DataFrame:
         skip_type = skip_connections[0]
         skip_num = sum(1 for t in skip_connections if t == skip_type)
 
-        model = utils.instantiate_dict(
-            config["model"]["value"], label_channels=25
+        config["model"]["value"]["label_channels"] = 25
+        # model = utils.instantiate_dict(
+        # config["model"]["value"]
+        # )
+        # del model
+        summary = utils.get_model_summary_in_subprocess(
+            config["model"]["value"]
         )
-        summary = utils.get_model_summary(model)
-        del model
 
         metrics.append(
             {
@@ -143,8 +148,9 @@ def get_metrics(runs: List[wandb_utils.Run]) -> pd.DataFrame:
                 "skip_type": skip_type,
                 "skip_num": skip_num,
                 "eval_metric": eval_metric,
-                "Parameters (x$1e^6$)": summary.total_params * 1e-6,
-                "Total MAC (x$1e^9$)": summary.total_mult_adds * 1e-9,
+                "Parameters (x$1e^6$)": summary["total_params"] * 1e-6,
+                "Total MAC (x$1e^9$)": summary["total_mult_adds"]
+                * 1e-9,
             }
         )
     return pd.DataFrame(metrics)
