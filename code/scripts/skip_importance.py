@@ -70,7 +70,7 @@ def analyze_metrics(metrics: pd.DataFrame):
     anova = anova_lm(all_parameter_model)
 
     # Format anova table and save it as tex
-    caption = """ANOVA results estimating the influence of each parameter.\\\\Where: \\\\\\hphantom{tabb}`skip_type' is the type of skip connection used.\\\\\\hphantom{tabb}`skip_num' the amount of skip connections.\\\\\\hphantom{tabb}$A$:$B$ is the interaction effect between $A$ and $B$"""
+    caption = """ANOVA results estimating the influence of each parameter.\\\\Where: \\\\\\hphantom{tabb}`skip_type' is the type of skip connection used.\\\\\\hphantom{tabb}`skip_num' the number of skip connections.\\\\\\hphantom{tabb}$A$:$B$ is the interaction effect between $A$ and $B$"""
     caption = caption.replace("_", "\_")
     label = "tab:skip_importance_anova_all"
     anova_tex = utils.format_anova_table(

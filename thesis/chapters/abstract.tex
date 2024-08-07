@@ -1,3 +1,9 @@
 \chapter*{Abstract}\label{chapter:abstract}
 
-THIS IS MY ABSTRACT
+This thesis investigates the application of Variational Auto-encoders (VAEs) to the task of semantic segmentation within the context of Simultaneous Localization and Mapping (SLAM) systems for mobile robotics. The research aims to explore whether the generative capabilities of VAEs can be leveraged to improve the robustness and accuracy of SLAM systems. The study begins by outlining the theoretical foundations of VAEs, emphasizing their ability to encode high-dimensional image data into a lower-dimensional latent space while preserving essential probabilistic structures.
+
+The methodology involves the development of a VAE-based semantic segmentation model (VAES). This model is evaluated against the established baseline architectures, U-Net and Feature Pyramid Network (FPN), using the CoCo dataset. The architectural choices are investigated, providing a deeper insight in the impact of the pre-trained weights, the backbone, and the architecture on the performance in, and data required for semantic segmentation.
+
+Contrary to initial expectations, the experimental results reveal that the proposed VAES model does not outperform the simpler U-Net and FPN architectures. Moreover, due to the additional complexity in the variational structure, the VAES architecture is less suitable for situations where computational resources are limited, making it less suitable applications in mobile robotics. The Jaccard Index achieved by the VAES model is lower compared to the baseline models, indicating that the generative approach does not provide a significant advantage for the segmentation task in its current form.
+
+These findings suggest that while the integration of variational inference techniques with deep learning-based segmentation offers theoretical benefits, practical applications in SLAM systems require further optimization to achieve competitive performance. 

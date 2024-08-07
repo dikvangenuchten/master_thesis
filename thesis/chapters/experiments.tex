@@ -1,4 +1,4 @@
-\chapter{Experimental Setup}\label{chapter:second_real_chapter}
+\chapter{Experimental Setup}\label{chapter:experiments}
 
 \section{Implementation details}
 \subsection{Dataset}
@@ -34,7 +34,7 @@
 All models are implemented in PyTorch~\cite{Ansel_PyTorch_2_Faster_2024} using an adapted version of the segmentation models repository~\cite{Iakubovskii:2019}. All code and configurations required to train the models and reproduce the experiments can be found on GitHub\footnote[1]{\url{https://github.com/Generative-AI-TUe/msc-project-1297333}}. The models are trained on an NVIDIA GeForce RTX 2080 TI. The gradients are clipped using the norm, with a maximum value of 10. The AdaMax~\cite{kingma2017adammethodstochasticoptimization} is used with a cosine annealing learning rate, varying between $1e^{-3}$ and $1e^{-4}$. A batch size of 96 is used as it was the maximum that reliably fitted on the GPU. Each model was trained on 10,000 minibatches randomly sampled from the dataset.
 
 \subsection{Model Settings}
-
+For the VAES the default settings are ResNet50\cite{he2015deep} as backbone with the weights randomly initialized. There are 5 variational connections between the encoding and decoding parts of the network.
 
 \section{Comparison to Baseline Architectures}
 For the experiments we make use of three methods: VAES (ours), FPN, and U-Net. Each model was trained eight times with different configurations. We used different settings for the pre-trained weights:
@@ -62,7 +62,7 @@ Additionally, the model is trained with `frozen' encoder weights (the encoder we
 
 First, an Analysis of Variance (ANOVA) is done, of which the results can be seen in Table~\ref{tab:comparison_baselines_anova_all}. From the ANOVA table it can be determined that the pre-training weights and the architecture have a significant effect on the Jaccard Index. Freezing the weights does not have a significant effect. However, this can be due to the limited sample size as the $p$-value is close to $0.05$. Furthermore, there is no significant interaction effect between the parameters. 
 \input{figures/baselines/tables}
-Secondly, an Ordinary Least Squares Linear Model (OLS) is fitted to determine the effect size of each significant parameter. The results of this are shown in Table~\ref{tab:comparison_baselines_ols_effects}. The intercept is the baseline model. Here it is the model with the VAES architecture and no pre-trained weights. Compared to this baseline, there is no significant effect on the Jaccard Index when using the pre-trained VAE weights instead. Using the `ImageNet' weights does double the Jaccard Index. The choice in architecture matters less. Only the FPN architecture is a significantly better choice. 
+Secondly, an Ordinary Least Squares Linear Model (OLS) is fitted to determine the effect size of each significant parameter. The resulting coefficients of this are shown in Table~\ref{tab:comparison_baselines_ols_effects}, the full analysis can be seen in Appendix~\ref{appendix:baselines_comparison_full}. The intercept is the baseline model. Here it is the model with the VAES architecture and no pre-trained weights. Compared to this baseline, there is no significant effect on the Jaccard Index when using the pre-trained VAE weights instead. Using the `ImageNet' weights does double the Jaccard Index. The choice in architecture matters less. Only the FPN architecture is a significantly better choice. 
 
 
 
@@ -77,9 +77,9 @@ To determine if pre-training results in a reduction of labelled training data re
     \label{fig:dataset-fraction-results}
 \end{figure}
 
-An Analysis of Variance (ANOVA) is done, of which the results can be seen in Table~\ref{tab:data_fraction_parameter_significance}. From the ANOVA table it can be determined that the pre-training weights, the architecture, and the size of the dataset all have an effect on the Jaccard Index. However, there is no significant interaction effect between the parameters. Based on these results it cannot be concluded that using pre-trained weights reduces the required amount of training data significantly. 
+An Analysis of Variance (ANOVA) is done, of which the results can be seen in Table~\ref{tab:data_fraction_parameter_significance}. From the ANOVA table it can be determined that the pre-training weights, the architecture, and the size of the dataset all have an effect on the Jaccard Index. However, there is no significant interaction effect between the parameters. Based on these results it cannot be concluded that using pre-trained weights reduces the required amount of training data significantly.
 \input{figures/data_percentage/parameter_significance_table}
-Following this, an OLS is fitted to determine the effect size of each significant parameter. The results of this are shown in Table~\ref{tab:data_fraction_parameter_influence}. This shows that the usage of `ImageNet' weights has the strongest positive effect on the resulting Jaccard Index. Using the pre-trained weights from the VAE does not significantly differ from using random weights. Using a different architecture than the VAES, does increase the Jaccard Index performance of the model by $\sim0.05$. The smallest effect is that of the reduction in data.
+Following this, an OLS is fitted to determine the effect size of each significant parameter. The results of this are shown in Table~\ref{tab:data_fraction_parameter_influence}, the full analysis is shown in Appendix~\ref{appendix:datareduction}. This shows that the usage of `ImageNet' weights has the strongest positive effect on the resulting Jaccard Index. Using the pre-trained weights from the VAE does not significantly differ from using random weights. Using a different architecture than the VAES, does increase the Jaccard Index performance of the model by $\sim0.05$. The smallest effect is that of the reduction in data.
 
 \input{figures/data_percentage/parameter_influence_table}
 
@@ -97,7 +97,7 @@ To understand the importance of the type and number of skip connections that are
 \input{figures/skip_importance/skip-importance-results}
 
 Again an ANOVA is fitted to determine the significant effects, the results can be seen in Table~\ref{tab:skip_importance_anova_all}. 
-Then, an OLS is fitted to show the effect size of all significant factors, the results of which can be seen in Table~\ref{tab:skip_importance_ols_effects}. From this limited sample of runs, the type does not seem to be significant. Neither does the number of skip connections prove to be a significant effect based on the OLS. However, they are both close to a significance value of $0.05$, thus a bigger sample might show a small (likely positive) effect. Moreover, the increase in skip connections also increases the inference complexity. Hence, it might not be worth the reduced inference speed.
+Then, an OLS is fitted to show the effect size of all significant factors, the results of which can be seen in Table~\ref{tab:skip_importance_ols_effects}, the full analysis is shown in Appendix~\ref{appendix:skip_importance_full}. From this limited sample of runs, the type does not seem to be significant. Neither does the number of skip connections prove to be a significant effect based on the OLS. However, they are both close to a significance value of $0.05$, thus a bigger sample might show a small (likely positive) effect. Moreover, the increase in skip connections also increases the inference complexity. Hence, it might not be worth the reduced inference speed.
 
 \input{figures/skip_importance/tables}
 
@@ -136,7 +136,7 @@ We redo the analysis for the semantic segmentation task with the same backbones.
 \input{figures/vae-backbones/semantic/backbones_vae.tex}
 
 \subsection{$\beta$-value}
-We also analyse the effect of the $\beta$ factor on the reconstruction quality of the VAE. This is done by training models with varying values for $\beta$. The results can be seen in Table~\ref{tab:beta-vae-loss-values}. Some examples of the reconstruction capabilities can be seen in Figure~\ref{fig:beta-vae-recon-examples}. More samples can be seen in Appendix~\ref{appendix:recon_samples}. Based on the images and the reconstruction error, it can be concluded that the higher values for $\beta$ the reconstruction capabilities of the network are reduced. This is to be expected as the model is forced to ensure the latent space is closer to the prior distribution.
+We also analyse the effect of the $\beta$-factor on the reconstruction quality of the VAE. This is done by training models with varying values for $\beta$. The results can be seen in Table~\ref{tab:beta-vae-loss-values}. Some examples of the reconstruction capabilities can be seen in Figure~\ref{fig:beta-vae-recon-examples}. More samples can be seen in Appendix~\ref{appendix:recon_samples}. Based on the images and the reconstruction error, it can be concluded that the higher values for $\beta$ the reconstruction capabilities of the network are reduced. This is to be expected as the model is forced to ensure the latent space is closer to the prior distribution.
 
 \begin{table}[!ht]
     \centering

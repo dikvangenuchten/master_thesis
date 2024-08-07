@@ -94,8 +94,8 @@ def create_tables(metrics):
     with open(
         os.path.join(FIGURES_DIR, "parameter_significance_table.tex"),
         mode="w",
-    ) as file:
-        file.write(table)
+    ) as f:
+        f.write(table)
 
     best_fit = ols(
         formula="Jaccard_Index ~ np.log10(fraction) + weights + architecture",
@@ -131,19 +131,36 @@ def create_tables(metrics):
     with open(
         os.path.join(FIGURES_DIR, "parameter_influence_table.tex"),
         mode="w",
-    ) as file:
-        file.write(effect_size_table)
+    ) as f:
+        f.write(effect_size_table)
 
     full_summary.settings[0]["float_format"] = "%.3f"
     full_summary.extra_txt = []
     with open(
         os.path.join(APPENDIX_DIR, "dataset_percentage_full_anova.tex"),
         mode="w",
-    ) as file:
+    ) as f:
+        f.write(
+                    "\\chapter{Reduction of Data Required OLS}\n\\label{appendix:datareduction}"
+        )
+        f.write("\n")
+        f.write(
+            " ".join(
+                [
+                    "This is the summary made of the OLS model by the Python Package: Statsmodels~\\cite{josef_perktold_2024_10984387}.",
+                    "First an OLS model containing all 1 and 2 level interaction effects was fitted.",
+                    "This was then analysed using `anova\_lm'. All significant ($\\alpha\\le0.05$) effects where used in the final model.",
+                    "The full summary of which can be seen in Table~\\ref{tab:data_fraction_parameter_influence_full}.\n\n",
+                ]
+            )
+        )
         table = full_summary.as_latex(
             label="tab:data_fraction_parameter_influence_full"
         )
-        file.write(table)
+        table = table.replace(
+            "begin{table}", "begin{table}[ht]"
+        )
+        f.write(table)
 
     table = metrics.pivot_table(
         index=["architecture", "weights"],

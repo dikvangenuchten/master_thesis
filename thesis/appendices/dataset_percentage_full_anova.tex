@@ -1,4 +1,8 @@
-\begin{table}
+\chapter{Reduction of Data Required OLS}
+\label{appendix:datareduction}
+This is the summary made of the OLS model by the Python Package: Statsmodels~\cite{josef_perktold_2024_10984387}. First an OLS model containing all 1 and 2 level interaction effects was fitted. This was then analysed using `anova\_lm'. All significant ($\alpha\le0.05$) effects where used in the final model. The full summary of which can be seen in Table~\ref{tab:data_fraction_parameter_influence_full}.
+
+\begin{table}[ht]
 \caption{Summary of the OLS of the most likely model.}
 \label{tab:data_fraction_parameter_influence_full}
 \begin{center}
@@ -6,7 +10,7 @@
 \hline
 Model:              & OLS              & Adj. R-squared:     & 0.840      \\
 Dependent Variable: & Jaccard\_Index   & AIC:                & -111.0756  \\
-Date:               & 2024-08-07 15:14 & BIC:                & -101.5745  \\
+Date:               & 2024-08-07 23:03 & BIC:                & -101.5745  \\
 No. Observations:   & 36               & Log-Likelihood:     & 61.538     \\
 Df Model:           & 5                & F-statistic:        & 37.84      \\
 Df Residuals:       & 30               & Prob (F-statistic): & 4.43e-12   \\
