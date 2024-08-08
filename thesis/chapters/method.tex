@@ -92,7 +92,7 @@ The training consists of two stages, the pre-training phase, and the fine-tuning
     \caption{Fine-tuning: The fine-tuning phase }
     $\theta, \phi \gets$ Initialize $\theta, \phi$ using the pre-training algorithm shown in Algorithm~\ref{alg:pre-training}\;
     $\psi \gets$ Initialize $\psi$\;
-    \Repeat{Convergence of $\psi, \phi$}{
+    \Repeat{Convergence of $\theta, \psi, \phi$}{
         $\mathbf{X}^M, \mathbf{Y}^M \gets $ Sample a random minibatch of size $M$\;
         $z^M \sim q_\phi(z | \mathbf{X}^M)$ Sample from the learnt encoder\;
         $g \gets \nabla_{\psi, \phi} \mathcal{L}_{l-ELBO} (\psi, \phi; \mathbf{X}^M, z^M)$ Calculate the gradients\;
@@ -100,7 +100,7 @@ The training consists of two stages, the pre-training phase, and the fine-tuning
         \lIf{$\theta$ is not frozen}{$\theta \gets$ Update $\theta$ using gradients}
         \lIf{$\gamma \neq 0$}{$\phi \gets$ Update $\phi$ using gradients}
     }
-    \Return{$\psi, \phi$}
+    \Return{$\theta, \psi, \phi$}
     \label{alg:fine-tuning}
 \end{algorithm}
 
