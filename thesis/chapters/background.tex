@@ -26,9 +26,7 @@ However, there exist a few problems with VAEs~\cite{tomczak2021deep}, e.g., \emp
 \end{equation}
 However, when the $\beta$ is too large, it will result in a posterior collapse. This is because the model is strongly incentivized to ensure that the posterior is equal to the prior.
 
-There exist many more extensions to the classical VAE, most of which can be divided into one of the following four categories.
-
-\emph{Better encoders}, such as flow-based models~\cite{Berg2018SylvesterNF,tomczak2017improving,rezende2015variational}. \emph{Better priors}, such as VampPrior~\cite{tomczak2018vae} in which the prior is a mixture of Gaussian distributions, with additional pseudo-inputs learnt from the training data to prevent overfitting. \emph{Better decoders}, such as transformer based decoders~\cite{Henderson2022AVA,9054554} and lastly, \emph{Hierarchical-VAEs} (HVAE), of which the most notable are the Ladder-VAE~\cite{NIPS2016_6ae07dcb}, the BIVA~\cite{maaloe2019biva} and NVAE~\cite{vahdat2020nvae}. These models extract a latent space from multiple levels of the encoder. During the generation phase, these latent variables are then generated based on the decoder. Compared to classic VAEs they are capable of generating far sharper images. However, they are more complicated to train and often consist of more parameters. Thereby, resulting in a slower inference.
+There exist many more extensions to the classical VAE, most of which can be divided into one of the following four categories. \emph{Better encoders}, such as flow-based models~\cite{Berg2018SylvesterNF,tomczak2017improving,rezende2015variational}. \emph{Better priors}, such as VampPrior~\cite{tomczak2018vae} in which the prior is a mixture of Gaussian distributions, with additional pseudo-inputs learnt from the training data to prevent overfitting. \emph{Better decoders}, such as transformer based decoders~\cite{Henderson2022AVA,9054554} and lastly, \emph{Hierarchical-VAEs} (HVAE), of which the most notable are the Ladder-VAE~\cite{NIPS2016_6ae07dcb}, the BIVA~\cite{maaloe2019biva} and NVAE~\cite{vahdat2020nvae}. These models extract a latent space from multiple levels of the encoder. During the generation phase, these latent variables are then generated based on the decoder. Compared to classic VAEs they are capable of generating far sharper images. However, they are more complicated to train and often consist of more parameters. Thereby, resulting in a slower inference.
 
 
 \section{Semantic Slam}
@@ -45,7 +43,7 @@ One of the first more successful deep learning methods for semantic segmentation
     \label{fig:unet-architecture}
 \end{figure}
 
-The Feature Pyramid Network (FPN)~\cite{lin2017feature} shares part of its structure with the U-Net, except it explicitly combines the features of each upscaling layer to predict the final semantic segmentation mask as visualized in Figure~\ref{fig:fpn-architecture}. The main difference between FPN and U-Net is that FPN takes more time to process images. It does produce better results for smaller and medium-sized objects.
+The Feature Pyramid Network (FPN)~\cite{lin2017feature} shares part of its structure with the U-Net, except it explicitly combines the features of each upscaling layer to predict the final semantic segmentation mask as visualized in Figure~\ref{fig:fpn-architecture}. The main difference between FPN and U-Net is that FPN is slightly faster and produces better results for smaller and medium-sized objects.
 
 \begin{figure}[ht]
     \centering

@@ -1,37 +1,37 @@
 \begin{table}[ht]
-\centering
-\caption{ANOVA results estimating the influence of each parameter.\\Where: \\\hphantom{tabb}`weights' are the pretrained weights (or lack thereof) used.\\\hphantom{tabb}`architecture' is the model architecture used.\\\hphantom{tabb}'frozen' indicates whether the encoder was frozen\\\hphantom{tabb}$A$:$B$ is the interaction effect between $A$ and $B$}
-\label{tab:comparison_baselines_anova_all}
-\begin{tabular}{lrrrrr}
-\toprule
- & df & sum\_sq & mean\_sq & F & PR(>F) \\
-\midrule
-frozen & 1.00 & 0.00 & 0.00 & 5.29 & 0.08 \\
-weights & 3.00 & 0.25 & 0.08 & 175.48 & \textbf{0.00} \\
-architecture & 2.00 & 0.01 & 0.01 & 12.69 & \textbf{0.02} \\
-frozen:weights & 3.00 & 0.00 & 0.00 & 1.53 & 0.34 \\
-frozen:architecture & 2.00 & 0.00 & 0.00 & 2.16 & 0.23 \\
-weights:architecture & 6.00 & 0.00 & 0.00 & 0.64 & 0.70 \\
-Residual & 4.00 & 0.00 & 0.00 & n.a. & n.a. \\
-\bottomrule
-\end{tabular}
+    \centering
+    \caption{ANOVA results estimating the influence of each parameter.\\Where: \\\hphantom{tabb}`weights' are the pretrained weights (or lack thereof) used.\\\hphantom{tabb}`architecture' is the model architecture used.\\\hphantom{tabb}'frozen' indicates whether the encoder was frozen\\\hphantom{tabb}$A$:$B$ is the interaction effect between $A$ and $B$}
+    \label{tab:comparison_baselines_anova_all}
+    \begin{tabular}{lrrrrr}
+        \toprule
+                             & df   & sum\_sq & mean\_sq & F      & PR(>F)        \\
+        \midrule
+        frozen               & 1.00 & 0.00    & 0.00     & 5.29   & 0.08          \\
+        weights              & 3.00 & 0.25    & 0.08     & 175.48 & \textbf{0.00} \\
+        architecture         & 2.00 & 0.01    & 0.01     & 12.69  & \textbf{0.02} \\
+        frozen:weights       & 3.00 & 0.00    & 0.00     & 1.53   & 0.34          \\
+        frozen:architecture  & 2.00 & 0.00    & 0.00     & 2.16   & 0.23          \\
+        weights:architecture & 6.00 & 0.00    & 0.00     & 0.64   & 0.70          \\
+        Residual             & 4.00 & 0.00    & 0.00     & n.a.   & n.a.          \\
+        \bottomrule
+    \end{tabular}
 \end{table}
 
 
-\begin{table}[ht]
-\centering
-\caption{Coefficients of the OLS showing the influence of the hyperparameters on the Evaluation Jaccard Index.\\Where:\\\hphantom{tabb}Coef. is the effectsize.\\\hphantom{tabb}P> |t| is the $p$-value. Bolded if significant ($\alpha\le0.05$).}
-\label{tab:comparison_baselines_ols_effects}
-\begin{tabular}{lrrrrrr}
-\toprule
- & Coef. & Std.Err. & t & P>|t| & [0.025 & 0.975] \\
-\midrule
-Intercept & 0.22 & 0.02 & 10.54 & \textbf{0.00} & 0.17 & 0.26 \\
-weights[T.imagenet] & 0.21 & 0.02 & 9.59 & \textbf{0.00} & 0.17 & 0.26 \\
-weights[T.vae-b1] & -0.03 & 0.02 & -1.33 & 0.20 & -0.08 & 0.02 \\
-weights[T.vae-b100] & -0.03 & 0.02 & -1.54 & 0.14 & -0.08 & 0.01 \\
-architecture[T.fpn] & 0.06 & 0.02 & 3.49 & \textbf{0.00} & 0.02 & 0.09 \\
-architecture[T.unet] & 0.02 & 0.02 & 1.48 & 0.16 & -0.01 & 0.06 \\
-\bottomrule
-\end{tabular}
+\begin{table}
+    \centering
+    \caption{Coefficients of the OLS showing the influence of the hyperparameters on the Evaluation Jaccard Index.\\Where:\\\hphantom{tabb}Coef. is the effectsize.\\\hphantom{tabb}P> |t| is the $p$-value. Bolded if significant ($\alpha\le0.05$).}
+    \label{tab:comparison_baselines_ols_effects}
+    \begin{tabular}{lrrrrrr}
+        \toprule
+                             & Coef. & Std.Err. & t     & P>|t|         & [0.025 & 0.975] \\
+        \midrule
+        Intercept            & 0.22  & 0.02     & 10.54 & \textbf{0.00} & 0.17   & 0.26   \\
+        weights[T.imagenet]  & 0.21  & 0.02     & 9.59  & \textbf{0.00} & 0.17   & 0.26   \\
+        weights[T.vae-b1]    & -0.03 & 0.02     & -1.33 & 0.20          & -0.08  & 0.02   \\
+        weights[T.vae-b100]  & -0.03 & 0.02     & -1.54 & 0.14          & -0.08  & 0.01   \\
+        architecture[T.fpn]  & 0.06  & 0.02     & 3.49  & \textbf{0.00} & 0.02   & 0.09   \\
+        architecture[T.unet] & 0.02  & 0.02     & 1.48  & 0.16          & -0.01  & 0.06   \\
+        \bottomrule
+    \end{tabular}
 \end{table}

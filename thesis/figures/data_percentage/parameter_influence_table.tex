@@ -1,17 +1,17 @@
-\begin{table}[ht]
-\centering
-\caption{Coefficients of the OLS.\\Where:\\\hphantom{tabb}Coef. is the effectsize.\\\hphantom{tabb}P> |t| is the $p$-value. Bolded if significant ($\alpha\leq0.05$).}
-\label{tab:data_fraction_parameter_influence}
-\begin{tabular}{lrrrrrr}
-\toprule
- & Coef. & Std.Err. & t & P>|t| & [0.025 & 0.975] \\
-\midrule
-Intercept & 0.16 & 0.02 & 7.56 & \textbf{0.00} & 0.12 & 0.20 \\
-weights[T.imagenet] & 0.23 & 0.02 & 11.66 & \textbf{0.00} & 0.19 & 0.27 \\
-weights[T.vae-b10] & 0.01 & 0.02 & 0.67 & 0.50 & -0.03 & 0.05 \\
-architecture[T.fpn] & 0.06 & 0.02 & 3.19 & \textbf{0.00} & 0.02 & 0.10 \\
-architecture[T.unet] & 0.04 & 0.02 & 2.05 & \textbf{0.05} & 0.00 & 0.08 \\
-$\log_{10}(\text{fraction})$ & 0.02 & 0.01 & 2.71 & \textbf{0.01} & 0.00 & 0.03 \\
-\bottomrule
-\end{tabular}
+\begin{table}
+    \centering
+    \caption{Coefficients of the OLS.\\Where:\\\hphantom{tabb}Coef. is the effectsize.\\\hphantom{tabb}P> |t| is the $p$-value. Bolded if significant ($\alpha\leq0.05$).}
+    \label{tab:data_fraction_parameter_influence}
+    \begin{tabular}{lrrrrrr}
+        \toprule
+                                     & Coef. & Std.Err. & t     & P>|t|         & [0.025 & 0.975] \\
+        \midrule
+        Intercept                    & 0.16  & 0.02     & 7.56  & \textbf{0.00} & 0.12   & 0.20   \\
+        weights[T.imagenet]          & 0.23  & 0.02     & 11.66 & \textbf{0.00} & 0.19   & 0.27   \\
+        weights[T.vae-b10]           & 0.01  & 0.02     & 0.67  & 0.50          & -0.03  & 0.05   \\
+        architecture[T.fpn]          & 0.06  & 0.02     & 3.19  & \textbf{0.00} & 0.02   & 0.10   \\
+        architecture[T.unet]         & 0.04  & 0.02     & 2.05  & \textbf{0.05} & 0.00   & 0.08   \\
+        $\log_{10}(\text{fraction})$ & 0.02  & 0.01     & 2.71  & \textbf{0.01} & 0.00   & 0.03   \\
+        \bottomrule
+    \end{tabular}
 \end{table}

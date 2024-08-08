@@ -8,7 +8,7 @@ From a probabilistic point of view, semantic segmentation can be modelled as $p_
 Notice that the model $p_\theta(x|z) p_\theta(z)$ is equal to the VAE. We propose to first learn the generative model $p_\theta(x,z) = p_\theta(x|z) p_\theta(z)$, by learning the approximation of $p_\theta(x|z)$ and $p_\theta(z)$, using a VAE. After which we can use that learnt model to approximate the parameters of $p_\theta(y|x,z)$.
 
 \section{Model}
-We start by rewriting the log-likelihood of $p_\theta(x, y)$ as shown in Eq.~\ref{eq:p_x_y_rewrite}. As the KL-divergence is $\geq 0$, the rest of the equation is the lower bound. Notice that the rest contains the $\mathcal{L}_ELBO$, which can be separated. This results in the equation $\mathcal{L}_{l-ELBO}$, shown in Eq.~\ref{eq:label_ELBO}. To be able to exert more control over the importance of each of the factors during training, we also introduce the $\mathcal{L}_{\beta\gamma l-ELBO}$, as shown in Eq.~\ref{eq:beta_label}.
+We start by rewriting the log-likelihood of $p_\theta(x, y)$ as shown in Eq.~\ref{eq:p_x_y_rewrite}, a detailed derivation of this is shown in Appendix~\ref{appendix:full_derivation}. As the KL-divergence is $\geq 0$, the rest of the equation is the lower bound. Notice that the rest contains the $\mathcal{L}_ELBO$, which can be separated. This results in the equation $\mathcal{L}_{l-ELBO}$, shown in Eq.~\ref{eq:label_ELBO}. To be able to exert more control over the importance of each of the factors during training, we also introduce the $\mathcal{L}_{\beta\gamma l-ELBO}$, as shown in Eq.~\ref{eq:beta_label}.
 
 \begin{subequations}
     \begin{align}
@@ -55,9 +55,9 @@ The image decoder approximates the conditional Gaussian distribution $p_\theta(x
 \subsection{Label Decoder}
 The label decoder is similar to the image decoder, except that it approximates a multivariate Bernoulli distribution, instead of a Gaussian distribution. Thus, the calculation of $\log p_\theta(y|x,z)$ is different, which is shown in Eq.~\ref{eq:log_p_y_z}. Furthermore, it has `skip connections'. These skip connections allow for information to flow directly from a higher layer in the encoder to the decoder. We make the distinction between 3 types of skip connections.
 \begin{enumerate}
-    \item Skip. The output of the encoder layer is directly passed to the decoder.
-    \item Projection. The output of the encoder layer is first projected using a convolutional layer.
-    \item Variational. The output of the encoder layer is first projected using a variational convolutional layer.
+    \item Skip: The output of the encoder layer is directly passed to the decoder.
+    \item Projection: The output of the encoder layer is first projected using a convolutional layer.
+    \item Variational: The output of the encoder layer is first projected using a variational convolutional layer.
 \end{enumerate}
 When all skip connections are of the type `Skip', our architecture is equal to the U-Net architecture.
 

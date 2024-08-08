@@ -2,14 +2,15 @@
 
 \section{Improving VAES}
 As already stated in the background section~\ref{chapter:background}, the VAE has some flaws that have been shown to be mitigable. We will highlight some interesting research that could be adapted to our method to possibly improve the quality of predictions.
+
 \subsection{Larger dataset}
 In this thesis, the pre-training of the VAES has been limited to the COCO~\cite{lin2015microsoftcococommonobjects} ($\sim$100k) dataset. However, similar to transformers, it might be beneficial to pre-train on larger datasets, such as OpenImagesV7~\cite{OpenImages} ($\sim$9M).
 
 \subsection{Improving the Backbone}
 One of the drawbacks of Fully Convolutional Network (FCN), is that in their classic form, as used by us, they have a small Field of View. This means they cannot relate parts of the image that are far apart. This can partially be combatted by making use of dilated convolutional layers, as proposed by Gao~\cite{gao2023rethinking}, or by the use of vision transformers~\cite{dosovitskiy2021image}, which can relate pixels that are far apart in the input image by leveraging attention mechanisms. These vision transformers have been used successfully in the segmentation task~\cite{xie2021segformer,chen2022vision}. However, they have two major drawbacks. One, as transformers have a lower inductive bias for vision~\cite{dosovitskiy2021image} compared to convolutional networks, they require much more data and time to train. Secondly, their attention mechanisms are computationally more complex than convolutional layers, thus they are more difficult to optimize for edge devices such as those required for mobile robotics. The first drawback can be countered by using publicly available pre-trained models. The second problem is more fundamental, and although there is research into making transformers more efficient~\cite{li2022efficientformer,Yu2021MetaFormerIA}, they remain more computationally expensive compared to their CNN counterparts.
 
-\subsection{Improving the prior}
-In our current method, we use a Gaussian prior, which might not be the best representation of the hidden probabilistic process we are trying to model. It would be interesting to investigate what the effect of different, and more complex priors is.
+\subsection{Improving the Sharpness}
+Some reconstructed samples clearly show the disappearing of key features for semantic segmentation. This problem could potentially be mitigated by using different loss functions that focus more on the details. Or by the use of better architectures, such as the H-VAEs discussed in Chapter~\ref{chapter:background}, which improve the sharpness and reconstruction capabilities of the VAE.
 
 \section{Extending VAES}
 Next to the possibilities to mitigate current problems, VAEs can also be extended to provide additional benefits compared to the more classic discriminative approaches. In this section, we will highlight some possible extensions.

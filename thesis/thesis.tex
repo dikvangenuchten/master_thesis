@@ -5,7 +5,7 @@
 %
 % THIS IS THE MAIN FILE (i.e. compile this file, compiling the others directly won't work)
 %
-\documentclass[a4paper,10pt,twoside]{book}
+\documentclass[a4paper,10pt,twoside,openany]{book}
 \usepackage{tuethesis2021}
 \usepackage{pgffor}
 \usepackage{multirow}
@@ -43,6 +43,8 @@
 
 \input{chapters/abstract}
 
+\input{chapters/preface}
+
 \tableofcontents
 
 % \lstlistoflistings
@@ -72,6 +74,7 @@
 
 \appendix
 % \addcontentsline{toc}{chapter}{Appendix}
+\include{appendices/full_derivation}
 \include{appendices/comparison_baselinse}
 \include{appendices/dataset_percentage_full_anova}
 \include{appendices/skip_importance}

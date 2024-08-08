@@ -1,4 +1,4 @@
-\chapter{Experimental Setup}\label{chapter:experiments}
+\chapter{Results}\label{chapter:experiments}
 
 \section{Implementation details}
 \subsection{Dataset}
@@ -34,7 +34,7 @@
 All models are implemented in PyTorch~\cite{Ansel_PyTorch_2_Faster_2024} using an adapted version of the segmentation models repository~\cite{Iakubovskii:2019}. All code and configurations required to train the models and reproduce the experiments can be found on GitHub\footnote[1]{\url{https://github.com/Generative-AI-TUe/msc-project-1297333}}. The models are trained on an NVIDIA GeForce RTX 2080 TI. The gradients are clipped using the norm, with a maximum value of 10. The AdaMax~\cite{kingma2017adammethodstochasticoptimization} is used with a cosine annealing learning rate, varying between $1e^{-3}$ and $1e^{-4}$. A batch size of 96 is used as it was the maximum that reliably fitted on the GPU. Each model was trained on 10,000 minibatches randomly sampled from the dataset.
 
 \subsection{Model Settings}
-For the VAES the default settings are ResNet50\cite{he2015deep} as backbone with the weights randomly initialized. There are 5 variational connections between the encoding and decoding parts of the network.
+For the VAES the default settings are ResNet50\cite{he2015deep} as backbone with the weights randomly initialized using the Xavier method~\cite{pmlr-v9-glorot10a}. There are 5 variational connections between the encoding and decoding parts of the network.
 
 \section{Comparison to Baseline Architectures}
 For the experiments we make use of three methods: VAES (ours), FPN, and U-Net. Each model was trained eight times with different configurations. We used different settings for the pre-trained weights:
@@ -61,10 +61,46 @@ Additionally, the model is trained with `frozen' encoder weights (the encoder we
 
 
 First, an Analysis of Variance (ANOVA) is done, of which the results can be seen in Table~\ref{tab:comparison_baselines_anova_all}. From the ANOVA table it can be determined that the pre-training weights and the architecture have a significant effect on the Jaccard Index. Freezing the weights does not have a significant effect. However, this can be due to the limited sample size as the $p$-value is close to $0.05$. Furthermore, there is no significant interaction effect between the parameters. 
-\input{figures/baselines/tables}
+% \input{figures/baselines/tables}
+
+\begin{table}[ht]
+    \centering
+    \caption{ANOVA results estimating the influence of each parameter.\\Where: \\\hphantom{tabb}`weights' are the pretrained weights (or lack thereof) used.\\\hphantom{tabb}`architecture' is the model architecture used.\\\hphantom{tabb}'frozen' indicates whether the encoder was frozen\\\hphantom{tabb}$A$:$B$ is the interaction effect between $A$ and $B$}
+    \label{tab:comparison_baselines_anova_all}
+    \begin{tabular}{lrrrrr}
+        \toprule
+                             & df   & sum\_sq & mean\_sq & F      & PR(>F)        \\
+        \midrule
+        frozen               & 1.00 & 0.00    & 0.00     & 5.29   & 0.08          \\
+        weights              & 3.00 & 0.25    & 0.08     & 175.48 & \textbf{0.00} \\
+        architecture         & 2.00 & 0.01    & 0.01     & 12.69  & \textbf{0.02} \\
+        frozen:weights       & 3.00 & 0.00    & 0.00     & 1.53   & 0.34          \\
+        frozen:architecture  & 2.00 & 0.00    & 0.00     & 2.16   & 0.23          \\
+        weights:architecture & 6.00 & 0.00    & 0.00     & 0.64   & 0.70          \\
+        Residual             & 4.00 & 0.00    & 0.00     & n.a.   & n.a.          \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
 Secondly, an Ordinary Least Squares Linear Model (OLS) is fitted to determine the effect size of each significant parameter. The resulting coefficients of this are shown in Table~\ref{tab:comparison_baselines_ols_effects}, the full analysis can be seen in Appendix~\ref{appendix:baselines_comparison_full}. The intercept is the baseline model. Here it is the model with the VAES architecture and no pre-trained weights. Compared to this baseline, there is no significant effect on the Jaccard Index when using the pre-trained VAE weights instead. Using the `ImageNet' weights does double the Jaccard Index. The choice in architecture matters less. Only the FPN architecture is a significantly better choice. 
 
-
+\begin{table}[h]
+    \centering
+    \caption{Coefficients of the OLS showing the influence of the hyperparameters on the Evaluation Jaccard Index.\\Where:\\\hphantom{tabb}Coef. is the effectsize.\\\hphantom{tabb}P> |t| is the $p$-value. Bolded if significant ($\alpha\le0.05$).}
+    \label{tab:comparison_baselines_ols_effects}
+    \begin{tabular}{lrrrrrr}
+        \toprule
+                             & Coef. & Std.Err. & t     & P>|t|         & [0.025 & 0.975] \\
+        \midrule
+        Intercept            & 0.22  & 0.02     & 10.54 & \textbf{0.00} & 0.17   & 0.26   \\
+        weights[T.imagenet]  & 0.21  & 0.02     & 9.59  & \textbf{0.00} & 0.17   & 0.26   \\
+        weights[T.vae-b1]    & -0.03 & 0.02     & -1.33 & 0.20          & -0.08  & 0.02   \\
+        weights[T.vae-b100]  & -0.03 & 0.02     & -1.54 & 0.14          & -0.08  & 0.01   \\
+        architecture[T.fpn]  & 0.06  & 0.02     & 3.49  & \textbf{0.00} & 0.02   & 0.09   \\
+        architecture[T.unet] & 0.02  & 0.02     & 1.48  & 0.16          & -0.01  & 0.06   \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 
 \section{Reduction of Data Required}
 To determine if pre-training results in a reduction of labelled training data required, a full factorial design is done over the parameters: architecture type, pre-trained weights, and the percentage of the (labelled) dataset used. The resulting Evaluation Jaccard Index of each model configuration can be seen in Table~\ref{tab:data_fraction_results} and is plotted in Figure~\ref{fig:dataset-fraction-results}.
@@ -105,7 +141,7 @@ Then, an OLS is fitted to show the effect size of all significant factors, the r
 \subsection{Backbone}
 We first analyse the influence of the backbone on the performance of the VAE task by comparing the following backbones: MobileNetV2~\cite{sandler2019mobilenetv2invertedresidualslinear}, EfficientNet~\cite{tan2020efficientnetrethinkingmodelscaling}, and two variants of the ResNet~\cite{he2015deep} architecture. The results can be seen in Table~\ref{tab:vae-backbones-results}. Some examples of the reconstruction capabilities can be seen in Figure~\ref{fig:vae-backbones}. MobileNetV2 is the smallest network, as can be seen from the parameter count and Multiply-Accumulate (MAC) values. Overall ResNet18 achieves the best L1Loss, meaning it is best at reconstruction. Although the difference is small. Visually, all networks perform very similar.
 
-\begin{figure}[!ht]
+\begin{figure}[h]
     \centering
     \subfloat[Original, EfficientNet]{\includegraphics[width=0.45\linewidth]{figures/vae-backbones/reconstruction/samples/efficientnet_b2/14.png}}
     \subfloat[Original, MobileNetV2]{\includegraphics[width=0.45\linewidth]{figures/vae-backbones/reconstruction/samples/mobilenetv2_100/14.png}} \quad
@@ -116,8 +152,8 @@ We first analyse the influence of the backbone on the performance of the VAE tas
 \end{figure}
 
 \input{figures/vae-backbones/reconstruction/backbones_vae.tex}
-
-We redo the analysis for the semantic segmentation task with the same backbones. Examples of the segmentation masks can be seen in Figure~\ref{fig:vaes-backbones}. The results can be seen in Table~\ref{tab:vaes-backbones-results}. For semantic segmentation, ResNet18 and MobileNetV2 perform slightly worse compared to EfficientNet and ResNet50. Computationally MobileNetV2 and EfficientNet are the least resource intensive.
+\newpage
+We redo the analysis for the semantic segmentation task with the same backbones. Examples of the segmentation masks can be seen in Figure~\ref{fig:vaes-backbones}. The results can be seen in Table~\ref{tab:vae-backbones-results}. For semantic segmentation, ResNet18 and MobileNetV2 perform slightly worse compared to EfficientNet and ResNet50. Computationally MobileNetV2 and EfficientNet are the least resource intensive.
 
 \begin{figure}[ht]
     \foreach \i in {14,11} {
@@ -133,10 +169,9 @@ We redo the analysis for the semantic segmentation task with the same backbones.
     \caption{Samples of the validation dataset, with the ground truth and the prediction by VAES with different backbones.}\label{fig:vaes-backbones}
 \end{figure}
 
-\input{figures/vae-backbones/semantic/backbones_vae.tex}
 
 \subsection{$\beta$-value}
-We also analyse the effect of the $\beta$-factor on the reconstruction quality of the VAE. This is done by training models with varying values for $\beta$. The results can be seen in Table~\ref{tab:beta-vae-loss-values}. Some examples of the reconstruction capabilities can be seen in Figure~\ref{fig:beta-vae-recon-examples}. More samples can be seen in Appendix~\ref{appendix:recon_samples}. Based on the images and the reconstruction error, it can be concluded that the higher values for $\beta$ the reconstruction capabilities of the network are reduced. This is to be expected as the model is forced to ensure the latent space is closer to the prior distribution.
+We also analyse the effect of the $\beta$-factor on the reconstruction quality of the VAE. This is done by training models with varying values for $\beta$. The results can be seen in Table~\ref{tab:beta-vae-loss-values}. Some examples of the reconstruction capabilities can be seen in Figure~\ref{fig:beta-vae-recon-examples}. More samples can be seen in Appendix~\ref{appendix:recon_samples}. Based on the images and the reconstruction error, it can be concluded that the higher values for $\beta$ the reconstruction capabilities of the network are reduced. This is to be expected as the model is forced to ensure the latent space is closer to the prior distribution. Moreover, some objects disappear from the reconstructed images. Even though, these details are important for segmentation. This is especially clear in Figure~\ref{fig:beta-100}, in which the woman completely disappears.
 
 \begin{table}[!ht]
     \centering
@@ -159,8 +194,9 @@ We also analyse the effect of the $\beta$-factor on the reconstruction quality o
     \centering
     \caption{Example reconstructions for $\beta$-vae.}
     \label{fig:beta-vae-recon-examples}
-    \subfloat[Original, $\beta$ = 0.01]{\includegraphics[width=0.45\linewidth]{figures/beta-vae/b0.01-0.png}}
-    \subfloat[Original, $\beta$ = 0.1]{\includegraphics[width=0.45\linewidth]{figures/beta-vae/b0.1-0.png}} \quad
-    \subfloat[Original, $\beta$ = 1]{\includegraphics[width=0.45\linewidth]{figures/beta-vae/b1-0.png}}
-    \subfloat[Original, $\beta$ = 10]{\includegraphics[width=0.45\linewidth]{figures/beta-vae/b10-0.png}}
+    \subfloat[Original, $\beta$ = 0.01]{\includegraphics[width=0.45\linewidth]{figures/beta-vae/samples/Imagenet-b0.01/7.png}}
+    \subfloat[Original, $\beta$ = 0.1]{\includegraphics[width=0.45\linewidth]{figures/beta-vae/samples/Imagenet-b0.1/7.png}} \quad
+    \subfloat[Original, $\beta$ = 1]{\includegraphics[width=0.45\linewidth]{figures/beta-vae/samples/Imagenet-b1/7.png}}
+    \subfloat[Original, $\beta$ = 10]{\includegraphics[width=0.45\linewidth]{figures/beta-vae/samples/Imagenet-b10/7.png}} \quad
+    \subfloat[Original, $\beta$ = 100]{\includegraphics[width=0.45\linewidth]{figures/beta-vae/samples/Imagenet-b100/7.png}}\label{fig:beta-100}
 \end{figure}
