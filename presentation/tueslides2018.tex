@@ -29,6 +29,11 @@
 
 
 \begin{titleframe}[variant=1,bgimage=titlebgimg.jpg]
+  \note[item]{Welcome}
+  \note[item]{Who am I}
+  \note[item]{Why am I here}
+  \note[item]{Thank Committee with specifically Jakub and Bart for guidance}
+  \note[item]{Avular}
 \end{titleframe}
 
 \title{Variational Auto-encoding and Segmentation}
@@ -42,18 +47,20 @@
   
   \frametitle{Table of Contents}
   \begin{enumerate}
-    \item Introduction
-    \item Background Knowledge
-    \item Our Method
-    \item Experiments and Results
+    \item Introduction \pause
+    \item Background Knowledge \pause
+    \item Method \pause
+    \item Experiments and Results \pause
     \item Discussion
     \item Conclusion
   \end{enumerate}
-  \note[item]{I will start with a short introduction of the thesis, there I will shortly introduce you to the problem at hand, and the current limitations we need to take into account. I will also state the RQs.}
-  \note[item]{Then, I will give you a quick summary of the necessary background knowledge required}
-  \note[item]{After which, I will present you our method}
-  \note[item]{Followed by the experiments we did and the results we got from them}
-  \note[item]{Finally, I will give you our conclusion about our method, as well as a few more general takeaways we came across.}
+  
+  \note<1>[item]{Intro of problem and limitations}
+  \note<1>[item]{State the RQs}
+  \note<2>[item]{Quick summary of required knowledge}
+  \note<3>[item]{Our method}
+  \note<4>[item]{Experiments + Results}
+  \note<5>[item]{Discussion}
 \end{frame}
 
 \begin{frame}
@@ -62,19 +69,21 @@
   \frametitle{Introduction}
   The problems:
   \begin{itemize}
+    \pause
     \item Navigation for robotic devices.
           \pause
     \item Computer Vision.
           \pause
-    \item On edge.
-          \pause
     \item New and dynamic environments.
+          \pause
+    \item On edge.
   \end{itemize}
-  \note<1-2>[item]{Within mobile robotics, one of the important factors is navigation. As an example we can take an automated warehouse, in which the robot needs to pick up a package from location A and then needs to bring that to a drop-off point B.}
-  \note<1-3>[item]{For this navigation we need to robot to be able to see its environment, hence we come to computer vision. Current techniques rely on massive amounts of labelled data to be able to understand our world.}
-  \note<2-4>[item]{One caveat, is that we want the robot to be deployed in new environments without a complex onboarding process. Current machine learning algorithms have shown that although they can be reliable when the data they encounter in production is similar to that which they encountered during training, they can be unreliable when they see things they have never seen before. One solution would be to show them all the things.}\
-  \note<3-4>[item]{However, that brings us to the second caveat, all the calculations that are needed to navigate the robot, ideally should happen on the device itself. As otherwise it limits the situations in which it can be deployed and as we cannot strap a datacenter on the back of the robot, we need to employ an efficient network, which cannot be too big.}
-  \note<3-4>[item]{Another caveat: Model needs to train quickly}
+  \note<1>[item]{Intro Avular + mobile robotics}
+  \note<2>[item]{Navigation. Ex. warehouse robot}
+  \note<3>[item]{Understand its env and place in env}
+  \note<4>[item]{One caveat, new environment $\rightarrow$ new data distribution $\rightarrow$ bad results}\
+  \note<4>[item]{Second caveat, on edge $\rightarrow$ low compute $\rightarrow$ model needs to be as small as possible.}
+  \note<4>[item]{Does not need to know items it will not come across}
 \end{frame}
 
 \begin{frame}
@@ -91,9 +100,9 @@
           \pause
     \item Does pre-training on the VAE task reduce the amount of labelled data required?
   \end{enumerate}
-  \note[item]{Can the VAE be adapted to an Image Segmentation task?}
-  \note[item]{Do the pre-trained weights of a VAE provide useful features for image segmentation?}
-  \note[item]{Does pre-training on the VAE task reduce the amount of labelled data required?}
+  \note[item]<1>{Can the VAE be adapted to an Image Segmentation task?}
+  \note[item]<2>{Do the pre-trained weights of a VAE provide useful features for image segmentation?}
+  \note[item]<3>{Does pre-training on the VAE task reduce the amount of labelled data required?}
 \end{frame}
 
 \begin{frame}[fragile]
