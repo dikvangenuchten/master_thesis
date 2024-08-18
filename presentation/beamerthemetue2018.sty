@@ -208,17 +208,17 @@
 \newenvironment{imageframe}[1][]{\usebackgroundtemplate{\tstdrawbackground[#1]}\begin{frame}[fragile,environment=imageframe]}{\end{frame}\usebackgroundtemplate{\drawbackground}}
 \newenvironment{imageslide}[1][]{\begin{imageframe}[#1]}{\end{imageframe}}
 \newenvironment{chapterframe}[1][]{
-\setbeamercolor{frametitle}{fg=chapterslidefgcolor}
-\setbeamercolor{structure}{fg=chapterslidefgcolor}
-\setbeamercolor{normal text}{fg=chapterslidefgcolor}
-\setbeamercolor{math text}{fg=chapterslidefgcolor}
-\definecolor{beamerstructure}{named}{chapterslidefgcolor}
-\setbeamercolor{itemize/enumerate body}{fg=chapterslidefgcolor}
-\setlength{\extraheadlineskip}{0.5\cm}
-\definecolor{slidebgcolor}{named}{chapterslidebgcolor}
-%\usebackgroundtemplate{\tstdrawchapterbackground[#1]}%
-\begin{frame}[fragile,environment=chapterframe]\color{chapterslidefgcolor}%
-}{\end{frame}\usebackgroundtemplate{\drawbackground}}
+  \setbeamercolor{frametitle}{fg=chapterslidefgcolor}
+  \setbeamercolor{structure}{fg=chapterslidefgcolor}
+  \setbeamercolor{normal text}{fg=chapterslidefgcolor}
+  \setbeamercolor{math text}{fg=chapterslidefgcolor}
+  \definecolor{beamerstructure}{named}{chapterslidefgcolor}
+  \setbeamercolor{itemize/enumerate body}{fg=chapterslidefgcolor}
+  \setlength{\extraheadlineskip}{0.5\cm}
+  \definecolor{slidebgcolor}{named}{chapterslidebgcolor}
+  %\usebackgroundtemplate{\tstdrawchapterbackground[#1]}%
+  \begin{frame}[fragile,environment=chapterframe]\color{chapterslidefgcolor}%
+    }{\end{frame}\usebackgroundtemplate{\drawbackground}}
 \newenvironment{chapterslide}[1][]{\begin{chapterframe}[#1]}{\end{chapterframe}}
 
 \newcommand{\dept}{}
@@ -229,10 +229,10 @@
 \definecolor{companymaincolor}{rgb}{0,0,0}
 \newlength{\basecompanylogowidth}
 \newcommand{\company}[2]{%
-\renewcommand{\companylogo}{#1}%
-\definecolor{companymaincolor}{named}{#2}
-\definecolor{themecolor}{named}{#2}
-\definecolor{chapterslidebgcolor}{named}{#2}
+  \renewcommand{\companylogo}{#1}%
+  \definecolor{companymaincolor}{named}{#2}
+  \definecolor{themecolor}{named}{#2}
+  \definecolor{chapterslidebgcolor}{named}{#2}
 }
 
 
