@@ -1,0 +1,278 @@
+\RequirePackage{calc}
+\RequirePackage[T1]{fontenc}
+\RequirePackage{ifthen}
+
+\newcommand{\tuelogos}{true}
+
+
+\DeclareOptionBeamer{tuelogo}[true]{%
+  \ifthenelse{\equal{#1}{false}}{\renewcommand{\tuelogos}{false}}{\renewcommand{\tuelogos}{true}}
+}
+
+
+
+
+\ProcessOptionsBeamer
+
+\mode<presentation>
+
+\define@key{titlebg}{variant}{\def\variant{#1}}
+\define@key{titlebg}{bgimage}{\def\bgimage{#1}}
+\define@key{bg}{bgimage}{\def\bgimage{#1}}
+\def\tstdrawtitlebackground{\@ifnextchar[\@tstdrawtitlebackground{\@tstdrawtitlebackground[]}}
+\def\@tstdrawtitlebackground[#1]{%
+  \setkeys{titlebg}{#1}%
+  \drawtitlebackground%
+}
+\def\tstdrawbackground{\@ifnextchar[\@tstdrawbackground{\@tstdrawbackground[]}}
+\def\@tstdrawbackground[#1]{%
+  \setkeys{bg}{#1}%
+  \drawbackground%
+}
+\def\tstdrawchapterbackground{\@ifnextchar[\@tstdrawchapterbackground{\@tstdrawchapterbackground[]}}
+\def\@tstdrawchapterbackground[#1]{%
+  \drawchapterbackground%
+}
+
+% it is convenient to define a unit \cm
+% that corresponds to 1cm, because this makes it very easy to do rescaling
+% if desired. For example, it makes it easy to reuse this code in other
+% presentation templates (like pdfscreen) where the screen/paper sizes are
+% completely different.
+%
+%  4:3 = 12.8cm x 9.6cm
+% 16:9 = 16.0cm x 9.0cm
+% 16:10= 16.0cm x 10.0cm
+\newlength{\cm}
+\ifthenelse{%
+  \lengthtest{\beamer@paperwidth=16cm}%
+}{%
+  \setlength{\cm}{\paperwidth/16}%
+}{%
+  \setlength{\cm}{10\paperwidth/128}%
+}%
+\newlength{\diagonalwidth}
+\setlength{\diagonalwidth}{10\paperheight/35}% 10/35 is approximately 1/tan(74 degrees)
+\newlength{\diagonalx}
+\newlength{\slidelogoy}
+\newlength{\logoheight}
+\newlength{\bgimageheight}
+\newlength{\topbarheight}
+\newlength{\bottombarheight}
+\newlength{\titlebarheight}
+\newlength{\lefttitlemargin}
+
+\def\bgimage{}
+\def\variant{1}
+
+
+
+
+\setlength{\topbarheight}{1.3\cm}
+\setlength{\bottombarheight}{1.05\cm}
+\setlength{\titlebarheight}{3.25\cm}
+\setlength{\logoheight}{1.14\cm}%
+\setlength{\lefttitlemargin}{0.85\cm}%
+\setlength{\slidelogoy}{0.1\cm}%
+
+
+\newcommand{\drawbackground}{%
+  % Careful: these lengths are exact copies from \drawtitlebackground, only in case somebody does not want a title slide.
+  \begin{pgfpicture}{0cm}{0cm}{\the\paperwidth}{\the\paperheight}%
+    \fontsize{12}{12}\selectfont
+    \pgfsetfillopacity{1.0}
+    
+    % light grey background
+    \pgfsetcolor{slidebgcolor}
+    \pgfpathmoveto{\pgfpoint{0\cm}{\bottombarheight}}
+    \pgfpathlineto{\pgfpoint{0\cm}{\paperheight}}
+    \pgfpathlineto{\pgfpoint{\paperwidth}{\paperheight}}%  0.733/tan(74) = 0.733/3.4874 = 0.21
+    \pgfpathlineto{\pgfpoint{\paperwidth}{\bottombarheight}}
+    \pgfusepath{fill}
+    
+    % background image
+    \ifthenelse{\equal{\bgimage}{}}{\relax}{%
+      \pgftext[at=\pgfpoint{\paperwidth}{\paperheight},right,top]{%
+        \includegraphics[height=\paperheight-\bottombarheight]{\bgimage}%
+      }%
+    }%
+    
+    
+    % page number and frame title
+    
+    \pgfsetcolor{tuedarkblue}
+    \normalfont\fontsize{8}{8}\selectfont
+    \pgftext[at=\pgfpoint{\lefttitlemargin}{\bottombarheight/2},left,center]{\insertframenumber \phantom{Xg}}%
+    \pgftext[at=\pgfpoint{\lefttitlemargin+0.8\cm}{\bottombarheight/2},left,center]{\inserttitle \phantom{Xg}}%
+    % The \phantom{Xg} ensures the proper vertical alignment
+    
+    
+    % TU/e logo
+    \ifthenelse{\equal{\tuelogos}{false}}{\relax}{%
+      
+      \ifthenelse{\equal{\companylogo}{}}{
+        % TU/e logo
+        \pgftext[at=\pgfpoint{\paperwidth}{\bottombarheight/2},right,center]{%
+          \includegraphics[height=0.8\bottombarheight]{TUe-logo-scarlet-rgb}
+        }
+      } {
+        \setlength{\basecompanylogowidth}{0.6\bottombarheight}
+        \pgftext[at=\pgfpoint{\paperwidth-0.1\cm}{\bottombarheight/2},right,center]{%
+          \setlength{\fboxsep}{0cm}%
+          \parbox[b][0.6\bottombarheight][c]{0.8\paperwidth}{\raggedleft%
+            \includegraphics[width=\companylogosizemultiplicationfactor\basecompanylogowidth]{\companylogo}%
+          }\ %
+          \colorbox{companymaincolor}{%
+            \includegraphics[height=0.6\bottombarheight]{TUe-logo-white}%
+          }
+        }
+      }
+      
+    }
+    
+    
+    
+    
+    
+  \end{pgfpicture}%
+}
+
+
+
+
+
+
+\newcommand{\drawtitlebackground}{%
+  \begin{pgfpicture}{0cm}{0cm}{\paperwidth}{\paperheight}%
+    
+    
+    \normalsize\selectfont
+    
+    % background image
+    \ifthenelse{\equal{\bgimage}{}}{\relax}{%
+      \pgftext[at=\pgfpoint{\paperwidth}{\paperheight-\topbarheight},right,top]{%
+        \includegraphics[width=\paperwidth]{\bgimage}%
+      }%
+    }%
+    
+    
+    % There are three variations. Check which one was provided with the optional argument:
+    % solid background
+    \ifthenelse{\equal{\variant}{1}}{
+      \pgfsetfillopacity{0.7}
+    }{
+      \pgfsetfillopacity{1.0}
+    }
+    \pgfsetcolor{themecolor}
+    \pgfpathmoveto{\pgfpoint{0cm}{\bottombarheight}}
+    \pgfpathlineto{\pgfpoint{0cm}{\bottombarheight+\titlebarheight}}
+    \pgfpathlineto{\pgfpoint{\paperwidth}{\bottombarheight+\titlebarheight}}
+    \pgfpathlineto{\pgfpoint{\paperwidth}{0\cm}}
+    \pgfusepath{fill}
+    \pgfsetfillopacity{1.0}
+    
+    % white rectangle on bottom
+    \pgfsetcolor{white}
+    \pgfpathmoveto{\pgfpoint{0cm}{0\cm}}
+    \pgfpathlineto{\pgfpoint{0cm}{\bottombarheight}}
+    \pgfpathlineto{\pgfpoint{\paperwidth}{\bottombarheight}}
+    \pgfpathlineto{\pgfpoint{\paperwidth}{0\cm}}
+    \pgfusepath{fill}
+    
+    
+    \ifthenelse{\equal{\companylogo}{}}{
+      % TU/e logo
+      \pgftext[at=\pgfpoint{\paperwidth+0.12\cm}{\paperheight-\topbarheight/2},right,center]{%
+        \includegraphics[height=\logoheight]{TUe-logo-descriptor-line-scarlet-rgb}
+      }
+    } {
+      \setlength{\basecompanylogowidth}{0.86\topbarheight}
+      \pgftext[at=\pgfpoint{\paperwidth-0.1\cm}{\paperheight-\topbarheight/2},right,center]{%
+        \setlength{\fboxsep}{0cm}%
+        \parbox[b][0.84\topbarheight][c]{0.8\paperwidth}{\raggedleft%
+          \includegraphics[width=\companylogosizemultiplicationfactor\basecompanylogowidth]{\companylogo}%
+        }\ %
+        \colorbox{companymaincolor}{%
+          \includegraphics[height=0.84\topbarheight]{TUe-logo-descriptor-stack-white}%
+        }
+      }
+    }
+    
+    
+    % Title
+    \pgftext[at=\pgfpoint{\lefttitlemargin}{\bottombarheight+\titlebarheight-0.5\cm},left,top]{%
+      \begin{minipage}[t][2.8cm][t]{0.95\paperwidth}
+        \begin{minipage}[t][1.2\cm][t]{0.95\paperwidth}
+          \color{white}\normalfont\fontsize{13}{14}\selectfont\bfseries\raggedright%
+          \inserttitle
+        \end{minipage}\\%
+        \begin{minipage}[t][0.4\cm][t]{0.95\paperwidth}
+          \color{white}\normalfont\fontsize{8.5}{8.5}\selectfont\bfseries\raggedright%
+          \insertsubtitle
+        \end{minipage}\\
+        \begin{minipage}[t][0.6\cm][b]{0.95\paperwidth}
+          \color{white}\normalfont\fontsize{7}{7}\selectfont\mdseries\raggedright
+          \insertauthor
+        \end{minipage}
+      \end{minipage}
+    }%
+    % Department or Service
+    \pgftext[at=\pgfpoint{\lefttitlemargin}{0.35\cm},left,bottom]{%
+      \color{tuedarkblue}\normalfont\fontsize{7}{7}\selectfont%
+      \dept
+    }
+  \end{pgfpicture}%
+}
+
+\usebackgroundtemplate{\drawbackground}
+
+
+\useheadtemplate{}
+
+\usefoottemplate{}
+
+%\useitemizeitemtemplate{\tiny\raise1.5pt\hbox{\color{beamerstructure}\textbullet}}
+\useitemizeitemtemplate{\large\textbullet}
+%\usesubitemizeitemtemplate{\hbox{\color{beamerstructure}\textbullet}}
+%\usesubsubitemizeitemtemplate{\hbox{\color{beamerstructure}\textbullet}}
+
+\setbeamersize{text margin left=0.5cm,text margin right=0.5cm}
+
+\setbeamercolor{frametitle}{fg=tuedarkblue}% you can also set the background color bg=...
+\setbeamerfont{frametitle}{series=\bfseries}
+\setbeamertemplate{frametitle}
+{%
+  \vspace*{\extraheadlineskip}
+  \ifx\insertframesubtitle\@empty%
+    \fontsize{14}{14}\selectfont\insertframetitle
+  \else
+    \fontsize{14}{14}\selectfont\insertframetitle \\
+    \fontsize{9}{9}\selectfont\insertframesubtitle
+  \fi
+}
+
+\newlength{\headlineskip}
+\setlength{\headlineskip}{1.0\cm}
+\newlength{\extraheadlineskip}
+\setlength{\extraheadlineskip}{0.0\cm}
+
+\setbeamertemplate{headline}
+{
+  \vspace{\headlineskip}
+}
+
+
+\userightsidebartemplate{0cm}{
+  %      \vfill
+  %      \hskip -2cm
+  %      \begin{beamercolorbox}[wd=2cm,leftskip=5pt,rightskip=1pt plus1fil,vmode]{}
+  %                \vbox{}%
+  %                \hfill\footnotesize\insertframenumber /\inserttotalframenumber\hskip1em\hfill\par%
+  %                \vbox{}%
+  %                \vskip-1.5ex%
+  %      \end{beamercolorbox}
+}
+
+
+
+\mode<all>
