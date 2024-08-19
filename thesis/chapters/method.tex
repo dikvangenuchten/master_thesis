@@ -63,8 +63,10 @@ When all skip connections are of the type `Skip', our architecture is equal to t
 
 \begin{subequations}
     \begin{align}
-        \log p_\psi(y|x, z) & = \prod^C \sum_{i=0}^n y_{i,c} \log h_{i,c} \label{eq:log_p_y_z} \\
-        \text{where}~h      & = \text{softmax}(NN_\theta(x, z))
+        \log p_\psi(y|x, z) & = \sum^C_{c=0} \sum_{i=0}^N y_{i,c} \log h_{i,c} \label{eq:log_p_y_z} \\
+        \text{where}~h      & = \text{softmax}(NN_\theta(x, z))                                     \\
+        N                   & = Number of pixels                                                    \\
+        C                   & = Number of Classes
     \end{align}
 \end{subequations}
 
