@@ -63,7 +63,7 @@ When all skip connections are of the type `Skip', our architecture is equal to t
 
 \begin{subequations}
     \begin{align}
-        \log p_\psi(y|x, z) & = \sum_{i=0}^n y_i \log h_i + (1 - y_i)\log(1-h_i) \label{eq:log_p_y_z} \\
+        \log p_\psi(y|x, z) & = \prod^C \sum_{i=0}^n y_{i,c} \log h_{i,c} \label{eq:log_p_y_z} \\
         \text{where}~h      & = \text{softmax}(NN_\theta(x, z))
     \end{align}
 \end{subequations}

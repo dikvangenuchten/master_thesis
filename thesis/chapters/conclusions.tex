@@ -12,9 +12,6 @@ The usage of pre-trained weights, either received from our proposed VAE method o
 
 Finally, in the ablation study it is shown that, in contrast to the current development in Large Language Models, smaller models can achieve similar results to more complex and higher parameter count models. These smaller models provide major benefits such as reduced training time, lower memory requirements, and above all faster inference speed. The latter two being especially important in the view of mobile robotics.
 
-
-\todo{add part on the disappearing of smaller features}
-
 \section{Conclusion}\label{chapter:conclusions}
 
 We showed that the Variational Auto-Encoder (VAE) can be adapted to the semantic segmentation task, showing that the semantic segmentation task can be viewed as a generative problem. Its performance is similar to that of a U-Net. However, it is more computationally expensive. Therefore, in its current form, the VAES does not provide any benefits over the simpler U-Net and FPN architectures. This is specifically the case in mobile robotics, in which the inference speed is of huge importance. Here, the slower inference speed of the VAES is a major downside.
