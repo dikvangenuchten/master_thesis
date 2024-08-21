@@ -1,0 +1,2 @@
+_target_: trainer.Trainer
+clip_norm: 10

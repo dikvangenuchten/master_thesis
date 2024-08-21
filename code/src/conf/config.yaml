@@ -1,0 +1,19 @@
+defaults:
+  - default_dirs
+  - dataset: coco
+  - model: vaes
+  - scheduler: cosine_annealing
+  - optimizer: adamax
+  - loss: recon_loss
+  - .@trainer: trainer
+  - _self_
+
+num_steps: 10_000
+input_shape: [128, 128]
+batch_size: 16
+
+# These values are set by the dataloader
+class_weights: null
+class_map: null
+num_classes: null
+ignore_index: null

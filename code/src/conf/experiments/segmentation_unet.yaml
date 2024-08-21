@@ -1,0 +1,20 @@
+# @package _global_
+defaults:
+  - /loss@eval_metric: crossentropy_loss
+  - override /loss: semantic_loss
+  - override /model: unet
+  - override /scheduler: step
+
+dataset:
+  output_structure:
+    target: semantic_mask
+  supercategories_only: True
+
+model:
+  encoder_depth: 5
+  encoder_name: "resnet50"
+  encoder_weights: "imagenet"
+  # encoder_state_dict: "models/beta-vae-4/b10/model.pt"
+
+batch_size: 64
+input_shape: [128, 128]

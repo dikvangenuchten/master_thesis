@@ -1,0 +1,23 @@
+{
+    "python.testing.pytestArgs": [
+        "test"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "python.analysis.extraPaths": [
+        "/opt/conda/lib/python3.7",
+        "/opt/conda/lib/python3.7/site-packages",
+        "./src",
+        "./tests"
+    ],
+    // "runItOn": {
+        "commands": [
+            {
+                "match": "\\.py$",
+                "isAsync": true,
+                "isShellCommand": false,
+                "cmd": "testing.runAll"
+            },
+        ],
+    // },
+}

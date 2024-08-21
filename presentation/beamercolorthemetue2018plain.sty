@@ -1,0 +1,75 @@
+\mode<presentation>
+
+% TU/e Main Colour
+\definecolor{tuescarlet}{RGB}{200,24,24}       % Scarlet
+\definecolor{tuedarkblue}{RGB}{16,16,115}       % Dark blue (= tuepms2748)
+
+% The main theme colour: pink
+\definecolor{themecolor}{named}{tuescarlet}
+
+% Slide background colour: light grey
+\definecolor{tuelightgrey}{RGB}{241,239,239}
+\definecolor{slidebgcolor}{named}{tuelightgrey}
+\definecolor{chapterslidebgcolor}{named}{tuedarkblue}
+\definecolor{chapterslidefgcolor}{named}{white}
+\definecolor{tuemultibranding}{gray}{0.4}
+
+% The old TU/e colors.
+% Main Colours
+\definecolor{tuepmswarmred}{rgb}{0.969,0.192,0.192}       % warm red
+\definecolor{tuepmsprocesscyan}{rgb}{0.000,0.635,0.871}   % cyan
+\definecolor{tuepms206}{rgb}{0.839,0.000,0.290}           % pink
+\definecolor{tuepms300}{rgb}{0.000,0.400,0.800}           % blue
+\definecolor{tuepms226}{rgb}{0.839,0.000,0.482}           % a more 'pinkish, puplish' pink
+\definecolor{tuepms253}{rgb}{0.678,0.125,0.678}           % purple
+\definecolor{tuepms2748}{rgb}{0.063,0.063,0.451}          % dark blue
+% Support Colours
+\definecolor{tuepms137}{rgb}{1.000,0.604,0.000}           % orange
+\definecolor{tuepmsyellow012}{rgb}{1.000,0.867,0.000}     % yellow
+\definecolor{tuepms396}{rgb}{0.808,0.875,0.000}           % yellow-greenish
+\definecolor{tuepms375}{rgb}{0.518,0.824,0.000}           % light green
+\definecolor{tuepmsgreen}{rgb}{0.000,0.675,0.510}         % green
+\definecolor{tuepms3135}{rgb}{0.000,0.573,0.710}          % another type of blue
+
+% Alternative, more common, names for some of these colours:
+\definecolor{tuewarmred}{named}{tuepmswarmred}
+\definecolor{tuered}{named}{tuepmswarmred}
+\definecolor{tueprocesscyan}{named}{tuepmsprocesscyan}
+\definecolor{tuecyan}{named}{tuepmsprocesscyan}
+\definecolor{tuepink}{named}{tuepms206}
+\definecolor{tuecorporate}{named}{tuepms206}
+\definecolor{tueblue}{named}{tuepms300}
+\definecolor{tueorange}{named}{tuepms137}
+\definecolor{tueyellow}{named}{tuepmsyellow012}
+\definecolor{tuelightgreen}{named}{tuepms375}
+\definecolor{tuegreen}{named}{tuepmsgreen}
+
+
+% The main theme color: pink
+\definecolor{themecolor}{named}{tuescarlet}
+
+\DeclareOptionBeamer{theme}[scarlet]{%
+  \ifthenelse{\equal{#1}{scarlet}}{\definecolor{themecolor}{named}{tuescarlet}}{}
+  \ifthenelse{\equal{#1}{pink}}{\definecolor{themecolor}{named}{tuepms206}}{}
+  \ifthenelse{\equal{#1}{red}}{\definecolor{themecolor}{named}{tuepmswarmred}}{}
+  \ifthenelse{\equal{#1}{cyan}}{\definecolor{themecolor}{named}{tuepmsprocesscyan}}{}
+  \ifthenelse{\equal{#1}{purple}}{\definecolor{themecolor}{named}{tuepms253}}{}
+  \ifthenelse{\equal{#1}{green}}{\definecolor{themecolor}{named}{tuepms375}}{}
+  \ifthenelse{\equal{#1}{orange}}{\definecolor{themecolor}{named}{tuepms137}}{}
+  \ifthenelse{\equal{#1}{blue}}{\definecolor{themecolor}{named}{tuedarkblue}}{}
+}
+\ProcessOptionsBeamer
+
+
+\mode<all>
+
+
+\setbeamercolor{structure}{fg=tuedarkblue}
+\setbeamercolor{normal text}{fg=tuedarkblue}
+\setbeamercolor{math text}{fg=black}
+\setbeamercolor{itemize/enumerate body}{fg=tuedarkblue}
+
+\setbeamercolor{palette primary}{fg=green}
+\setbeamercolor{palette secondary}{fg=green}
+\setbeamercolor{palette tertiary}{fg=green}
+\setbeamercolor{palette quaternary}{fg=green}

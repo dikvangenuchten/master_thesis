@@ -1,0 +1,7 @@
+defaults:
+  - basic
+
+params:
+  +experiments: segmentation_var_unet
+  +model.state_dict: choice("models/pretrained-var-unet-seg-enc.pt", models/pretrained-var-unet-seg-enc-dec.pt)
+  num_steps: 1

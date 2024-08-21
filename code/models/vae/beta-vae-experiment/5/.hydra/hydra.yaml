@@ -1,0 +1,205 @@
+hydra:
+  run:
+    dir: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: multirun/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    subdir: ${hydra.job.num}
+  launcher:
+    submitit_folder: ${hydra.sweep.dir}/.submitit/%j
+    timeout_min: 600
+    cpus_per_task: null
+    gpus_per_node: null
+    tasks_per_node: 1
+    mem_gb: null
+    nodes: 1
+    name: thesis-dik-${hydra.job.name}
+    _target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
+    partition: mcs.gpu.q
+    qos: null
+    comment: null
+    constraint: null
+    exclude: null
+    gres: null
+    cpus_per_gpu: 7
+    gpus_per_task: 1
+    mem_per_gpu: 32G
+    mem_per_cpu: null
+    account: null
+    signal_delay_s: 120
+    max_num_timeout: 0
+    additional_parameters:
+      nice: 1000
+      mail-user: h.j.m.v.genuchten@student.tue.nl
+    setup: null
+    srun_args: null
+  sweeper:
+    _target_: hydra._internal.core_plugins.basic_sweeper.BasicSweeper
+    max_batch_size: null
+    params:
+      +experiments: choice('var_unet')
+      model.encoder_weights: choice("imagenet", "None")
+      loss.losses.kl_divergence.start_value: choice(10, 1, 0.1, 0.01)
+      +trainer.init_kwargs.wandb.group: beta_vae
+      +trainer.init_kwargs.wandb.notes: Sweep to check the various features layers
+        of various beta values
+  help:
+    app_name: ${hydra.job.name}
+    header: '${hydra.help.app_name} is powered by Hydra.
+
+      '
+    footer: 'Powered by Hydra (https://hydra.cc)
+
+      Use --hydra-help to view Hydra specific help
+
+      '
+    template: '${hydra.help.header}
+
+      == Configuration groups ==
+
+      Compose your configuration from those groups (group=option)
+
+
+      $APP_CONFIG_GROUPS
+
+
+      == Config ==
+
+      Override anything in the config (foo.bar=value)
+
+
+      $CONFIG
+
+
+      ${hydra.help.footer}
+
+      '
+  hydra_help:
+    template: 'Hydra (${hydra.runtime.version})
+
+      See https://hydra.cc for more info.
+
+
+      == Flags ==
+
+      $FLAGS_HELP
+
+
+      == Configuration groups ==
+
+      Compose your configuration from those groups (For example, append hydra/job_logging=disabled
+      to command line)
+
+
+      $HYDRA_CONFIG_GROUPS
+
+
+      Use ''--cfg hydra'' to Show the Hydra config.
+
+      '
+    hydra_help: ???
+  hydra_logging:
+    version: 1
+    formatters:
+      simple:
+        format: '[%(asctime)s][HYDRA] %(message)s'
+    handlers:
+      console:
+        class: logging.StreamHandler
+        formatter: simple
+        stream: ext://sys.stdout
+    root:
+      level: INFO
+      handlers:
+      - console
+    loggers:
+      logging_example:
+        level: DEBUG
+    disable_existing_loggers: false
+  job_logging:
+    version: 1
+    formatters:
+      simple:
+        format: '[%(asctime)s][%(name)s][%(levelname)s] - %(message)s'
+    handlers:
+      console:
+        class: logging.StreamHandler
+        formatter: simple
+        stream: ext://sys.stdout
+      file:
+        class: logging.FileHandler
+        formatter: simple
+        filename: ${hydra.runtime.output_dir}/${hydra.job.name}.log
+    root:
+      level: INFO
+      handlers:
+      - console
+      - file
+    disable_existing_loggers: false
+  env: {}
+  mode: MULTIRUN
+  searchpath: []
+  callbacks: {}
+  output_subdir: .hydra
+  overrides:
+    hydra:
+    - hydra/launcher=tue_slurm
+    - hydra/sweeper=beta_vae
+    - hydra.mode=MULTIRUN
+    task:
+    - +experiments=var_unet
+    - model.encoder_weights=None
+    - loss.losses.kl_divergence.start_value=1
+    - +trainer.init_kwargs.wandb.group=beta_vae
+    - +trainer.init_kwargs.wandb.notes=Sweep\ to\ check\ the\ various\ features\ layers\
+      of\ various\ beta\ values
+    - +mod=tue
+  job:
+    name: hydra_main
+    chdir: null
+    override_dirname: +experiments=var_unet,+mod=tue,+trainer.init_kwargs.wandb.group=beta_vae,+trainer.init_kwargs.wandb.notes=Sweep\
+      to\ check\ the\ various\ features\ layers\ of\ various\ beta\ values,loss.losses.kl_divergence.start_value=1,model.encoder_weights=None
+    id: '721815_5'
+    num: 5
+    config_name: config
+    env_set: {}
+    env_copy: []
+    config:
+      override_dirname:
+        kv_sep: '='
+        item_sep: ','
+        exclude_keys: []
+  runtime:
+    version: 1.3.2
+    version_base: '1.3'
+    cwd: /home/mcs001/20182591/master_thesis/code/src
+    config_sources:
+    - path: hydra.conf
+      schema: pkg
+      provider: hydra
+    - path: /home/mcs001/20182591/master_thesis/code/src/conf
+      schema: file
+      provider: main
+    - path: ''
+      schema: structured
+      provider: schema
+    output_dir: /home/mcs001/20182591/master_thesis/code/src/multirun/2024-07-05/13-43-47/5
+    choices:
+      mod: tue
+      experiments: var_unet
+      loss@eval_metric: l1_loss
+      .@trainer: trainer
+      loss: recon_loss
+      optimizer: sgd
+      scheduler: step
+      model: var_unet
+      dataset: coco
+      hydra/env: default
+      hydra/callbacks: null
+      hydra/job_logging: default
+      hydra/hydra_logging: default
+      hydra/hydra_help: default
+      hydra/help: default
+      hydra/sweeper: beta_vae
+      hydra/launcher: tue_slurm
+      hydra/output: default
+  verbose: false

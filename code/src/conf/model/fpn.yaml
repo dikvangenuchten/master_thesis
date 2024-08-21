@@ -1,0 +1,7 @@
+_target_: models.TorchSegModel
+architecture: fpn
+image_channels: 3
+encoder_depth: 5
+encoder_name: resnet50
+encoder_weights: none
+encoder_freeze: false

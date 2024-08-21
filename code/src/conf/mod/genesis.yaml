@@ -1,0 +1,6 @@
+# @package _global_
+paths:
+  datasets: /home/ubuntu/master_thesis/data/
+  workdir: /home/ubuntu/master_thesis/code/
+
+++batch_size: 256

@@ -1,0 +1,12 @@
+defaults:
+  - basic
+
+params:
+  +experiments: "segmentation_var_unet"
+  model.skip_connections: choice([True, False, False, False, False])
+  model.variational_skip_connections: choice([False, False, False, False, False], [False, False, False, False, False])
+
+  +trainer.init_kwargs.wandb.group: "Unet-no-skip-experiment"
+  +trainer.init_kwargs.wandb.notes: "Unet without skip connections to understand the importance of them. A benefit if it is not super important is easier multimodal support"
+  +trainer.init_kwargs.wandb.magic: True
+  num_steps: 15_000

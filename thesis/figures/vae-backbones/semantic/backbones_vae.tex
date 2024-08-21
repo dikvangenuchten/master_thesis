@@ -1,0 +1,16 @@
+\begin{table}[ht]
+    \centering
+    \caption{VAES results of the various backbones.}
+    \label{tab:vaes-backbones-results}
+    \begin{tabular}{lrrr}
+        \toprule
+                     & Parameters ($1e^6$) & MAC ($1e^9$)  & Jaccard Index \\
+        Backbone     &                     &               &               \\
+        \midrule
+        EfficientNet & 12.09               & 0.91          & \textbf{0.47} \\
+        MobileNetV2  & \textbf{6.05}       & \textbf{0.77} & 0.42          \\
+        ResNet18     & 20.67               & 1.96          & 0.42          \\
+        ResNet50     & 132.87              & 7.80          & 0.46          \\
+        \bottomrule
+    \end{tabular}
+\end{table}

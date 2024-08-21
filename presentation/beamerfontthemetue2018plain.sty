@@ -1,0 +1,27 @@
+\mode<presentation>
+
+%\RequirePackage[sfdefault]{noto}
+\RequirePackage{ifthen}
+%\RequirePackage[T1]{fontenc}
+
+\newcommand{\calibri}{false}
+
+
+\DeclareOptionBeamer{calibri}[false]{%
+    \ifthenelse{\equal{#1}{true}}{\renewcommand{\calibri}{true}}{\renewcommand{\calibri}{false}}
+}
+
+\ProcessOptionsBeamer
+
+\ifthenelse{\equal{\calibri}{false}}{%\relax
+    \RequirePackage[sfdefault]{noto}
+}{%
+    % Use Calibri fonts - only possible with XeLaTeX!!!
+    \RequirePackage[no-math]{fontspec}      % defines LaTeX commands to load system fonts - for XeTeX only!
+    \RequirePackage{xunicode}               % needed to display some special characters correctly, like %, $
+    \RequirePackage{xltxtra}                % some general improvements, defines the XeTeX logo
+    \setmainfont{carlito}
+    \setmonofont{Lucida Console}
+    \setsansfont{carlito}
+}
+\mode<all>

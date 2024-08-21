@@ -1,0 +1,16 @@
+\begin{table}[ht]
+    \centering
+    \caption{VAE and VAES results of the various backbones.}
+    \label{tab:vae-backbones-results}
+    \begin{tabular}{lrrrrr}
+        \toprule
+                     & Parameters ($1e^6$) & MAC ($1e^9$)  & L1Loss        & $\frac{\text{KL-Divergence}}{\text{Pixel}}$ & Jaccard Index \\
+        Backbone     &                     &               &               &                                                             \\
+        \midrule
+        EfficientNet & 12.09               & 0.91          & 5.99          & \textbf{2.88}                               & \textbf{0.47} \\
+        MobileNetV2  & \textbf{6.05}       & \textbf{0.77} & 6.74          & 3.11                                        & 0.42          \\
+        ResNet18     & 20.67               & 1.96          & \textbf{5.94} & 4.07                                        & 0.42          \\
+        ResNet50     & 132.87              & 7.80          & 6.29          & 4.27                                        & 0.46          \\
+        \bottomrule
+    \end{tabular}
+\end{table}

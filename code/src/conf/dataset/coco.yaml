@@ -1,0 +1,7 @@
+_target_: datasets.coco.CoCoDataset
+output_structure:
+  input: img
+  target: semantic_mask
+rel_path: "coco"
+dataset_root: ${..paths.datasets}
+ignore_index: 133

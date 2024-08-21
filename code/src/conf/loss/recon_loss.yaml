@@ -1,0 +1,7 @@
+defaults:
+  - l1_loss@losses.l1_loss
+  - annealing_kl_divergence_loss@losses.kl_divergence
+
+
+_target_: losses.SummedLoss
+_recursive_: True

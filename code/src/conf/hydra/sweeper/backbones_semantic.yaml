@@ -1,0 +1,10 @@
+defaults:
+  - basic
+
+params:
+  +task: semantic
+  model: vaes
+  model.encoder_name: choice(mobilenetv2_100,resnet50,resnet18,efficientnet_b2)
+  model.encoder_weights: imagenet
+  input_shape: choice([128, 128])
+  +trainer.init_kwargs.wandb.group: backbone_sweep_semantic_${now:%Y-%m-%d:%H-%M-%S}

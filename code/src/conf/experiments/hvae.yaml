@@ -1,0 +1,20 @@
+# @package _global_
+defaults:
+  - /loss: recon_loss
+
+dataset:
+  output_structure:
+    target: img
+
+model: # Disable the skip connection on the highest level, as that is the full image
+  encoder_depth: 5
+  skip_connections: [True, True, True, True, False]
+  activation:
+    _target_: torch.nn.Sigmoid
+  encoder_weights: imagenet
+
+optimizer:
+  lr: 1e-3
+
+batch_size: 16
+input_shape: [128, 128]

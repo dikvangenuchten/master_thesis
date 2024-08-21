@@ -10,7 +10,3 @@ $\sigma$ is the "predicted" variance
 $\epsilon \sim N(0, I)$
 
 This makes $\mu$ and $\sigma$ deterministic and can thus be back-propagated.
-
-
-
-

@@ -1,0 +1,86 @@
+% TU/e Style Master Thesis template for LaTeX
+%
+% 2021 Crated by Marko Boon to new corporate identity,
+% Based on a template by Thijs Nugteren and Joos Buijs.
+%
+% THIS IS THE MAIN FILE (i.e. compile this file, compiling the others directly won't work)
+%
+\documentclass[a4paper,10pt,twoside,openany]{book}
+\usepackage{tuethesis2021}
+\usepackage{pgffor}
+\usepackage{multirow}
+\usepackage{algorithm2e}
+%
+% These commands need to be defined in order to produce a correct and personalized document.
+% You will get error messages if not all these commands are defined.
+% If you don't need a specific command, just leave the argument empty.
+% For example: \docsubtitle{}
+%
+\newcommand{\doctitle}{Variational Autoencoding and Segmentation}
+\newcommand{\docsubtitle}{Master's Thesis}
+\newcommand{\me}{H.J.M. van Genuchten}
+\newcommand{\version}{V1.0.0}
+\newcommand{\placeMonthYear}{Eindhoven, August 2024}
+\newcommand{\department}{Department of Mathematics and Computer Science}
+\newcommand{\group}{Generative Artificial Intelligence}
+\newcommand{\firstCommitteeMember}{Dr. Jakub Tomczak} % use all the titles for your committee members!
+\newcommand{\secondCommitteeMember}{Ir. Bart Keulen} % usually the daily supervisor
+\newcommand{\thirdCommitteeMember}{Prof. Dr. Anna Vilanova} % usually the external member
+
+\DeclareRobustCommand{\bbone}{\text{\usefont{U}{bbold}{m}{n}1}}
+
+\DeclareMathOperator{\EX}{\mathbb{E}}
+\newcommand\independent{\protect\mathpalette{\protect\independenT}{\perp}}
+\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}}
+
+\begin{document}
+% The title page will be inserted automatically, here.
+
+\clearpage
+
+%Sometimes line numbers are nice, uncomment the next line to enable:
+% \linenumbers
+
+\input{chapters/abstract}
+
+\input{chapters/preface}
+
+\tableofcontents
+
+% \lstlistoflistings
+
+\mainmatter
+
+\input{chapters/introduction}
+
+\input{chapters/background}
+
+\input{chapters/method}
+
+\input{chapters/experiments}
+
+\input{chapters/conclusions}
+
+\input{chapters/future_work}
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\listoffigures
+
+\listoftables
+
+\clearpage
+
+\appendix
+% \addcontentsline{toc}{chapter}{Appendix}
+\include{appendices/full_derivation}
+\include{appendices/comparison_baselinse}
+\include{appendices/dataset_percentage_full_anova}
+\include{appendices/skip_importance}
+\include{appendices/coco_samples}
+\include{appendices/recon_samples}
+
+% \input{appendices/main}
+
+\end{document}

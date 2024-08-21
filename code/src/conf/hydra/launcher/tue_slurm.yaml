@@ -1,0 +1,29 @@
+# @package hydra.launcher
+submitit_folder: ${hydra.sweep.dir}/.submitit/%j
+timeout_min: 600 #(10 * 60)
+cpus_per_task: null
+gpus_per_node: null
+tasks_per_node: 1
+mem_gb: null
+nodes: 1
+name: thesis-dik-${hydra.job.name}
+_target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
+partition: mcs.gpu.q
+qos: null
+comment: null
+constraint: null
+exclude: null
+gres: null
+cpus_per_gpu: 7
+gpus_per_task: 1
+mem_per_gpu: 32G
+mem_per_cpu: null
+account: null
+signal_delay_s: 120
+max_num_timeout: 0
+additional_parameters:
+  nice: 1000
+  mail-user: "h.j.m.v.genuchten@student.tue.nl"
+# array_parallelism: 4
+setup: null
+srun_args: null

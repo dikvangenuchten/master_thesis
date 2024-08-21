@@ -1,0 +1,10 @@
+defaults:
+  - basic
+
+params:
+  +experiments: choice('var_unet')
+  model.encoder_weights: choice("None")
+  model.encoder_name: choice("mit_b2", "mobilevitv2_100", "mobilenetv2_100", "efficientnet_b2", "resnet50")
+  loss.losses.kl_divergence.start_value: choice(1)
+  +trainer.init_kwargs.wandb.group: "vae_backbones_2"
+  +trainer.init_kwargs.wandb.notes: "Sweep to check the various backbones for the VAE"

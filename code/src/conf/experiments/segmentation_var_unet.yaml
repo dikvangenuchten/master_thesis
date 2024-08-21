@@ -1,0 +1,29 @@
+# @package _global_
+defaults:
+  - /loss@eval_metric: crossentropy_loss
+  - override /loss: semantic_loss
+  - override /model: var_unet
+
+dataset:
+  output_structure:
+    target: semantic_mask
+  supercategories_only: True
+
+eval_metric:
+  loss_fn:
+    reduction: "none" # null results in an error in pytorch
+
+model:
+  encoder_depth: 5
+  encoder_name: "resnet50"
+  encoder_weights: imagenet
+  skip_connections: [True, True, True, True, True]
+  variational_skip_connections: [False, False, False, False, False]
+  state_dict: ""
+  load_encoder: True
+  freeze_encoder: False
+  load_decoder: False
+  load_segmentation_head: False
+
+batch_size: 64
+input_shape: [128, 128]

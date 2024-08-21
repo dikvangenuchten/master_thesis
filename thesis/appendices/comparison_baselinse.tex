@@ -1,0 +1,50 @@
+\chapter{Baseline Comparison OLS}
+\label{appendix:baselines_comparison_full}
+This is the summary made of the OLS model by the Python Package: Statsmodels~\cite{josef_perktold_2024_10984387}. First an OLS model containing all 1 and 2 level interaction effects was fitted. This was then analysed using `anova\_lm'. All significant ($\alpha\le0.05$) effects where used in the final model. The full summary of which can be seen in Table~\ref{tab:comparison_baselines_full_ols}.
+
+\begin{table}[ht]
+\caption{Results: Ordinary least squares}
+\label{tab:comparison_baselines_full_ols}
+\begin{center}
+\begin{tabular}{llll}
+\hline
+Model:              & OLS              & Adj. R-squared:     & 0.928       \\
+Dependent Variable: & eval\_metric     & AIC:                & -80.8795    \\
+Date:               & 2024-08-07 23:10 & BIC:                & -74.6124    \\
+No. Observations:   & 21               & Log-Likelihood:     & 46.440      \\
+Df Model:           & 5                & F-statistic:        & 52.40       \\
+Df Residuals:       & 15               & Prob (F-statistic): & 5.74e-09    \\
+R-squared:          & 0.946            & Scale:              & 0.00098365  \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{lrrrrrr}
+\hline
+                     &   Coef. & Std.Err. &       t & P$> |$t$|$ &  [0.025 & 0.975]  \\
+\hline
+Intercept            &  0.2163 &   0.0205 & 10.5354 &      0.0000 &  0.1725 & 0.2601  \\
+weights[T.imagenet]  &  0.2127 &   0.0222 &  9.5916 &      0.0000 &  0.1654 & 0.2600  \\
+weights[T.vae-b1]    & -0.0294 &   0.0222 & -1.3272 &      0.2043 & -0.0767 & 0.0178  \\
+weights[T.vae-b100]  & -0.0343 &   0.0222 & -1.5448 &      0.1432 & -0.0815 & 0.0130  \\
+architecture[T.fpn]  &  0.0585 &   0.0168 &  3.4885 &      0.0033 &  0.0228 & 0.0942  \\
+architecture[T.unet] &  0.0249 &   0.0168 &  1.4847 &      0.1583 & -0.0108 & 0.0606  \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{llll}
+\hline
+Omnibus:       & 4.233  & Durbin-Watson:    & 3.312  \\
+Prob(Omnibus): & 0.120  & Jarque-Bera (JB): & 1.451  \\
+Skew:          & -0.007 & Prob(JB):         & 0.484  \\
+Kurtosis:      & 1.712  & Condition No.:    & 7      \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+\bigskip
+Notes: \newline 
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.

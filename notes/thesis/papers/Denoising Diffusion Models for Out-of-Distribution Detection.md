@@ -35,4 +35,3 @@ DDPM is compared with the following baselines:
 	- MemAE
 	- AnoDDPM-Mod
 	- DDPM (This paper)
-

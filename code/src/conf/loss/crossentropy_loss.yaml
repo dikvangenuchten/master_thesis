@@ -1,0 +1,11 @@
+_target_: "losses.WrappedLoss"
+loss_fn:
+  _target_: "torch.nn.CrossEntropyLoss"
+  ignore_index: ${dataset.ignore_index}
+  reduction: sum
+  weight: 
+    _target_: "torch.as_tensor"
+    data: ${class_weights}
+keys:
+  out: input
+  target: target

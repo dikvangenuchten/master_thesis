@@ -19,11 +19,11 @@ Diffusion models work on the basis of two steps:
 	Find the inverse of $q(x_t|x_{t-1})$ i.e. $q(x_{t-1}|x_t)$
 	When we have that we can recreate data from the original dataset by sampling $X_T \sim N(0, I)$ and repeatedly applying $q(x_{t-1}|x_t)$.  We learn a model: $p_\theta$ which approximates this function.
 	$$
-	p_\theta(\mathbf{x}_{0:T}) = p(\mathbf{x}_T) \prod^T_{t=1} p_\theta(\mathbf{x}_{t-1} \vert \mathbf{x}_t) 
+	p_\theta(\mathbf{x}_{0:T}) = p(\mathbf{x}_T) \prod^T_{t=1} p_\theta(\mathbf{x}_{t-1} \vert \mathbf{x}_t)
 	$$ $$
 p_\theta(\mathbf{x}_{t-1} \vert \mathbf{x}_t) = \mathcal{N}(\mathbf{x}_{t-1}; \boldsymbol{\mu}_\theta(\mathbf{x}_t, t), \boldsymbol{\Sigma}_\theta(\mathbf{x}_t, t))
 $$
-	Using the [[Reparameterization Trick]] 
+	Using the [[Reparameterization Trick]]
 
 
 

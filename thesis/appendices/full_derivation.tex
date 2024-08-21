@@ -1,0 +1,27 @@
+\chapter{Derivation of $\log p_\theta(x,y)$}\label{appendix:full_derivation}
+
+\begin{align}
+    \log p_\theta(x, y) & = \mathbb{E}_{q_{\phi}(z | x)}\left[\log p_\theta(x, y)\right]        \label{eq:derivation_expactation}                                                                                                                          \\
+                        & = \mathbb{E}_{q_{\phi}(z | x)}\left[\log \frac{p_\theta(x, y, z)}{p_\theta(z|x)} \right]    \label{eq:derivation_bayes}                                                                                                          \\
+                        & = \mathbb{E}_{q_{\phi}(z | x)}\left[\log \frac{p_\theta(x, y, z)}{p_\theta(z|x)} \cdot \frac{q_\phi(z|x)}{q_\phi(z|x)}\right]    \label{eq:derivation_mul_1}                                                                     \\
+                        & = \mathbb{E}_{q_{\phi}(z | x)}\left[\log \frac{p_\theta(x, y, z)}{q_\phi(z|x)} \cdot \frac{q_\phi(z|x)}{p_\theta(z|x)}\right]    \label{eq:derivation_reverse_denominator}                                                       \\
+                        & = \mathbb{E}_{q_{\phi}(z | x)}\left[\log \frac{p_\theta(x, y, z)}{q_\phi(z|x)}\right] + \mathbb{E}_{q_{\phi}(z | x)}\left[\log \frac{q_\phi(z|x)}{p_\theta(z|x)}\right]  \label{eq:derivation_expand_log}                        \\
+                        & = \mathbb{E}_{q_{\phi}(z | x)}\left[\log \frac{p_\theta(x, y, z)}{q_\phi(z|x)}\right] + D_{KL}(q_\phi(z|x) || p_\theta(z|x)) \label{eq:derivation_def_kl}                                                                        \\
+                        & = \mathbb{E}_{q_{\phi}(z | x)}\left[ \log \frac{p_\theta(x, y | z) \cdot p_\theta(z)}{q_\phi(z|x)}\right] + D_{KL}(q_\phi(z|x) || p_\theta(z|x)) \label{eq:derivation_expansion_conditional}                                     \\
+                        & = \mathbb{E}_{q_{\phi}(z | x)}\left[ \log p_\theta(x, y | z) \right] + \mathbb{E}_{q_{\phi}(z | x)}\left[ \log \frac{ p_\theta(z)}{q_\phi(z|x)}\right] + D_{KL}(q_\phi(z|x) || p_\theta(z|x)) \label{eq:derivation_expand_log_2} \\
+                        & = \mathbb{E}_{q_{\phi}(z | x)}\left[\log p_\theta(x, y | z)\right] - \mathbb{E}_{q_{\phi}(z | x)}\left[\log \frac{q_\phi(z|x)}{p_\theta(z)}\right] + D_{KL}(q_\phi(z|x) || p_\theta(z|x)) \label{eq:derivation_inverse_log}      \\
+                        & = \mathbb{E}_{q_{\phi}(z | x)}\left[\log p_\theta(x, y | z)\right] - D_{KL}(q_\phi(z|x) || p(z)) + D_{KL}(q_\phi(z|x) || p_\theta(z|x))         \label{eq:derivation_def_kl_2}                                                   \\
+                        & = D_{KL}(q_\phi(z|x) || p_\theta(z|x)) + \mathbb{E}_{q_{\phi}(z | x)}\left[\log p_\theta(x, y | z)\right] - D_{KL}(q_\phi(z|x) || p(z)) \label{eq:derivation_reorder_terms}
+\end{align}
+
+\begin{itemize}
+    \item Eq.~\ref{eq:derivation_bayes}: Bayes' Rule.
+    \item Eq.~\ref{eq:derivation_mul_1}: Multiplication by 1.
+    \item Eq.~\ref{eq:derivation_reverse_denominator}: Reverse order of multiplication.
+    \item Eq.~\ref{eq:derivation_expand_log} and Eq.~\ref{eq:derivation_expand_log_2}: $\log(A \cdot B) = \log(A) + \log(B)$.
+    \item Eq.~\ref{eq:derivation_def_kl} and Eq.~\ref{eq:derivation_def_kl_2}: Definition of the KL-divergence.
+    \item Eq.~\ref{eq:derivation_expansion_conditional}: Conditional Probability.
+    \item Eq.~\ref{eq:derivation_inverse_log}: $\log \frac{A}{B} = - \log \frac{B}{A}$.
+    \item Eq.~\ref{eq:derivation_reorder_terms}: Reorder the terms.
+\end{itemize}
+

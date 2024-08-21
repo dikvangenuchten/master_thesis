@@ -1,0 +1,6 @@
+_target_: "losses.WrappedLoss"
+loss_fn:
+  _target_: "torch.nn.MSELoss"
+keys:
+  out: input
+  input: target

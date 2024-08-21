@@ -1,0 +1,91 @@
+paths:
+  datasets: /home/mcs001/20182591/data/
+  workdir: /home/mcs001/20182591/master_thesis/code/
+  checkpoints: ckpts/
+  max_checkpoints: 5
+dataset:
+  _target_: datasets.coco.CoCoDataset
+  output_structure:
+    input: img
+    target: img
+  rel_path: coco
+  dataset_root: ${..paths.datasets}
+  ignore_index: 133
+  cache_dir: in_memory
+model:
+  _target_: models.VariationalUNet
+  image_channels: 3
+  encoder_depth: 5
+  encoder_weights: None
+  center_variational: true
+  img_size: ${input_shape}
+  skip_connections:
+  - false
+  - false
+  - false
+  - false
+  - false
+  variational_skip_connections:
+  - false
+  - false
+  - false
+  - false
+  - false
+  encoder_name: resnet50
+  activation:
+    _target_: torch.nn.Sigmoid
+scheduler:
+  _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+  T_max: 1000
+  eta_min: 1.0e-05
+optimizer:
+  _target_: torch.optim.Adamax
+  lr: 0.001
+  betas:
+  - 0.9
+  - 0.999
+  eps: 1.0e-08
+  weight_decay: 0.0001
+loss:
+  losses:
+    l1_loss:
+      _target_: losses.WrappedLoss
+      loss_fn:
+        _target_: torch.nn.L1Loss
+        reduction: sum
+      keys:
+        out: input
+        input: target
+    kl_divergence:
+      loss_fn:
+        _target_: losses.HierarchicalKLDivergenceLoss
+      _target_: losses.AnnealingWeightedLoss
+      start_value: 0.01
+      end_value: null
+      max_step: 1000
+  _target_: losses.SummedLoss
+  _recursive_: true
+trainer:
+  _target_: trainer.Trainer
+  clip_norm: 10
+  init_kwargs:
+    wandb:
+      group: beta_vae_4
+      notes: Sweep to check the various features layers of various beta values
+num_steps: 20000
+input_shape:
+- 128
+- 128
+batch_size: 128
+class_weights: null
+class_map: null
+num_classes: null
+ignore_index: null
+eval_metric:
+  _target_: losses.WrappedLoss
+  loss_fn:
+    _target_: torch.nn.L1Loss
+    reduction: none
+  keys:
+    out: input
+    input: target

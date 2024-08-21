@@ -255,12 +255,12 @@ acs-*.bib
 #(r)(e)ledmac/(r)(e)ledpar
 *.end
 *.?end
-*.[1-9]
-*.[1-9][0-9]
-*.[1-9][0-9][0-9]
-*.[1-9]R
-*.[1-9][0-9]R
-*.[1-9][0-9][0-9]R
+# *.[1-9]
+# *.[1-9][0-9]
+# *.[1-9][0-9][0-9]
+# *.[1-9]R
+# *.[1-9][0-9]R
+# *.[1-9][0-9][0-9]R
 *.eledsec[1-9]
 *.eledsec[1-9]R
 *.eledsec[1-9][0-9]
@@ -477,3 +477,22 @@ TSWLatexianTemp*
 
 # All pdfs will be auto generated on git
 *.pdf
+
+# WandB local log folder
+wandb
+
+# Test visualization
+dbg
+tmp
+
+# Result folder
+results
+outputs
+
+# Not needed in tracking
+poster
+planning
+notes
+multirun
+ckpts
+evaluation-graphs

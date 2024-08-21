@@ -1,0 +1,46 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: main",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "src/hydra_main.py",
+            "args": [
+                "-m",
+                "hydra/sweeper=beta_vae_finetune",
+                "num_steps=0"
+            ],
+            "console": "integratedTerminal",
+            "env": {
+                // "CUDA_LAUNCH_BLOCKING": "1",
+                "PYTORCH_CUDA_ALLOC_CONF": "max_split_size_mb: 512",
+                "HYDRA_FULL_ERROR": "1",
+            },
+            "justMyCode": false
+        },
+        {
+            "name": "Python: Debug Tests",
+            "type": "debugpy",
+            "request": "launch",
+            "purpose": [
+                "debug-test"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "PYTORCH_CUDA_ALLOC_CONF": "max_split_size_mb: 512",
+            },
+            "cwd": "${workspaceFolder}/src"
+        },
+    ],
+    "compounds": []
+}

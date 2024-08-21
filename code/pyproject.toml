@@ -1,0 +1,8 @@
+[tool.pytest.ini_options]
+pythonpath = "src"
+# This is more reliable then testpaths
+norecursedirs = "[!t][!e][!s][!t]*"
+
+[tool.ruff]
+line-length = 72
+indent-width = 4
